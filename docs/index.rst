@@ -9,6 +9,8 @@ BGP-simulation's documentation!
 .. toctree::
    :maxdepth: 2
 
+   compilation.md
+
 -----
 
 * :ref:`search`
