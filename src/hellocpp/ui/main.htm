@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <title>Hello</title>
+    <style>
+
+     html {
+      background:gold;
+     } 
+
+     body {
+      vertical-align:middle;
+      text-align:center;
+     }
+
+    </style>
+    <script type="text/tiscript">
+
+     function self.ready() {
+      // calling native method defined in main.cpp
+      $(body).text = view.frame.nativeMessage(); 
+     }
+
+    </script>
+  </head>
+  <body>
+
+  </body>
+</html>
