@@ -1,0 +1,27 @@
+# Docs builder
+#
+# Build:
+#	  docker build -t igang/docs-builder -f Dockerfile-docs .
+#
+# Run:
+#     docker run --rm -v ./docs:/docs igang/docs-builder [make command]
+#
+#
+# Troubleshooting:
+#	  Windows requires absolute path when using docker run
+# 	  example: docker run --rm -v "absolute\path\to\project\docs:/docs" igang/docs-builder [make command]
+
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+	&& rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install sphinx; \
+    pip3 install recommonmark; \
+    pip3 install sphinx-rtd-theme;
+
+WORKDIR /docs
+
+CMD ["make", "html"]
