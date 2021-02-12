@@ -1,7 +1,9 @@
 #include <iostream>
 #include "tins/tins.h"
-// using namespace std;
+
+using namespace std;
 using namespace Tins;
+
 int main()
 {
     std::cout << "Hello, World!" << std::endl;
