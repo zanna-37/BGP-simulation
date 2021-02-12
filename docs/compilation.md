@@ -28,7 +28,8 @@ We should specify the `[make command]` to execute. See the [Build locally](#buil
 docker run --rm -v ".:/project" --name build_env igang/build-cpp-env [make command]
 ```
 
-💡 **Troubleshooting**  
+💡 **Troubleshooting**
+
 Windows requires full path when using docker run.
 
 ```bash
@@ -95,7 +96,8 @@ We should specify the `[make command]` to execute. See the [Build docs locally](
 docker run --rm -v ./docs:/docs igang/docs-builder [make command]
 ```
 
-💡 **Troubleshooting**  
+💡 **Troubleshooting**
+
 Windows requires full path when using docker run.
 
 ```bash
