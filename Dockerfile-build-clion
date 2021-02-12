@@ -30,6 +30,13 @@ RUN apt-get update && apt-get install -y \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \
+    # libtins requirements
+    libpcap-dev \
+    # libssl-dev \
+    # END: libtins requirements
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
     ssh \
 	&& rm -rf /var/lib/apt/lists/*
 
