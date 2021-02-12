@@ -24,6 +24,13 @@ RUN apt-get update && apt-get install -y \
     cmake \
 	&& rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y \
+    # libtins requirements
+    libpcap-dev \
+    # libssl-dev \
+    # END: libtins requirements
+	&& rm -rf /var/lib/apt/lists/*
+
 WORKDIR /project
 
 CMD ["make", "build"]
