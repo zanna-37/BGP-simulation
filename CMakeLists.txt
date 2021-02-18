@@ -4,40 +4,27 @@ project(BGP_simulation)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ansi -pedantic -W -Wall -Werror")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ./build)
 
 set(SRC src)
-set(ENTITIES ${SRC}/entities)
+set(SRC_ENTITIES ${SRC}/entities)
 
-set(INCLUDE_FOLDER include)
-#set(INCLUDES
-#        ${INCLUDE_FOLDER}/tins/tins.h
-#        )
-
-set(LIBRARIES_FOLDER lib)
-set(LIBRARIES
-        ${CMAKE_SOURCE_DIR}/${LIBRARIES_FOLDER}/libtins.a
-        )
-
-#include_directories(${CMAKE_PROJECT_NAME}
-#        ${INCLUDE_FOLDER}
-#        )
-#link_directories(${CMAKE_PROJECT_NAME}
-#        ${INCLUDE_FOLDER}
-#        ${LIBRARIES_FOLDER}
-#        )
 
 set(SOURCE_FILES
-        ${SRC}/main.cpp
-        )
+		${SRC}/main.cpp)
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 
 
-target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC
-        ${INCLUDE_FOLDER}
-        )
-target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC
-        ${LIBRARIES}
-        )
+###### Libraries and dependencies #####
+
+set(LIBRARIES_FOLDER lib)
+
+# Tins
+set(LIBTINS_ROOT ${LIBRARIES_FOLDER}/libtins)
+IF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${LIBTINS_ROOT}/CMakeLists.txt")
+	add_subdirectory(${LIBTINS_ROOT})
+	target_include_directories(${CMAKE_PROJECT_NAME} PUBLIC ${LIBTINS_ROOT}/include)
+	target_link_libraries(${CMAKE_PROJECT_NAME} tins)
+ELSE()
+	MESSAGE(FATAL_ERROR "libtins git submodule is absent. Run `git submodule update --init --recursive` to get it")
+ENDIF()
