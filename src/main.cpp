@@ -6,6 +6,9 @@
 #include <UdpLayer.h>
 
 #include <iostream>
+#include <string>
+
+#include "entities/Router.h"
 
 using namespace std;
 
@@ -35,6 +38,10 @@ int main() {
     newPacket.computeCalculateFields();
 
     cout << newPacket.toString() << endl;
+
+    Router r("R1", "AS_12345", nullptr);
+
+    cout << r.ID << endl;
 
     return 0;
 }
