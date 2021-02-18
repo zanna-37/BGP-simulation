@@ -2,7 +2,7 @@
 
 TARGET_EXEC := BGP_simulation
 CMAKE_BUILD_DIR := cmake-build-debug
-BUILD_DIR := $(CMAKE_BUILD_DIR)/build
+BUILD_DIR := $(CMAKE_BUILD_DIR)
 
 # Generate the build files
 $(CMAKE_BUILD_DIR)/Makefile: CMakeLists.txt
