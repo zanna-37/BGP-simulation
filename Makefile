@@ -1,39 +1,19 @@
 .PHONY = build run clean
 
-TARGET_EXEC := output
-BUILD_DIR := ./build
-SRC_DIR := ./src ./include
+TARGET_EXEC := BGP_simulation
+CMAKE_BUILD_DIR := cmake-build-debug
+BUILD_DIR := $(CMAKE_BUILD_DIR)/build
 
-# Find all the C and C++ files we want to compile
-SRCS := $(shell find $(SRC_DIR) -name *.cpp)
-
-# String substitution for every C/C++ file.
-# As an example, hello.cpp turns into ./build/hello.cpp.o
-OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
-
-# Every folder in ./src will need to be passed to GCC so that it can find header files
-INC_DIRS := $(shell find $(SRC_DIR) -type d)
-# Add a prefix to INC_DIRS. So moduleA would become -ImoduleA. GCC understands this -I flag
-INC_FLAGS := $(addprefix -I,$(INC_DIRS))
-
-CPPFLAGS := -g -ansi -pedantic -W -Wall -Werror -std=c++11
-LIBRARIES := ./lib/libtins.a
-
-
-# The final build step.
-build: $(BUILD_DIR)/$(TARGET_EXEC)
-
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
+# Generate the build files
+$(CMAKE_BUILD_DIR)/Makefile: CMakeLists.txt
 	@echo;
-	@echo "[.] Building executable...";
-	$(CXX) $(CXXFLAGS) $(INC_FLAGS) $(CPPFLAGS) $(OBJS) $(LIBRARIES) -o $(BUILD_DIR)/$(TARGET_EXEC)
+	@echo "[.] Generating build files...";
+	cmake -S . -B $(CMAKE_BUILD_DIR)
 
-# Build step for C++ source
-$(OBJS): $(SRCS)
+build: $(CMAKE_BUILD_DIR)/Makefile
 	@echo;
-	@echo "[.] Building objects...";
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INC_FLAGS) $(CPPFLAGS) -c $< -o $@
+	@echo "[.] Building program...";
+	@cmake --build $(CMAKE_BUILD_DIR)
 
 run: build
 	@echo;
@@ -44,3 +24,4 @@ clean:
 	@echo
 	@echo "[.] Cleaning up...";
 	rm -rf $(BUILD_DIR);
+	rm -rf $(CMAKE_BUILD_DIR);
