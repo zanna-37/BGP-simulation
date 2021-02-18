@@ -55,3 +55,13 @@ IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PCAP_PP_ROOT}/configure-linux.sh")
 ELSE ()
     MESSAGE(FATAL_ERROR "PcapPlusPlus git submodule is absent. Run `git submodule update --init --recursive` to get it")
 ENDIF ()
+
+# yaml-cpp
+set(YAMLCPP_ROOT ${LIBRARIES_FOLDER}/yaml-cpp)
+IF(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${YAMLCPP_ROOT}/CMakeLists.txt")
+	add_subdirectory(${YAMLCPP_ROOT})
+	target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${YAMLCPP_ROOT}/include)
+	target_link_libraries(${CMAKE_PROJECT_NAME} yaml-cpp)
+ELSE()
+	MESSAGE(FATAL_ERROR "yaml-cpp git submodule is absent. Run `git submodule update --init --recursive` to get it")
+ENDIF()

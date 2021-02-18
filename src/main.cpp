@@ -9,10 +9,12 @@
 #include <string>
 
 #include "entities/Router.h"
+#include "yaml-cpp/yaml.h"
 
 using namespace std;
 
-int main() {
+int main(int argc, char *argv[]) {
+
     cout << "Hello, World!" << endl;
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
@@ -40,8 +42,9 @@ int main() {
     cout << newPacket.toString() << endl;
 
     Router r("R1", "AS_12345", nullptr);
-
     cout << r.ID << endl;
+
+    YAML::Node config = YAML::LoadFile(argv[1]);
 
     return 0;
 }
