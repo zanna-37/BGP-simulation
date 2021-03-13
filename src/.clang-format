@@ -1,6 +1,5 @@
 ﻿---
 BasedOnStyle: Google
-AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: true
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
