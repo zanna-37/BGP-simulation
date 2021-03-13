@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 
+#include "configuration/parser.h"
 #include "entities/Router.h"
 #include "yaml-cpp/yaml.h"
 
@@ -44,7 +45,7 @@ int main(int argc, char *argv[]) {
     Router r("R1", "AS_12345", nullptr);
     cout << r.ID << endl;
 
-    YAML::Node config = YAML::LoadFile(argv[1]);
+    parseAndBuild(argv[1]);
 
     return 0;
 }
