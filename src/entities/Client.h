@@ -10,11 +10,10 @@ using namespace std;
 
 class Client : public Device {
    public:
-    Client(string ID, Connection connection)
-        : Device(std::move(ID)), connection(std::move(connection)) {}
+    Client(string ID, Connection *connection)
+        : Device(std::move(ID)), connection(connection) {}
 
-    string     AS_number;
-    Connection connection;
+    Connection *connection;
 };
 
 #endif  // BGP_SIMULATION_ENTITIES_CLIENT_H
