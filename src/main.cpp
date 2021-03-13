@@ -8,9 +8,8 @@
 #include <iostream>
 #include <string>
 
-#include "configuration/parser.h"
-#include "entities/Router.h"
-#include "yaml-cpp/yaml.h"
+#include "configuration/parser/Parser.h"
+#include "entities/Device.h"
 
 using namespace std;
 
@@ -42,10 +41,16 @@ int main(int argc, char *argv[]) {
 
     cout << newPacket.toString() << endl;
 
-    Router r("R1", "AS_12345", nullptr);
-    cout << r.ID << endl;
+    vector<Device *> *devices = parseAndBuild(argv[1]);
 
-    parseAndBuild(argv[1]);
+
+    // TODO logic here
+
+
+    for (auto device : *devices) {
+        delete device;
+    }
+    delete devices;
 
     return 0;
 }

@@ -19,12 +19,15 @@ ENDIF()
 
 set(SRC src)
 set(SRC_CONFIGURATION ${SRC}/configuration)
+set(SRC_CONFIGURATION_PARSER ${SRC_CONFIGURATION}/parser)
 set(SRC_ENTITIES ${SRC}/entities)
 
 
 set(SOURCE_FILES
 		${SRC}/main.cpp
-		${SRC_CONFIGURATION}/parser.cpp)
+		${SRC_CONFIGURATION_PARSER}/Parser.cpp
+		${SRC_CONFIGURATION_PARSER}/ParserRouter.cpp
+		${SRC_CONFIGURATION_PARSER}/ParserClient.cpp)
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 
