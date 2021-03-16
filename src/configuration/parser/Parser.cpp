@@ -70,7 +70,7 @@ vector<Device *> *parseAndBuild(char *filename /*, config mapping*/) {
             parseAndAddBuiltRouters(devices_yaml, devices_ptr);
         } else if (deviceCategory == "clients") {
             parseAndAddBuiltClients(devices_yaml, devices_ptr);
-        } else if (deviceCategory == "connections") {
+        } else if (deviceCategory == "links") {
             // TODO
         } else {
             throwInvalidKey(deviceCategory, device_category_yaml.first);
