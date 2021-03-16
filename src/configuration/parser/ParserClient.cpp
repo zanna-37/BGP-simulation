@@ -1,5 +1,7 @@
 #include <yaml-cpp/yaml.h>
 
+#include <iostream>
+
 #include "../../entities/Client.h"
 #include "../../entities/Connection.h"
 #include "Parser.h"
@@ -19,7 +21,7 @@ void parseAndAddBuiltClients(const YAML::Node &clients_yaml,
             if (property == "id") {
                 ID = value.as<string>();
             } else if (property == "network") {
-                // TODO
+                cout << "TODO: parse Client network" << endl;  // TODO
             } else {
                 throwInvalidKey(property, client_property_yaml.first);
             }

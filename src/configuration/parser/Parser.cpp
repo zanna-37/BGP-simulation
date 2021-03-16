@@ -71,7 +71,7 @@ vector<Device *> *parseAndBuild(char *filename /*, config mapping*/) {
         } else if (deviceCategory == "clients") {
             parseAndAddBuiltClients(devices_yaml, devices_ptr);
         } else if (deviceCategory == "links") {
-            // TODO
+            cout << "TODO: parse Links" << endl;  // TODO
         } else {
             throwInvalidKey(deviceCategory, device_category_yaml.first);
         }

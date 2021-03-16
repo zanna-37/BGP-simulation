@@ -1,5 +1,7 @@
 #include <yaml-cpp/yaml.h>
 
+#include <iostream>
+
 #include "../../entities/Connection.h"
 #include "../../entities/Router.h"
 #include "Parser.h"
@@ -22,7 +24,7 @@ void parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
             } else if (property == "AS_number") {
                 AS_number = value.as<string>();
             } else if (property == "network") {
-                // TODO
+                cout << "TODO: parse Router network" << endl;  // TODO
             } else {
                 throwInvalidKey(property, router_property_yaml.first);
             }
