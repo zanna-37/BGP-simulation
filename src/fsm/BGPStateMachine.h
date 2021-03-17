@@ -20,6 +20,33 @@ private:
     //Mandatory session attributes
 
     BGPState* currentState;
+    int ConnectRetryCounter = 0;
+    int ConnectRetryTime = 120;
+    int HoldTime = 90;
+    int KeepaliveTime = 30;
+
+    // https://gist.github.com/mcleary/b0bf4fa88830ff7c882d Timer implementation
+    Timer ConnectRetryTimer;
+    Timer HoldTimer;
+    Timer KeepaliveTimer;
+    
+    //Optional attributes
+
+    //   1) AcceptConnectionsUnconfiguredPeers
+    //   2) AllowAutomaticStart
+    //   3) AllowAutomaticStop
+    //   4) CollisionDetectEstablishedState
+    bool DampPeerOscillations;
+    bool DelayOpen;
+    //   7) DelayOpenTime
+    //   8) DelayOpenTimer
+    //   9) IdleHoldTime
+    //  10) IdleHoldTimer
+    //  11) PassiveTcpEstablishment
+    //  12) SendNOTIFICATIONwithoutOPEN
+    //  13) TrackTcpState
+
+     
 
     
 
@@ -41,6 +68,15 @@ public:
 
     BGPState* CurrentState(){return currentState;}
     BGPState* PreviousState(){return previousState;}
+
+    int connectRetryCounter() const { return ConnectRetryCounter; }
+    void setConnectRetryCounter(int value) { ConnectRetryCounter = value; }
+
+    bool dampPeerOscillations() const { return DampPeerOscillations; }
+    void setDampPeerOscillations(bool value) { DampPeerOscillations = value; }
+
+    bool delayOpen() const { return DelayOpen; }
+    void setDelayOpen(bool value) { DelayOpen = value; }
 
     //TODO print name of the current BGPState
 
