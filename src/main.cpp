@@ -1,22 +1,40 @@
+#include <DnsLayer.h>
+#include <EthLayer.h>
+#include <IPv4Layer.h>
+#include <Packet.h>
+#include <SystemUtils.h>
+#include <UdpLayer.h>
+
 #include <iostream>
-#include "tins/tins.h"
 
 using namespace std;
-using namespace Tins;
 
-int main()
-{
-    std::cout << "Hello, World!" << std::endl;
+int main() {
+    cout << "Hello, World!" << endl;
 
-    IP packet = IP("192.168.0.1") / TCP(22,1234);
-    packet.rfind_pdu<TCP>().set_flag(TCP::SYN,1);
-    TCP &tcp = packet.rfind_pdu<TCP>();
-    // Check if the SYN Flag is set
-    if(tcp.get_flag(TCP::SYN)){
-        std::cout << "SYN flag set" << std::endl;
-    }else{
-        std::cout << "SYN flag unset" << std::endl;
-    }
+    pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
+                                    pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
+
+    pcpp::IPv4Layer newIPLayer(pcpp::IPv4Address(std::string("192.168.1.1")),
+                               pcpp::IPv4Address(std::string("10.0.0.1")));
+    newIPLayer.getIPv4Header()->ipId       = pcpp::hostToNet16(2000);
+    newIPLayer.getIPv4Header()->timeToLive = 64;
+
+    pcpp::UdpLayer newUdpLayer(12345, 53);
+
+    pcpp::DnsLayer newDnsLayer;
+    newDnsLayer.addQuery("www.ebay.com", pcpp::DNS_TYPE_A, pcpp::DNS_CLASS_IN);
+
+    pcpp::Packet newPacket(100);
+
+    newPacket.addLayer(&newEthernetLayer);
+    newPacket.addLayer(&newIPLayer);
+    newPacket.addLayer(&newUdpLayer);
+    newPacket.addLayer(&newDnsLayer);
+
+    newPacket.computeCalculateFields();
+
+    cout << newPacket.toString() << endl;
 
     return 0;
 }
