@@ -1,10 +1,24 @@
-#include "fsm/BGPStateConnect.h"
-#include "fsm/BGPStateIdle.h"
-#include "fsm/BGPStateOpenSent.h"
-#include "fsm/BGPStateActive.h"
-#include "fsm/BGPStateOpenConfirm.h"
+#include "BGPStateConnect.h"
+#include "BGPStateIdle.h"
+#include "BGPStateOpenSent.h"
+#include "BGPStateActive.h"
+#include "BGPStateOpenConfirm.h"
 
 
+BGPStateConnect :: ~BGPStateConnect(){
+
+}
+
+void BGPStateConnect :: enter(){
+
+}
+void BGPStateConnect :: execute(){
+
+}
+
+void BGPStateConnect :: exit(){
+
+}
 bool BGPStateConnect :: OnEvent(Event event) { 
 
    bool handled = true;

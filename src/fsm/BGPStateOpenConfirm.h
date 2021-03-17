@@ -4,7 +4,7 @@
 
 #include "BGPStateMachine.h"
 #include "BGPState.h"
-#include "BGPConnection.h"
+#include "../BGPConnection.h"
 
 class BGPStateOpenConfirm : public BGPState { 
 

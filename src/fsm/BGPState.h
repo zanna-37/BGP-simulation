@@ -1,9 +1,10 @@
 #ifndef BGPSTATE_H
 #define BGPSTATE_H
 
-#include "fsm/BGPStateMachine.h"
-#include "Event.h"
+#include "BGPStateMachine.h"
+#include "../Event.h"
 
+class BGPStateMachine; //forward declaration
 
 class BGPState { 
 

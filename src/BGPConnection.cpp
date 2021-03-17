@@ -5,7 +5,7 @@
 
 BGPConnection :: BGPConnection(){
 
-    stateMachine = new BGPStateMachine(this);
+    stateMachine = new BGPStateMachine(this, new BGPStateIdle(stateMachine));
 
 }
 BGPConnection :: ~BGPConnection(){

@@ -1,5 +1,20 @@
 #include "BGPStateActive.h"
 
+BGPStateActive :: ~BGPStateActive(){
+
+}
+
+void BGPStateActive :: enter(){
+
+}
+void BGPStateActive :: execute(){
+
+}
+
+void BGPStateActive :: exit(){
+
+}
+
 bool BGPStateActive :: OnEvent(Event event){
 
     bool handled = true;

@@ -1,4 +1,4 @@
-#include "Utils/Timer.h"
+#include "Timer.h"
 
 void Timer :: start(){
 

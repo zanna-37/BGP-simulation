@@ -4,10 +4,12 @@
 #include <cassert>
 
 
-#include "fsm/BGPState.h"
-#include "BGPConnection.h"
-#include "Event.h"
-#include "Utils/Timer.h"
+#include "BGPState.h"
+#include "../BGPConnection.h"
+#include "../Event.h"
+#include "../Utils/Timer.h"
+
+class BGPConnection; //forward declaration
 
 class BGPStateMachine{
 
@@ -53,7 +55,7 @@ private:
 
 public:
     
-    BGPStateMachine(BGPConnection* connection):connection(connection), currentState(new BGPStateIdle(this)){
+    BGPStateMachine(BGPConnection* connection, BGPState* state):connection(connection), currentState(state){
 
     }
 

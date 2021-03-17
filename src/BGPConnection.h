@@ -8,6 +8,8 @@
 #include "fsm/BGPStateIdle.h"
 #include "Event.h"
 
+class BGPStateMachine; //forward declaration
+
 class BGPConnection {
 
 public:

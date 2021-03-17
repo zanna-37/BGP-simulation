@@ -1,5 +1,20 @@
 #include "BGPStateOpenSent.h"
 
+BGPStateOpenSent :: ~BGPStateOpenSent(){
+
+}
+
+void BGPStateOpenSent :: enter(){
+
+}
+void BGPStateOpenSent :: execute(){
+
+}
+
+void BGPStateOpenSent :: exit(){
+
+}
+
 bool BGPStateOpenSent :: OnEvent(Event event){
 
     bool handled = true;

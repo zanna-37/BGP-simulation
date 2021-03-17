@@ -1,5 +1,21 @@
 #include "BGPStateOpenConfirm.h"
 
+
+BGPStateOpenConfirm :: ~BGPStateOpenConfirm(){
+
+}
+
+void BGPStateOpenConfirm :: enter(){
+
+}
+void BGPStateOpenConfirm :: execute(){
+
+}
+
+void BGPStateOpenConfirm :: exit(){
+
+}
+
 bool BGPStateOpenConfirm :: OnEvent(Event event){
 
     bool handled = true;
@@ -177,4 +193,5 @@ bool BGPStateOpenConfirm :: OnEvent(Event event){
         handled = false;
         break;
     }
+    return handled;
 }

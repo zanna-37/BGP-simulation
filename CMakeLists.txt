@@ -22,6 +22,8 @@ set(SRC_CONFIGURATION ${SRC}/configuration)
 set(SRC_CONFIGURATION_PARSER ${SRC_CONFIGURATION}/parser)
 set(SRC_ENTITIES ${SRC}/entities)
 set(SRC_LOGGER ${SRC}/logger)
+set(SRC_FSM ${SRC}/fsm) 
+set(SRC_UTILS ${SRC}/Utils)
 
 
 set(SOURCE_FILES
@@ -37,7 +39,19 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/NetworkCard.cpp
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
-        )
+		${SRC}/BGPConnection.cpp
+		# ${SRC_FSM}/BGPState.h
+		${SRC_FSM}/BGPStateActive.cpp
+		${SRC_FSM}/BGPStateConnect.cpp
+		${SRC_FSM}/BGPStateEnstablished.cpp
+		${SRC_FSM}/BGPStateIdle.cpp
+		${SRC_FSM}/BGPStateMachine.cpp
+		${SRC_FSM}/BGPStateOpenConfirm.cpp
+		${SRC_FSM}/BGPStateOpenSent.cpp
+		${SRC_UTILS}/Timer.cpp
+		${SRC_UTILS}/Timer.h
+
+)
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 
