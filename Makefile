@@ -1,19 +1,18 @@
 .PHONY = build run clean
 
 TARGET_EXEC := BGP_simulation
-CMAKE_BUILD_DIR := cmake-build-debug
-BUILD_DIR := $(CMAKE_BUILD_DIR)
+BUILD_DIR := cmake-build-debug
 
 # Generate the build files
-$(CMAKE_BUILD_DIR)/Makefile: CMakeLists.txt
+$(BUILD_DIR)/Makefile: CMakeLists.txt
 	@echo;
 	@echo "[.] Generating build files...";
-	cmake -S . -B $(CMAKE_BUILD_DIR)
+	cmake -DTARGET_EXEC:STRING=$(TARGET_EXEC) -S . -B $(BUILD_DIR)
 
-build: $(CMAKE_BUILD_DIR)/Makefile
+build: $(BUILD_DIR)/Makefile
 	@echo;
 	@echo "[.] Building program...";
-	@cmake --build $(CMAKE_BUILD_DIR)
+	@cmake --build $(BUILD_DIR)
 
 run: build
 	@echo;
@@ -24,4 +23,3 @@ clean:
 	@echo
 	@echo "[.] Cleaning up...";
 	rm -rf $(BUILD_DIR);
-	rm -rf $(CMAKE_BUILD_DIR);

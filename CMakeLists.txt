@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.13)
 include(ExternalProject)
 
-project(BGP_simulation)
+IF (NOT DEFINED TARGET_EXEC)
+    set(TARGET_EXEC BGP_simulation)
+ENDIF ()
+
+project(${TARGET_EXEC})
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
