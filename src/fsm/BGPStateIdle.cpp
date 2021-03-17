@@ -26,7 +26,7 @@ bool BGPStateIdle :: OnEvent(Event event){
     //maybe curly parenthesis
 
     //Has the event been handled?
-    bool handled = false;
+    bool handled = true;
 
 
     switch (event)
@@ -42,10 +42,6 @@ bool BGPStateIdle :: OnEvent(Event event){
 
         stateMachine->ChangeState(new BGPStateConnect(stateMachine));
 
-        handled = true;
-        break;
-    case ManualStop:
-    case AutomaticStop:
         break;
     case ManualStart_with_PassiveTcpEstablishment:
     case AutomaticStart_with_PassiveTcpEstablishment:
@@ -61,7 +57,6 @@ bool BGPStateIdle :: OnEvent(Event event){
 
         stateMachine->ChangeState(new BGPStateActive(stateMachine));
 
-        handled = true;
         break;
     case AutomaticStart_with_DampPeerOscillations:
     case AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
@@ -69,12 +64,12 @@ bool BGPStateIdle :: OnEvent(Event event){
 
         if(stateMachine->dampPeerOscillations()){
             
-            handled = true;
         }
 
         break;
 
     default:
+        handled = false;
         break;
     
     

@@ -2,12 +2,12 @@
 #include "fsm/BGPStateIdle.h"
 #include "fsm/BGPStateOpenSent.h"
 #include "fsm/BGPStateActive.h"
-#include "fsm/BGPStateOpenconfirm.h"
+#include "fsm/BGPStateOpenConfirm.h"
 
 
 bool BGPStateConnect :: OnEvent(Event event) { 
 
-   bool handled = false;
+   bool handled = true;
 
     switch (event){
     case ManualStop:
@@ -19,7 +19,6 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - stops the ConnectRetryTimer and sets ConnectRetryTimer to zero, and
 
         stateMachine->ChangeState(new BGPStateIdle(stateMachine));
-        handled = true;
         break;
     case ConnectRetryTimer_Expires:
         // - drops the TCP connection,
@@ -33,7 +32,6 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - continues to listen for a connection that may be initiated by
         //   the remote BGP peer, and
 
-        handled = true;
         break;
     case DelayOpenTimer_Expires:
         // - sends an OPEN message to its peer,
@@ -41,16 +39,13 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - sets the HoldTimer to a large value, and
 
         stateMachine->ChangeState(new BGPStateOpenSent(stateMachine));
-        handled = true;
         break;
     case TcpConnection_Valid:
         // the TCP connection is processed,
-        handled = true;
         break;
     case Tcp_CR_Invalid:
 
         // the local system rejects the TCP connection
-        handled = true;
         break;
     case Tcp_CR_Acked:
     case TcpConnectionConfirmed:
@@ -72,8 +67,6 @@ bool BGPStateConnect :: OnEvent(Event event) {
         }
         stateMachine->ChangeState(new BGPStateOpenSent(stateMachine));
         
-
-        handled = true;
         break;
 
     case TcpConnectionFails:
@@ -85,7 +78,6 @@ bool BGPStateConnect :: OnEvent(Event event) {
         //   the remote BGP peer, and
 
         stateMachine->ChangeState(new BGPStateActive(stateMachine));
-        handled = true;
         break;
     case BGPOpen_with_DelayOpenTimer_running:
         //  - stops the ConnectRetryTimer (if running) and sets the
@@ -110,7 +102,6 @@ bool BGPStateConnect :: OnEvent(Event event) {
 
         stateMachine->ChangeState(new BGPStateOpenConfirm(stateMachine));
 
-        handled = true;
         break;
     case BGPHeaderErr:
     case BGPOpenMsgErr:
@@ -137,7 +128,6 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - changes its state to Idle.
         stateMachine->ChangeState(new BGPStateIdle(stateMachine));
 
-        handled = true;
         break;
     case NotifMsgVerErr:
         // If the DelayOpenTimer is running, the local system:
@@ -172,7 +162,6 @@ bool BGPStateConnect :: OnEvent(Event event) {
         }
         stateMachine->ChangeState(new BGPStateIdle(stateMachine));
 
-        handled = true;
         break;
     case AutomaticStop:
     case HoldTimer_Expires:
@@ -206,9 +195,9 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - changes its state to Idle.
         stateMachine->ChangeState(new BGPStateIdle(stateMachine));
 
-        handled = true;
         break;
     default:
+        handled = false;
         break;
     }
     return handled;

@@ -2,7 +2,7 @@
 
 bool BGPStateActive :: OnEvent(Event event){
 
-    bool handled = false;
+    bool handled = true;
     switch (event)
     {
     case ManualStop:
@@ -21,7 +21,6 @@ bool BGPStateActive :: OnEvent(Event event){
         //   zero, and
 
         // - changes its state to Idle.
-        handled = true;
         break;
     case ConnectRetryTimer_Expires:
         //  - restarts the ConnectRetryTimer (with initial value),
@@ -32,7 +31,6 @@ bool BGPStateActive :: OnEvent(Event event){
         //   by a remote BGP peer, and
 
         // - changes its state to Connect.
-        handled = true;
         break;
     case DelayOpenTimer_Expires:
         //  - sets the ConnectRetryTimer to zero,
@@ -47,17 +45,14 @@ bool BGPStateActive :: OnEvent(Event event){
 
         // - changes its state to OpenSent.
 
-        handled = true;
         break;
     case TcpConnection_Valid:
         // the local system processes the TCP connection flags and stays
         // in the Active state.
-        handled = true;
         break;
     case Tcp_CR_Invalid:
         // the local system rejects the TCP connection and stays in the
         // Active State.
-        handled = true;
         break;
     case Tcp_CR_Acked:
     case TcpConnectionConfirmed:
@@ -83,7 +78,6 @@ bool BGPStateActive :: OnEvent(Event event){
         //   - sets its HoldTimer to a large value, and
 
         //   - changes its state to OpenSent.
-        handled = true;
         break;
     case TcpConnectionFails:
         // - restarts the ConnectRetryTimer (with the initial value),
@@ -98,7 +92,6 @@ bool BGPStateActive :: OnEvent(Event event){
         //   DampPeerOscillations attribute is set to TRUE, and
 
         // - changes its state to Idle.
-        handled = true;
         break;
     case BGPOpen_with_DelayOpenTimer_running:
         //  - stops the ConnectRetryTimer (if running) and sets the
@@ -125,7 +118,6 @@ bool BGPStateActive :: OnEvent(Event event){
         //     - resets the HoldTimer to zero, and
 
         // - changes its state to OpenConfirm.
-        handled = true;
         break;
     case BGPOpenMsgErr:
     case BGPHeaderErr:
@@ -145,7 +137,6 @@ bool BGPStateActive :: OnEvent(Event event){
         //   DampPeerOscillations attribute is set to TRUE, and
 
         // - changes its state to Idle.
-        handled = true;
         break;
     case NotifMsgVerErr:
         // - stops the ConnectRetryTimer (if running) and sets the
@@ -158,7 +149,6 @@ bool BGPStateActive :: OnEvent(Event event){
         // - drops the TCP connection, and
 
         // - changes its state to Idle.
-        handled = true;
         break;
     case AutomaticStop:
     case HoldTimer_Expires:
@@ -182,10 +172,10 @@ bool BGPStateActive :: OnEvent(Event event){
         //   DampPeerOscillations attribute is set to TRUE, and
 
         // - changes its state to Idle.
-        handled = true;
         break;
     
     default:
+        handled = false;
         break;
     }
     return handled;
