@@ -65,6 +65,7 @@ public:
 
     void ChangeState(BGPState* newState);
 
+    void incrementConnectRetryCounter();
 
     BGPState* CurrentState(){return currentState;}
     BGPState* PreviousState(){return previousState;}

@@ -28,3 +28,8 @@ void BGPStateMachine :: ChangeState(BGPState* newState){
     currentState->enter();
 
 }
+
+void BGPStateMachine :: incrementConnectRetryCounter(){
+
+    ConnectRetryCounter +=1;
+}
