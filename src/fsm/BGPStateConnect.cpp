@@ -54,13 +54,13 @@ bool BGPStateConnect :: OnEvent(Event event) {
         break;
     case Tcp_CR_Acked:
     case TcpConnectionConfirmed:
-        // if(stateMachine->delayOpen()){
+        if(stateMachine->delayOpen()){
         //     - stops the ConnectRetryTimer (if running) and sets the
         //   ConnectRetryTimer to zero,
 
         //     - sets the DelayOpenTimer to the initial value, and
 
-        // }else{
+        }else{
         //     - stops the ConnectRetryTimer (if running) and sets the
         //   ConnectRetryTimer to zero,
 
@@ -69,8 +69,8 @@ bool BGPStateConnect :: OnEvent(Event event) {
         //     - sends an OPEN message to its peer,
 
         //     - sets the HoldTimer to a large value (A HoldTimer value of 4 minutes is suggested.), and
-        // }
-            stateMachine->ChangeState(new BGPStateOpenSent(stateMachine));
+        }
+        stateMachine->ChangeState(new BGPStateOpenSent(stateMachine));
         
 
         handled = true;
@@ -114,9 +114,11 @@ bool BGPStateConnect :: OnEvent(Event event) {
         break;
     case BGPHeaderErr:
     case BGPOpenMsgErr:
-        // - (optionally) If the SendNOTIFICATIONwithoutOPEN attribute is
-        //   set to TRUE, then the local system first sends a NOTIFICATION
+
+        if(stateMachine->sendNOTIFICATIONwithoutOPEN()){
+        //   the local system first sends a NOTIFICATION
         //   message with the appropriate error code, and then
+        }
 
         // - stops the ConnectRetryTimer (if running) and sets the
         //   ConnectRetryTimer to zero,
@@ -126,26 +128,31 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - drops the TCP connection,
 
         // - increments the ConnectRetryCounter by 1,
+        stateMachine->incrementConnectRetryCounter();
 
-        // - (optionally) performs peer oscillation damping if the
-        //   DampPeerOscillations attribute is set to TRUE, and
+        if(stateMachine->dampPeerOscillations()){
+            // - (optionally) performs peer oscillation 
+        }
 
         // - changes its state to Idle.
+        stateMachine->ChangeState(new BGPStateIdle(stateMachine));
+
         handled = true;
         break;
     case NotifMsgVerErr:
         // If the DelayOpenTimer is running, the local system:
-        // - stops the ConnectRetryTimer (if running) and sets the
-        //   ConnectRetryTimer to zero,
+        if(true){
+            // - stops the ConnectRetryTimer (if running) and sets the
+            //   ConnectRetryTimer to zero,
 
-        // - stops and resets the DelayOpenTimer (sets to zero),
+            // - stops and resets the DelayOpenTimer (sets to zero),
 
-        // - releases all BGP resources,
+            // - releases all BGP resources,
 
-        // - drops the TCP connection, and
+            // - drops the TCP connection, and
 
-        // - changes its state to Idle.
-
+            // - changes its state to Idle.
+        }else{
         // If the DelayOpenTimer is not running, the local system:
 
         // - stops the ConnectRetryTimer and sets the ConnectRetryTimer to
@@ -156,11 +163,15 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - drops the TCP connection,
 
         // - increments the ConnectRetryCounter by 1,
+        stateMachine->incrementConnectRetryCounter();
 
+        if(stateMachine->dampPeerOscillations()){
         // - performs peer oscillation damping if the DampPeerOscillations
         //   attribute is set to True, and
+        }
+        }
+        stateMachine->ChangeState(new BGPStateIdle(stateMachine));
 
-        // - changes its state to Idle.
         handled = true;
         break;
     case AutomaticStop:
@@ -172,23 +183,31 @@ bool BGPStateConnect :: OnEvent(Event event) {
     case KeepAliveMsg:
     case UpdateMsg:
     case UpdateMsgErr:
-        // - if the ConnectRetryTimer is running, stops and resets the
-        //   ConnectRetryTimer (sets to zero),
+        // - if the ConnectRetryTimer is running, 
+        if(true){
+        //   stops and resets the ConnectRetryTimer (sets to zero),
+        }
 
         // - if the DelayOpenTimer is running, stops and resets the
+        if(true){
         //   DelayOpenTimer (sets to zero),
-
+        }
         // - releases all BGP resources,
 
         // - drops the TCP connection,
 
         // - increments the ConnectRetryCounter by 1,
+        stateMachine->incrementConnectRetryCounter();
 
+        if(stateMachine->dampPeerOscillations()){
         // - performs peer oscillation damping if the DampPeerOscillations
         //   attribute is set to True, and
-
+        }
         // - changes its state to Idle.
+        stateMachine->ChangeState(new BGPStateIdle(stateMachine));
 
+        handled = true;
+        break;
     default:
         break;
     }

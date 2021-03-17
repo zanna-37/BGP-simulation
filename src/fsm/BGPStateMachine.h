@@ -43,7 +43,7 @@ private:
     //   9) IdleHoldTime
     //  10) IdleHoldTimer
     //  11) PassiveTcpEstablishment
-    //  12) SendNOTIFICATIONwithoutOPEN
+    bool SendNOTIFICATIONwithoutOPEN;
     //  13) TrackTcpState
 
      
@@ -78,6 +78,12 @@ public:
 
     bool delayOpen() const { return DelayOpen; }
     void setDelayOpen(bool value) { DelayOpen = value; }
+
+    int holdTime() const { return HoldTime; }
+    void setHoldTime(int value) { HoldTime = value; }
+
+    bool sendNOTIFICATIONwithoutOPEN() const { return SendNOTIFICATIONwithoutOPEN; }
+    void setSendNOTIFICATIONwithoutOPEN(bool value) { SendNOTIFICATIONwithoutOPEN = value; }
 
     //TODO print name of the current BGPState
 
