@@ -21,7 +21,7 @@ void BGPStateIdle :: exit(){
 
 }
 
-bool BGPStateIdle :: OnEvent(Event event){
+bool BGPStateIdle :: onEvent(Event event){
 
     //maybe curly parenthesis
 
@@ -40,7 +40,7 @@ bool BGPStateIdle :: OnEvent(Event event){
         //initiates a TCP connection to other BGP peer
         //listens for a connection
 
-        stateMachine->ChangeState(new BGPStateConnect(stateMachine));
+        stateMachine->changeState(new BGPStateConnect(stateMachine));
 
         break;
     case ManualStart_with_PassiveTcpEstablishment:
@@ -55,14 +55,14 @@ bool BGPStateIdle :: OnEvent(Event event){
         // - listens for a connection that may be initiated by the remote
         //   peer, and
 
-        stateMachine->ChangeState(new BGPStateActive(stateMachine));
+        stateMachine->changeState(new BGPStateActive(stateMachine));
 
         break;
     case AutomaticStart_with_DampPeerOscillations:
     case AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
     case IdleHoldTimer_Expires:
 
-        if(stateMachine->dampPeerOscillations()){
+        if(stateMachine->getDampPeerOscillations()){
             
         }
 

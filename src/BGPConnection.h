@@ -25,7 +25,7 @@ public:
     //Destructor
     ~BGPConnection();
 
-    bool HandleEvent(const Event event);
+    bool handleEvent(const Event event);
 
     //Getter & Setter
     BGPStateMachine* getStateMahine(){return stateMachine;}

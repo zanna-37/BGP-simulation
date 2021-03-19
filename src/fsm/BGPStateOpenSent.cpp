@@ -15,7 +15,7 @@ void BGPStateOpenSent :: exit(){
 
 }
 
-bool BGPStateOpenSent :: OnEvent(Event event){
+bool BGPStateOpenSent :: onEvent(Event event){
 
     bool handled = true;
 

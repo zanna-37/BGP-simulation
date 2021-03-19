@@ -16,7 +16,7 @@ public:
     BGPState(BGPStateMachine* stateMachine): stateMachine(stateMachine){};
     virtual ~BGPState(){}
 
-    virtual bool OnEvent(Event)=0;
+    virtual bool onEvent(Event)=0;
 
     //You can implement here some global reactions to Events
 };

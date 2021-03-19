@@ -15,7 +15,7 @@ void BGPStateActive :: exit(){
 
 }
 
-bool BGPStateActive :: OnEvent(Event event){
+bool BGPStateActive :: onEvent(Event event){
 
     bool handled = true;
     switch (event)

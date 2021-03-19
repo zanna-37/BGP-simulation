@@ -5,18 +5,23 @@ BGPStateMachine :: ~BGPStateMachine(){
     delete currentState;
     delete previousState;
 
+    //delete timers
+    delete connectRetryTimer;
+    delete keepAliveTimer;
+    delete holdTimer;
+
 }
 
-bool BGPStateMachine :: HandleEvent(Event event){
+bool BGPStateMachine :: handleEvent(Event event){
 
-    if (currentState && currentState->OnEvent(event)){
+    if (currentState && currentState->onEvent(event)){
         return true;
     }
     
     return false;
 }
 
-void BGPStateMachine :: ChangeState(BGPState* newState){
+void BGPStateMachine :: changeState(BGPState* newState){
 
     assert (newState);
 
@@ -31,5 +36,5 @@ void BGPStateMachine :: ChangeState(BGPState* newState){
 
 void BGPStateMachine :: incrementConnectRetryCounter(){
 
-    ConnectRetryCounter +=1;
+    connectRetryCounter +=1;
 }

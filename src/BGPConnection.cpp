@@ -14,9 +14,9 @@ BGPConnection :: ~BGPConnection(){
 }
 
 // We should not need it
-bool BGPConnection :: HandleEvent(Event event){
+bool BGPConnection :: handleEvent(Event event){
 
-    return stateMachine->HandleEvent(event);
+    return stateMachine->handleEvent(event);
 
 }
 

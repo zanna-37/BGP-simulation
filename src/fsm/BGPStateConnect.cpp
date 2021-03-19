@@ -19,7 +19,7 @@ void BGPStateConnect :: execute(){
 void BGPStateConnect :: exit(){
 
 }
-bool BGPStateConnect :: OnEvent(Event event) { 
+bool BGPStateConnect :: onEvent(Event event) { 
 
    bool handled = true;
 
@@ -32,7 +32,7 @@ bool BGPStateConnect :: OnEvent(Event event) {
         stateMachine->setConnectRetryCounter(0);
         // - stops the ConnectRetryTimer and sets ConnectRetryTimer to zero, and
 
-        stateMachine->ChangeState(new BGPStateIdle(stateMachine));
+        stateMachine->changeState(new BGPStateIdle(stateMachine));
         break;
     case ConnectRetryTimer_Expires:
         // - drops the TCP connection,
@@ -52,7 +52,7 @@ bool BGPStateConnect :: OnEvent(Event event) {
 
         // - sets the HoldTimer to a large value, and
 
-        stateMachine->ChangeState(new BGPStateOpenSent(stateMachine));
+        stateMachine->changeState(new BGPStateOpenSent(stateMachine));
         break;
     case TcpConnection_Valid:
         // the TCP connection is processed,
@@ -63,7 +63,7 @@ bool BGPStateConnect :: OnEvent(Event event) {
         break;
     case Tcp_CR_Acked:
     case TcpConnectionConfirmed:
-        if(stateMachine->delayOpen()){
+        if(stateMachine->getDelayOpen()){
         //     - stops the ConnectRetryTimer (if running) and sets the
         //   ConnectRetryTimer to zero,
 
@@ -79,7 +79,7 @@ bool BGPStateConnect :: OnEvent(Event event) {
 
         //     - sets the HoldTimer to a large value (A HoldTimer value of 4 minutes is suggested.), and
         }
-        stateMachine->ChangeState(new BGPStateOpenSent(stateMachine));
+        stateMachine->changeState(new BGPStateOpenSent(stateMachine));
         
         break;
 
@@ -91,7 +91,7 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - continues to listen for a connection that may be initiated by
         //   the remote BGP peer, and
 
-        stateMachine->ChangeState(new BGPStateActive(stateMachine));
+        stateMachine->changeState(new BGPStateActive(stateMachine));
         break;
     case BGPOpen_with_DelayOpenTimer_running:
         //  - stops the ConnectRetryTimer (if running) and sets the
@@ -104,7 +104,7 @@ bool BGPStateConnect :: OnEvent(Event event) {
 
         // - sends a KEEPALIVE message,
 
-        if(stateMachine->holdTime() != 0){
+        if(stateMachine->getHoldTime() != 0){
             // - starts the KeepaliveTimer with the initial value and
 
             // - resets the HoldTimer to the negotiated value,
@@ -114,13 +114,13 @@ bool BGPStateConnect :: OnEvent(Event event) {
             // - resets the HoldTimer value to zero,
         }
 
-        stateMachine->ChangeState(new BGPStateOpenConfirm(stateMachine));
+        stateMachine->changeState(new BGPStateOpenConfirm(stateMachine));
 
         break;
     case BGPHeaderErr:
     case BGPOpenMsgErr:
 
-        if(stateMachine->sendNOTIFICATIONwithoutOPEN()){
+        if(stateMachine->getSendNOTIFICATIONwithoutOPEN()){
         //   the local system first sends a NOTIFICATION
         //   message with the appropriate error code, and then
         }
@@ -135,12 +135,12 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - increments the ConnectRetryCounter by 1,
         stateMachine->incrementConnectRetryCounter();
 
-        if(stateMachine->dampPeerOscillations()){
+        if(stateMachine->getDampPeerOscillations()){
             // - (optionally) performs peer oscillation 
         }
 
         // - changes its state to Idle.
-        stateMachine->ChangeState(new BGPStateIdle(stateMachine));
+        stateMachine->changeState(new BGPStateIdle(stateMachine));
 
         break;
     case NotifMsgVerErr:
@@ -169,12 +169,12 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - increments the ConnectRetryCounter by 1,
         stateMachine->incrementConnectRetryCounter();
 
-        if(stateMachine->dampPeerOscillations()){
+        if(stateMachine->getDampPeerOscillations()){
         // - performs peer oscillation damping if the DampPeerOscillations
         //   attribute is set to True, and
         }
         }
-        stateMachine->ChangeState(new BGPStateIdle(stateMachine));
+        stateMachine->changeState(new BGPStateIdle(stateMachine));
 
         break;
     case AutomaticStop:
@@ -202,12 +202,12 @@ bool BGPStateConnect :: OnEvent(Event event) {
         // - increments the ConnectRetryCounter by 1,
         stateMachine->incrementConnectRetryCounter();
 
-        if(stateMachine->dampPeerOscillations()){
+        if(stateMachine->getDampPeerOscillations()){
         // - performs peer oscillation damping if the DampPeerOscillations
         //   attribute is set to True, and
         }
         // - changes its state to Idle.
-        stateMachine->ChangeState(new BGPStateIdle(stateMachine));
+        stateMachine->changeState(new BGPStateIdle(stateMachine));
 
         break;
     default:

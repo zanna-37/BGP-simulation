@@ -16,7 +16,7 @@ void BGPStateOpenConfirm :: exit(){
 
 }
 
-bool BGPStateOpenConfirm :: OnEvent(Event event){
+bool BGPStateOpenConfirm :: onEvent(Event event){
 
     bool handled = true;
 

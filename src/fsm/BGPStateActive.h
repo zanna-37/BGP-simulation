@@ -21,7 +21,7 @@ public:
     void execute();
     void exit();
 
-    bool OnEvent(Event event);
+    bool onEvent(Event event);
 
 };
 

@@ -17,7 +17,7 @@ void BGPStateEnstablished :: exit(){
 }
 
 
-bool BGPStateEnstablished :: OnEvent(Event event){
+bool BGPStateEnstablished :: onEvent(Event event){
 
     bool handled = true;
 
