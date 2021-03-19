@@ -1,28 +1,55 @@
 <html>
-  <head>
-    <title>Hello</title>
-    <style>
 
-     html {
-      background:gold;
-     } 
+<head>
+  
+  <title>Hello</title>
+  <style>
 
-     body {
-      vertical-align:middle;
-      text-align:center;
-     }
 
-    </style>
-    <script type="text/tiscript">
+    body {
+      vertical-align: middle;
+      text-align: center;
+    }
+  </style>
+<!--   <script type="text/tiscript">
 
      function self.ready() {
       // calling native method defined in main.cpp
       $(body).text = view.frame.nativeMessage(); 
      }
 
-    </script>
-  </head>
-  <body>
+    </script> -->
 
-  </body>
+    
+</head>
+
+<body>
+
+  <div id="demo"></div>
+
+  <script src="https://cdn.zoomcharts-cloud.com/1/latest/zoomcharts.js"></script>
+
+  <script>
+    var data = {
+      "nodes": [
+        { "id": "n1", "loaded": true, "style": { "fillColor": "rgba(236,46,46,0.8)", "label": "Node1" } },
+        { "id": "n2", "loaded": true, "style": { "fillColor": "rgba(47,195,47,0.8)", "label": "Node2" } },
+        { "id": "n3", "loaded": true, "style": { "fillColor": "rgba(28,124,213,0.8)", "label": "Node3" } }
+      ],
+      "links": [
+        { "id": "l1", "from": "n1", "to": "n2", "style": { "fillColor": "rgba(236,46,46,1)", "toDecoration": "arrow" } },
+        { "id": "l2", "from": "n2", "to": "n3", "style": { "fillColor": "rgba(47,195,47,1)", "toDecoration": "arrow" } },
+        { "id": "l3", "from": "n3", "to": "n1", "style": { "fillColor": "rgba(28,124,213,1)", "toDecoration": "arrow" } }
+      ]
+    };
+
+    var t = new NetChart({
+      container: document.getElementById("demo"),
+      area: { height: 350 },
+      data: { preloaded: data }
+    });
+  </script>
+
+</body>
+
 </html>

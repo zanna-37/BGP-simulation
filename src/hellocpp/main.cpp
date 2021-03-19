@@ -13,7 +13,7 @@ public:
   SOM_PASSPORT_END
   
   // function expsed to script:
-  sciter::string  nativeMessage() { return WSTR("Hello C++ World"); }
+  sciter::string  nativeMessage() { return WSTR("Hello C++ Troia"); }
 
 };
 
@@ -26,9 +26,9 @@ int uimain(std::function<int()> run ) {
   sciter::om::hasset<frame> pwin = new frame();
 
   // note: this:://app URL is dedicated to the sciter::archive content associated with the application
-  pwin->load( WSTR("this://app/main.htm") );
+  // pwin->load( WSTR("this://app/main.htm") );
   //or use this to load UI from  
-  //  pwin->load( WSTR("file:///home/andrew/Desktop/Project/res/main.htm") );
+  pwin->load( WSTR("file:///home/bogdan/Projects/BGP-simulation/src/hellocpp/ui/main.htm") );
   
   pwin->expand();
 
