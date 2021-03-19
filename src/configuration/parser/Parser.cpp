@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "../../entities/Client.h"
+#include "../../entities/Device.h"
 #include "../../entities/Router.h"
 #include "ParserClient.h"
 #include "ParserRouter.h"

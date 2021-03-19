@@ -9,6 +9,8 @@ class Device {
    public:
     Device(string ID) : ID(std::move(ID)) {}
 
+    virtual ~Device(){};
+
     string ID;
 };
 

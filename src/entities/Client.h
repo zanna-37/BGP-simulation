@@ -5,15 +5,23 @@
 
 #include "Connection.h"
 #include "Device.h"
+#include "Network_details.h"
 
 using namespace std;
 
-class Client : public Device {
+class Client : public virtual Device {
    public:
-    Client(string ID, Connection *connection)
-        : Device(std::move(ID)), connection(connection) {}
+    vector<Network_details *> *network_details_list;
 
-    Connection *connection;
+    Client(string ID, vector<Network_details *> *network_details_list)
+        : Device(std::move(ID)), network_details_list(network_details_list) {}
+
+    ~Client() override {
+        for (auto network_details : *network_details_list) {
+            delete network_details;
+        }
+        delete network_details_list;
+    }
 };
 
 #endif  // BGP_SIMULATION_ENTITIES_CLIENT_H

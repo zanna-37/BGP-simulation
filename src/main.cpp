@@ -9,12 +9,13 @@
 #include <string>
 
 #include "configuration/parser/Parser.h"
+#include "entities/Client.h"
 #include "entities/Device.h"
+#include "entities/Router.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-
     cout << "Hello, World!" << endl;
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
@@ -45,6 +46,13 @@ int main(int argc, char *argv[]) {
 
 
     // TODO logic here
+    for (auto device : *devices) {
+        if (auto *x = dynamic_cast<Router *>(device)) {
+            cout << x->ID << endl;
+        } else if (auto *x = dynamic_cast<Client *>(device)) {
+            cout << x->ID << endl;
+        }
+    }
 
 
     for (auto device : *devices) {
