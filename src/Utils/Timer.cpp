@@ -1,49 +1,68 @@
 #include "Timer.h"
 
-Timer :: Timer(){
-
+Timer :: Timer(std::string const name):NAME(std::move(name)){
+    exitSignal = false;
+    lockedByUser = false;
+    // lock();
 }
 
 Timer :: ~Timer(){
 
-    stop();
-}
-
-void Timer :: start(std::chrono::seconds const & interval,
-                    std::function<void(void)> const & callEvent){
-
-    stop();
-
-    {
-        auto locked = std::unique_lock<std::mutex>(mutex);
-        stopCondition = false;
+    if(lockedByUser){
+        unlock();
     }
-
-    timerThread = std::thread([=](){
-        auto locked = std::unique_lock<std::mutex>(mutex);
-
-        while(!stopCondition){
-            auto result = terminate.wait_for(locked,interval);
-
-            if(result == std::cv_status::timeout){
-                callEvent();
-            }
-        }
-    });
-
-    timerThread.detach();
 }
 
+void Timer :: lock(){
+
+    mutex.lock();
+    lockedByUser = true;
+}
+
+void Timer :: unlock(){
+    lockedByUser = false;
+    mutex.unlock();
+}
+
+void Timer :: start(const std::chrono::seconds & interval, std::function<void(void)> const & callback){
+
+    if(!lockedByUser){
+        lock();
+        timerThread = new std::thread([interval, callback, this](){
+            auto start = std::chrono::steady_clock::now();
+            std::cout << "Started "<< NAME << " of "<< interval.count() <<" seconds..."<< std::endl;
+            if(this->mutex.try_lock_for(interval)){
+                this->mutex.unlock();
+            }
+            if(!this->exitSignal){
+                callback();
+            }
+
+            auto end = std::chrono::steady_clock::now();
+            std::cout << "Ended "<< NAME <<" after " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() 
+                      << "s. Locked = "<< lockedByUser << std::endl;
+        
+        });
+    }else{
+        std::cout << "Timer already started!" << std::endl;
+    }
+}
 
 void Timer :: stop(){
-    {
-        auto locked = std::unique_lock<std::mutex>(mutex);
-        stopCondition = true;
+
+    if(lockedByUser){
+        exitSignal = true;
+        unlock();
     }
-    terminate.notify_one();
-    
-    // if (timerThread.joinable()){
-    //     timerThread.join();
-    // }
-    
 }
+
+void Timer :: join(){
+    if(timerThread != nullptr){
+        timerThread->join();
+        delete timerThread;
+    }else{
+        std::cout << "Timer not started" << std::endl;
+    }
+}
+
+

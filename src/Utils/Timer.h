@@ -7,23 +7,35 @@
 #include <cstdio>
 #include <future>
 #include <mutex>
+#include <iostream>
+#include <cstring>
 
-//https://stackoverflow.com/questions/32693103/threaded-timer-interrupting-a-sleep-stopping-it
+
+// http://coliru.stacked-crooked.com/a/98fdcd78c99e948c
 
 class Timer {
 
-public:
-    Timer();
+private:
+    std::timed_mutex mutex;
+    std::atomic<bool> lockedByUser;
+    std::thread* timerThread = nullptr;
+    std::atomic_bool exitSignal;
+    const std::string NAME;
+    
 
+    void lock();
+    void unlock();
+
+public:
+    Timer(std::string const name);
     ~Timer();
 
-    void start(std::chrono::seconds const & interval, std::function<void(void)> const & callEvent);
+    void start(const std::chrono::seconds & interval, std::function<void(void)> const & callback);
+
     void stop();
-private:
-    bool stopCondition;
-    std::thread timerThread;
-    std::mutex mutex;
-    std::condition_variable terminate;
+    void join();
+
+    
 };
 
 #endif
