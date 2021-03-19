@@ -1,5 +1,17 @@
 #include "BGPStateMachine.h"
 
+BGPStateMachine :: BGPStateMachine(BGPConnection* connection, BGPState* state):connection(connection), currentState(state){
+
+    connectRetryTimer = new Timer("ConnectRetryTimer");
+    holdTimer = new Timer("HoldTimer");
+    keepAliveTimer = new Timer("keepAliveTimer");
+
+    //timers start
+
+    connectRetryTimer->start(std::chrono::seconds(connectRetryTime), this, ConnectRetryTimer_Expires);
+    connectRetryTimer->join();
+
+}
 BGPStateMachine :: ~BGPStateMachine(){
 
     delete currentState;
@@ -13,6 +25,8 @@ BGPStateMachine :: ~BGPStateMachine(){
 }
 
 bool BGPStateMachine :: handleEvent(Event event){
+
+    std::cout << "handleEvent" << std::endl;
 
     if (currentState && currentState->onEvent(event)){
         return true;

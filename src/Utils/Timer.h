@@ -10,6 +10,9 @@
 #include <iostream>
 #include <cstring>
 
+#include "../Event.h"
+#include "../fsm/BGPStateMachine.h"
+
 
 // http://coliru.stacked-crooked.com/a/98fdcd78c99e948c
 
@@ -30,7 +33,7 @@ public:
     Timer(std::string const name);
     ~Timer();
 
-    void start(const std::chrono::seconds & interval, std::function<void(void)> const & callback);
+    void start(const std::chrono::seconds & interval,BGPStateMachine* stateMachine, Event event);
 
     void stop();
     void join();

@@ -24,18 +24,20 @@ void Timer :: unlock(){
     mutex.unlock();
 }
 
-void Timer :: start(const std::chrono::seconds & interval, std::function<void(void)> const & callback){
+void Timer :: start(const std::chrono::seconds & interval,BGPStateMachine* stateMachine, Event event){
 
     if(!lockedByUser){
         lock();
-        timerThread = new std::thread([interval, callback, this](){
+        timerThread = new std::thread([this, interval, stateMachine, event](){
             auto start = std::chrono::steady_clock::now();
             std::cout << "Started "<< NAME << " of "<< interval.count() <<" seconds..."<< std::endl;
             if(this->mutex.try_lock_for(interval)){
                 this->mutex.unlock();
             }
             if(!this->exitSignal){
-                callback();
+                std::cout << "sadsadsad" <<std::endl;
+                stateMachine->handleEvent(event);
+                // stateMachine->*callback(event);
             }
 
             auto end = std::chrono::steady_clock::now();

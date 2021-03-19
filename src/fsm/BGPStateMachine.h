@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstring>
+#include <thread>
 
 
 #include "BGPState.h"
@@ -11,6 +12,7 @@
 #include "../Utils/Timer.h"
 
 class BGPConnection; //forward declaration
+class Timer;
 
 class BGPStateMachine{
 
@@ -24,7 +26,8 @@ private:
 
     BGPState* currentState = nullptr;
     int connectRetryCounter = 0;
-    int connectRetryTime = 120;
+    // int connectRetryTime = 120;
+    int connectRetryTime = 3;
     int holdTime = 90;
     int keepaliveTime = 30;
 
@@ -57,15 +60,9 @@ private:
 
 public:
     
-    BGPStateMachine(BGPConnection* connection, BGPState* state):connection(connection), currentState(state){
+    BGPStateMachine(BGPConnection* connection, BGPState* state);
 
-        connectRetryTimer = new Timer("ConnectRetryTimer");
-        holdTimer = new Timer("HoldTimer");
-        keepAliveTimer = new Timer("keepAliveTimer");
-
-    }
-
-    virtual ~BGPStateMachine();
+    ~BGPStateMachine();
 
 
 
