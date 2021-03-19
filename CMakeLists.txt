@@ -7,7 +7,7 @@ ENDIF ()
 
 project(${TARGET_EXEC})
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(USE_DEBUG OFF)
@@ -55,6 +55,9 @@ set(SOURCE_FILES
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 
+###### -lpthread flag support ######
+find_package( Threads )
+target_link_libraries( ${CMAKE_PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} )
 
 ###### Libraries and dependencies #####
 

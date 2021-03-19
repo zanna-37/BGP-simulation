@@ -1,32 +1,17 @@
 #include "Timer.h"
 
-void Timer :: start(){
+bool Timer::isRunning(){
 
-    startTime = std::chrono::system_clock::now();
-    running = true;
-}
+    auto status = runningFuture.wait_for(std::chrono::milliseconds(0));
 
-void Timer :: stop(){
-    endTime = std::chrono::system_clock::now();
-    running = false;
-}
-
-double Timer :: elapsedMilliseconds(){
-
-    std::chrono::time_point<std::chrono::system_clock> interval;
-
-    if(running){
-        
-        interval = std::chrono::system_clock::now();
+    if(status == std::future_status::ready){
+        return false;
     }else{
-
-        interval = endTime;
+        return true;
     }
-
-    return std::chrono::duration_cast<std::chrono::milliseconds>(interval - startTime).count();
 }
 
-double Timer :: elapsedSeconds(){
+// void Timer :: stop(){
 
-    return elapsedMilliseconds() / 1000.0;
-}
+//     timerThread
+// }
