@@ -3,7 +3,6 @@
 
 #include <string>
 
-#include "./Device.h"
 
 using namespace std;
 

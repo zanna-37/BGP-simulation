@@ -1,10 +1,7 @@
 #include <yaml-cpp/yaml.h>
 
-#include <iostream>
-
-#include "../../entities/Client.h"
-#include "../../entities/Connection.h"
 #include "Parser.h"
+
 
 vector<Network_details*>* parseAndBuildNetwork_details(
     const YAML::Node& network_details_list_yaml) {

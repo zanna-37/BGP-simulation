@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "../../entities/Client.h"
-#include "../../entities/Connection.h"
+#include "../../entities/Link.h"
 #include "Parser.h"
 #include "ParserNetwork_details.h"
 

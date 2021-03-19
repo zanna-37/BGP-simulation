@@ -1,12 +1,9 @@
 #include <yaml-cpp/yaml.h>
 
-#include <iostream>
-
-#include "../../entities/Connection.h"
-#include "../../entities/Network_details.h"
 #include "../../entities/Router.h"
 #include "Parser.h"
 #include "ParserNetwork_details.h"
+
 
 void parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
                              vector<Device *> *devices_ptr) {
