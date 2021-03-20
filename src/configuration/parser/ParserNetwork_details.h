@@ -1,7 +1,0 @@
-#ifndef BGP_SIMULATION_CONFIGURATION_PARSER_PARSERNET_DETAILS_H
-#define BGP_SIMULATION_CONFIGURATION_PARSER_PARSERNET_DETAILS_H
-
-vector<Network_details*>* parseAndBuildNetwork_details(
-    const YAML::Node& network_details_yaml);
-
-#endif  // BGP_SIMULATION_CONFIGURATION_PARSER_PARSERNET_DETAILS_H

@@ -6,12 +6,12 @@
 
 using namespace std;
 
-class Network_details {
+class NetworkCard {
    public:
-    Network_details(string net_interface,
-                    string IP,
-                    string netmask,
-                    string default_gateway)
+    NetworkCard(string net_interface,
+                string IP,
+                string netmask,
+                string default_gateway)
         : net_interface(std::move(net_interface)),
           IP(std::move(IP)),
           netmask(std::move(netmask)),

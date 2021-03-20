@@ -28,7 +28,7 @@ set(SOURCE_FILES
         ${SRC_CONFIGURATION_PARSER}/Parser.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserClient.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserLink.cpp
-        ${SRC_CONFIGURATION_PARSER}/ParserNetwork_details.cpp
+        ${SRC_CONFIGURATION_PARSER}/ParserNetworkCard.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserRouter.cpp
         )
 

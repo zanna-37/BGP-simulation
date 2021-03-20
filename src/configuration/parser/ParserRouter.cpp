@@ -2,7 +2,7 @@
 
 #include "../../entities/Router.h"
 #include "Parser.h"
-#include "ParserNetwork_details.h"
+#include "ParserNetworkCard.h"
 
 
 void parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
@@ -12,7 +12,7 @@ void parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
     for (const auto &router_yaml : routers_yaml) {
         string                     ID;
         string                     AS_number;
-        vector<Network_details *> *network_details_list = nullptr;
+        vector<NetworkCard *> *    networkCards = nullptr;
 
         for (const auto &router_property_yaml : router_yaml) {
             string     property = router_property_yaml.first.as<std::string>();
@@ -23,12 +23,12 @@ void parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
             } else if (property == "AS_number") {
                 AS_number = value.as<string>();
             } else if (property == "network") {
-                network_details_list = parseAndBuildNetwork_details(value);
+                networkCards = parseAndBuildNetworkCards(value);
             } else {
                 throwInvalidKey(property, router_property_yaml.first);
             }
         }
 
-        devices_ptr->push_back(new Router(ID, AS_number, network_details_list));
+        devices_ptr->push_back(new Router(ID, AS_number, networkCards));
     }
 }

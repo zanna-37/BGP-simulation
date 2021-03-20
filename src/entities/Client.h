@@ -5,14 +5,14 @@
 
 #include "Device.h"
 #include "Link.h"
-#include "Network_details.h"
+#include "NetworkCard.h"
 
 using namespace std;
 
 class Client : public virtual Device {
    public:
-    Client(string ID, vector<Network_details *> *network_details_list)
-        : Device(std::move(ID), network_details_list) {}
+    Client(string ID, vector<NetworkCard *> *networkCards)
+        : Device(std::move(ID), networkCards) {}
 
     ~Client() override = default;
 };

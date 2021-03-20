@@ -6,27 +6,27 @@
 #include <vector>
 
 #include "Link.h"
-#include "Network_details.h"
+#include "NetworkCard.h"
 using namespace std;
 
 class Device {
    public:
-    string                     ID;
-    vector<Network_details *> *network_details_list;
-    vector<Link *>             links;
+    string                 ID;
+    vector<NetworkCard *> *networkCards;
+    vector<Link *>         links;
 
-    Device(string ID, vector<Network_details *> *network_details_list)
-        : ID(std::move(ID)), network_details_list(network_details_list) {}
+    Device(string ID, vector<NetworkCard *> *networkCards)
+        : ID(std::move(ID)), networkCards(networkCards) {}
 
     virtual ~Device() {
         while (links.begin() != links.end()) {
             auto it = links.begin();  // this is safe even if the vector changes
             this->disconnectFrom(*it);
         }
-        for (auto network_details : *network_details_list) {
-            delete network_details;
+        for (auto networkCard : *networkCards) {
+            delete networkCard;
         }
-        delete network_details_list;
+        delete networkCards;
     }
 
     void disconnectFrom(Link *linkToDisconnect) {
