@@ -1,4 +1,6 @@
 
+#include <memory>
+
 #include "../../entities/Device.h"
 #include "Parser.h"
 
@@ -8,27 +10,18 @@ void parseAndAddBuiltLinks(const YAML::Node &links_yaml,
     assertNodeType(links_yaml, YAML::NodeType::value::Sequence);
 
     for (const auto &link_yaml : links_yaml) {
-        pair<Device *, Device *> devices;
-        pair<string, string>     device_source_interfaces;
-        Connection_status        connection_status;
+        pair<string, string> device_ids;
+        pair<string, string> device_source_interfaces;
+        Connection_status    connection_status;
 
         for (const auto &link_property_yaml : link_yaml) {
             string     property = link_property_yaml.first.as<std::string>();
             YAML::Node value    = link_property_yaml.second;
 
             if (property == "device_ids") {
-                auto   iterator = value.begin();
-                string ID1      = (*iterator++).as<std::string>();
-                string ID2      = (*iterator++).as<std::string>();
-                for (const auto &device : *devices_ptr) {
-                    if (device->ID == ID1) {
-                        devices.first = device;
-                    }  // do not "else if" this to account for the case in which
-                       // ID1==ID2
-                    if (device->ID == ID2) {
-                        devices.second = device;
-                    }
-                }
+                auto iterator     = value.begin();
+                device_ids.first  = (*iterator++).as<std::string>();
+                device_ids.second = (*iterator++).as<std::string>();
             } else if (property == "device_source_interfaces") {
                 auto iterator = value.begin();
                 device_source_interfaces.first =
@@ -44,13 +37,28 @@ void parseAndAddBuiltLinks(const YAML::Node &links_yaml,
             }
         }
 
-        Link *link =
-            new Link(devices, device_source_interfaces, connection_status);
-
-        devices.first->links.push_back(link);
-        // to avoid duplication when devices.first == devices.second
-        if (devices.first != devices.second) {
-            devices.second->links.push_back(link);
+        Device *device1;
+        Device *device2;
+        for (const auto &device : *devices_ptr) {
+            if (device->ID == device_ids.first) {
+                device1 = device;
+            }  // do not "else if" this to account for the case in which
+               // ID1==ID2
+            if (device->ID == device_ids.second) {
+                device2 = device;
+            }
         }
+
+        NetworkCard *networkCard1;
+        NetworkCard *networkCard2;
+
+        networkCard1 = device1->getNetworkCardByInterfaceOrNull(
+            device_source_interfaces.first);
+        networkCard2 = device2->getNetworkCardByInterfaceOrNull(
+            device_source_interfaces.second);
+
+        shared_ptr<Link> link(new Link(connection_status));
+        networkCard1->connect(link);
+        networkCard2->connect(link);
     }
 }

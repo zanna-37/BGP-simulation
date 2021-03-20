@@ -10,47 +10,47 @@ using namespace std;
 
 enum Connection_status { active, failed };
 
-class Device;  // forward declaration
+class NetworkCard;  // forward declaration
 class Link {
    public:
-    pair<Device *, Device *> devices;
-    pair<string, string>     device_source_interfaces;
-    Connection_status        connection_status;
+    pair<NetworkCard *, NetworkCard *> device_source_networkCards;
+    Connection_status                  connection_status;
 
-    Link(pair<Device *, Device *> devices,
-         pair<string, string>     device_source_interfaces,
-         Connection_status        connection_status)
-        : devices(devices),
-          device_source_interfaces(device_source_interfaces),
-          connection_status(connection_status) {}
+    Link(Connection_status connection_status)
+        : connection_status(connection_status) {}
 
-    void disconnect(Device *device) {
-        if (devices.first == device) {
-            devices.first = nullptr;
-        }  // do not "else if" this to account for the case in which
-           // ID1==ID2
-        if (devices.second == device) {
-            devices.second = nullptr;
-        }
-
-        if (devices.first == nullptr && devices.second == nullptr) {
-            delete this;
+    void disconnect(NetworkCard *networkCard) {
+        if (device_source_networkCards.first == networkCard) {
+            device_source_networkCards.first = nullptr;
+        } else if (device_source_networkCards.second == networkCard) {
+            device_source_networkCards.second = nullptr;
+        } else {
+            cout
+                << "[-] This link is not connected to the specified networkCard"
+                << endl;  // TODO ERROR
         }
     }
 
-    Device *getPeerOrNull(Device *device) {
-        if (devices.first == device) {
-            return devices.second;
-        } else if (devices.second == device) {
-            return devices.first;
+    void connect(NetworkCard *networkCard) {
+        if (device_source_networkCards.first == nullptr) {
+            device_source_networkCards.first = networkCard;
+        } else if (device_source_networkCards.second == nullptr) {
+            device_source_networkCards.second = networkCard;
+        } else {
+            cout << "[-] This link is already fully connected"
+                 << endl;  // TODO ERROR
+        }
+    }
+
+    NetworkCard *getPeerNetworkCardOrNull(NetworkCard *networkCard) {
+        if (device_source_networkCards.first == networkCard) {
+            return device_source_networkCards.second;
+        } else if (device_source_networkCards.second == networkCard) {
+            return device_source_networkCards.first;
         } else {
             return nullptr;
         }
     }
-
-
-   private:
-    ~Link() = default;
 };
 
 

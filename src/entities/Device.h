@@ -13,38 +13,24 @@ class Device {
    public:
     string                 ID;
     vector<NetworkCard *> *networkCards;
-    vector<Link *>         links;
 
     Device(string ID, vector<NetworkCard *> *networkCards)
         : ID(std::move(ID)), networkCards(networkCards) {}
 
     virtual ~Device() {
-        while (links.begin() != links.end()) {
-            auto it = links.begin();  // this is safe even if the vector changes
-            this->disconnectFrom(*it);
-        }
         for (auto networkCard : *networkCards) {
             delete networkCard;
         }
         delete networkCards;
     }
 
-    void disconnectFrom(Link *linkToDisconnect) {
-        vector<Link *>::iterator elementToDelete;
-        for (auto it = links.begin(); it != links.end(); it++) {
-            if (*it == linkToDisconnect) {
-                elementToDelete = it;
+    NetworkCard *getNetworkCardByInterfaceOrNull(string interfaceToSearch) {
+        for (const auto &networkCard : *networkCards) {
+            if (networkCard->net_interface == interfaceToSearch) {
+                return networkCard;
             }
         }
-        Device *peer = linkToDisconnect->getPeerOrNull(this);
-
-        linkToDisconnect->disconnect(this);
-        links.erase(elementToDelete);
-
-        if (peer != nullptr && this != peer) {  // peer is null if it has
-                                                // already been disconnected
-            peer->disconnectFrom(linkToDisconnect);
-        }
+        return nullptr;
     }
 };
 
