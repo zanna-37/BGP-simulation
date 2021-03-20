@@ -25,8 +25,6 @@ class NetworkCard {
           netmask(std::move(netmask)),
           default_gateway(std::move(default_gateway)) {}
 
-    ~NetworkCard() { link = nullptr; }
-
 
     void connect(shared_ptr<Link> linkToConnect);
 

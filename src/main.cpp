@@ -10,7 +10,6 @@
 
 #include "configuration/parser/Parser.h"
 #include "entities/Client.h"
-#include "entities/Device.h"
 #include "entities/Router.h"
 
 using namespace std;
