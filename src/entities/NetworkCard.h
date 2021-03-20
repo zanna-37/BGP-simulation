@@ -26,9 +26,9 @@ class NetworkCard {
           default_gateway(std::move(default_gateway)) {}
 
 
-    void connect(shared_ptr<Link> linkToConnect);
+    void connect(const shared_ptr<Link>& linkToConnect);
 
-    void disconnect(shared_ptr<Link> linkToDisconnect);
+    void disconnect(const shared_ptr<Link>& linkToDisconnect);
 };
 
 #endif  // BGPSIMULATION_ENTITIES_NET_DETAILS_H

@@ -3,8 +3,8 @@
 #include <iostream>
 
 
-void NetworkCard::connect(shared_ptr<Link> linkToConnect) {
-    if (link.get() == nullptr) {
+void NetworkCard::connect(const shared_ptr<Link>& linkToConnect) {
+    if (link == nullptr) {
         linkToConnect->connect(this);
         link = linkToConnect;
     } else {
@@ -13,11 +13,11 @@ void NetworkCard::connect(shared_ptr<Link> linkToConnect) {
     }
 }
 
-void NetworkCard::disconnect(shared_ptr<Link> linkToDisconnect) {
+void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
     if (link.get() == linkToDisconnect.get()) {
         linkToDisconnect->connect(this);
         link = nullptr;
-    } else if (link.get() == nullptr) {
+    } else if (link == nullptr) {
         cout << "[-] (" << net_interface
              << ") This interface has no link connected" << endl;  // TODO ERROR
     } else {

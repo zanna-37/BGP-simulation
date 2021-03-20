@@ -1,4 +1,3 @@
-
 #include <memory>
 
 #include "../../entities/Device.h"
@@ -51,7 +50,6 @@ void parseAndAddBuiltLinks(const YAML::Node &links_yaml,
 
         NetworkCard *networkCard1;
         NetworkCard *networkCard2;
-
         networkCard1 = device1->getNetworkCardByInterfaceOrNull(
             device_source_interfaces.first);
         networkCard2 = device2->getNetworkCardByInterfaceOrNull(

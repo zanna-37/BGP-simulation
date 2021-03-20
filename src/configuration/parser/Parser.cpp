@@ -57,7 +57,7 @@ void throwInvalidKey(const string &key, const YAML::Node &node) {
                         key + "\"");
 }
 
-vector<Device *> *parseAndBuild(char *filename /*, config mapping*/) {
+vector<Device *> *parseAndBuild(char *filename) {
     cout << "[#] Parsing config file" << endl;
     YAML::Node config_yaml = YAML::LoadFile(filename);
     assertNodeType(config_yaml, YAML::NodeType::value::Map);

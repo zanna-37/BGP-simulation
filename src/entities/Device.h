@@ -1,11 +1,9 @@
 #ifndef BGPSIMULATION_ENTITIES_DEVICE_H
 #define BGPSIMULATION_ENTITIES_DEVICE_H
 
-#include <iostream>
 #include <string>
 #include <vector>
 
-#include "Link.h"
 #include "NetworkCard.h"
 
 using namespace std;
@@ -27,7 +25,8 @@ class Device {
         delete networkCards;
     }
 
-    NetworkCard *getNetworkCardByInterfaceOrNull(string interfaceToSearch);
+    NetworkCard *getNetworkCardByInterfaceOrNull(
+        const string &interfaceToSearch);
 };
 
 

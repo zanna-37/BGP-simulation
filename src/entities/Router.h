@@ -4,7 +4,6 @@
 #include <string>
 
 #include "Device.h"
-#include "Link.h"
 #include "NetworkCard.h"
 
 using namespace std;

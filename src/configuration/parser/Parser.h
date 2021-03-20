@@ -6,7 +6,7 @@
 
 using namespace std;
 
-vector<Device *> *parseAndBuild(char *filename /*, config mapping*/);
+vector<Device *> *parseAndBuild(char *filename);
 
 string getNodeTypeName(YAML::NodeType::value nodeType);
 
