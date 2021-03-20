@@ -1,24 +1,21 @@
 #include <yaml-cpp/yaml.h>
 
-#include <iostream>
-
-#include "../../entities/Client.h"
-#include "../../entities/Connection.h"
 #include "Parser.h"
 
-vector<Network_details*>* parseAndBuildNetwork_details(
-    const YAML::Node& network_details_list_yaml) {
-    assertNodeType(network_details_list_yaml, YAML::NodeType::value::Sequence);
 
-    auto* network_details_list = new vector<Network_details*>;
+vector<NetworkCard*>* parseAndBuildNetworkCards(
+    const YAML::Node& networkCards_yaml) {
+    assertNodeType(networkCards_yaml, YAML::NodeType::value::Sequence);
 
-    for (const auto& network_details_single_yaml : network_details_list_yaml) {
+    auto* networkCards = new vector<NetworkCard*>;
+
+    for (const auto& networkCard_yaml : networkCards_yaml) {
         string interface;
         string IP;
         string netmask;
         string default_gateway;
 
-        for (const auto& detail_yaml : network_details_single_yaml) {
+        for (const auto& detail_yaml : networkCard_yaml) {
             string     property = detail_yaml.first.as<std::string>();
             YAML::Node value    = detail_yaml.second;
 
@@ -34,9 +31,9 @@ vector<Network_details*>* parseAndBuildNetwork_details(
                 throwInvalidKey(property, detail_yaml.first);
             }
         }
-        network_details_list->push_back(
-            new Network_details(interface, IP, netmask, default_gateway));
+        networkCards->push_back(
+            new NetworkCard(interface, IP, netmask, default_gateway));
     }
 
-    return network_details_list;
+    return networkCards;
 }

@@ -1,17 +1,33 @@
 #ifndef BGPSIMULATION_ENTITIES_DEVICE_H
 #define BGPSIMULATION_ENTITIES_DEVICE_H
 
+#include <iostream>
 #include <string>
+#include <vector>
+
+#include "Link.h"
+#include "NetworkCard.h"
 
 using namespace std;
 
+
+class NetworkCard;  // forward declaration
 class Device {
    public:
-    Device(string ID) : ID(std::move(ID)) {}
+    string                 ID;
+    vector<NetworkCard *> *networkCards;
 
-    virtual ~Device(){};
+    Device(string ID, vector<NetworkCard *> *networkCards)
+        : ID(std::move(ID)), networkCards(networkCards) {}
 
-    string ID;
+    virtual ~Device() {
+        for (auto networkCard : *networkCards) {
+            delete networkCard;
+        }
+        delete networkCards;
+    }
+
+    NetworkCard *getNetworkCardByInterfaceOrNull(string interfaceToSearch);
 };
 
 
