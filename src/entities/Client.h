@@ -2,6 +2,7 @@
 #define BGP_SIMULATION_ENTITIES_CLIENT_H
 
 #include <string>
+#include <vector>
 
 #include "Device.h"
 #include "Link.h"

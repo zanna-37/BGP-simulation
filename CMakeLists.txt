@@ -30,6 +30,11 @@ set(SOURCE_FILES
         ${SRC_CONFIGURATION_PARSER}/ParserLink.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserNetworkCard.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserRouter.cpp
+        ${SRC_ENTITIES}/Client.cpp
+        ${SRC_ENTITIES}/Device.cpp
+        ${SRC_ENTITIES}/Link.cpp
+        ${SRC_ENTITIES}/NetworkCard.cpp
+        ${SRC_ENTITIES}/Router.cpp
         )
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})

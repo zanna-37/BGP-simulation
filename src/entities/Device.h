@@ -7,8 +7,11 @@
 
 #include "Link.h"
 #include "NetworkCard.h"
+
 using namespace std;
 
+
+class NetworkCard;  // forward declaration
 class Device {
    public:
     string                 ID;
@@ -24,14 +27,7 @@ class Device {
         delete networkCards;
     }
 
-    NetworkCard *getNetworkCardByInterfaceOrNull(string interfaceToSearch) {
-        for (const auto &networkCard : *networkCards) {
-            if (networkCard->net_interface == interfaceToSearch) {
-                return networkCard;
-            }
-        }
-        return nullptr;
-    }
+    NetworkCard *getNetworkCardByInterfaceOrNull(string interfaceToSearch);
 };
 
 
