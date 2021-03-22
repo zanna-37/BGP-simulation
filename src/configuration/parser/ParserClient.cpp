@@ -6,6 +6,8 @@
 
 void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
                                            vector<Device *> *devices_ptr) {
+    Logger::getInstance()->log(LogLevel::DEBUG, "Parsing Clients");
+
     assertNodeType(clients_yaml, YAML::NodeType::value::Sequence);
 
     for (const auto &client_yaml : clients_yaml) {

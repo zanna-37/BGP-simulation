@@ -17,7 +17,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
-    Logger::getInstance()->log(LogLevel::INFO, "START");
+    Logger::getInstance()->log(LogLevel::VERBOSE, "START");
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
@@ -56,10 +56,13 @@ int main(int argc, char *argv[]) {
     }
 
 
+    Logger::getInstance()->log(LogLevel::DEBUG, "DELETING OBJECTS");
     for (auto device : *devices) {
         delete device;
     }
     delete devices;
+
+    Logger::getInstance()->log(LogLevel::VERBOSE, "END");
 
     return 0;
 }
