@@ -10,6 +10,12 @@ project(${TARGET_EXEC})
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(USE_DEBUG OFF)
+IF (USE_DEBUG)
+    add_compile_definitions(DEBUG)
+    MESSAGE(NOTICE "Entering Debug Mode...")
+ENDIF()
+
 
 set(SRC src)
 set(SRC_ENTITIES ${SRC}/entities)
