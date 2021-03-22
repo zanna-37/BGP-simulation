@@ -87,5 +87,3 @@ void Logger::log(LogLevel level, string message) {
         //        << endl;
     }
 }
-
-void Logger::shutdown() { logger = nullptr; }

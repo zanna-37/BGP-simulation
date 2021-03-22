@@ -45,8 +45,6 @@ class Logger {
 
     void log(LogLevel level, string message);
 
-    static void shutdown();
-
    private:
     static shared_ptr<Logger> logger;
     LogLevel                  targetLevel = LogLevel::INFO;
