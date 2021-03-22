@@ -7,13 +7,22 @@
 
 using namespace std;
 
-enum class LogLevel : short { DEBUG, VERBOSE, INFO, WARNING, ERROR, FATAL };
+enum class LogLevel : short {
+    DEBUG,
+    VERBOSE,
+    INFO,
+    SUCCESS,
+    WARNING,
+    ERROR,
+    FATAL
+};
 
 class Logger {
    public:
     map<LogLevel, string> levelMapLong = {{LogLevel::DEBUG, "[DEBUG  ] "},
                                           {LogLevel::VERBOSE, "[VERBOSE] "},
                                           {LogLevel::INFO, "[INFO   ] "},
+                                          {LogLevel::SUCCESS, "[SUCCESS] "},
                                           {LogLevel::WARNING, "[WARNING] "},
                                           {LogLevel::ERROR, "[ERROR  ] "},
                                           {LogLevel::FATAL, "[FATAL  ] "}};
@@ -22,6 +31,7 @@ class Logger {
     map<LogLevel, string> levelMapShort = {{LogLevel::DEBUG, "[|] "},
                                            {LogLevel::VERBOSE, "[:] "},
                                            {LogLevel::INFO, "[.] "},
+                                           {LogLevel::SUCCESS, "[+] "},
                                            {LogLevel::WARNING, "[!] "},
                                            {LogLevel::ERROR, "[-] "},
                                            {LogLevel::FATAL, "[x] "}};
