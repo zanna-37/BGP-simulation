@@ -25,9 +25,21 @@ class NetworkCard {
           netmask(std::move(netmask)),
           default_gateway(std::move(default_gateway)) {}
 
-
+    /**
+     * Connect the networkCard to the specified link.
+     * It does nothing if the networkCard is already connected to a link.
+     *
+     * @param linkToConnect The link to connect to.
+     */
     void connect(const shared_ptr<Link>& linkToConnect);
 
+    /**
+     * Disconnect the networkCard from the specified link.
+     * It does nothing if the networkCard is not connected to the specified link
+     * or no link at all.
+     *
+     * @param linkToConnect The link to disconnect from.
+     */
     void disconnect(const shared_ptr<Link>& linkToDisconnect);
 };
 

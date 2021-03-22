@@ -25,6 +25,15 @@ class Device {
         delete networkCards;
     }
 
+    /**
+     * Get the networkCard associated with the specified interface.
+     *
+     * @param interfaceToSearch Name of the interface to search in this device.
+     * @example \code NetworkCard *networkCard =
+     * device.getNetworkCardByInterfaceOrNull("eth0"); \endcode
+     * @return The \a NetworkCard object associated with the specified interface
+     * or \a nullptr if the interface is not found on the device.
+     */
     NetworkCard *getNetworkCardByInterfaceOrNull(
         const string &interfaceToSearch);
 };
