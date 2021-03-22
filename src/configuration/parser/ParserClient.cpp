@@ -1,8 +1,7 @@
 #include "ParserClient.h"
 
-#include <iostream>
-
 #include "../../entities/Client.h"
+#include "../../logger/Logger.h"
 #include "ParserNetworkCard.h"
 
 void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
@@ -30,9 +29,10 @@ void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
         devices_ptr->push_back(new Client(ID, networkCards));
 
         if (networkCards->size() > 1) {
-            cout << "[!] Warning: Found multiple networkCards on " << ID << endl
-                 << "    Last " << networkCards->size() - 1
-                 << " will not be used" << endl;
+            Logger::getInstance()->log(
+                LogLevel::WARNING,
+                "Found multiple networkCards on " + ID + "\n" + "Last " +
+                    to_string(networkCards->size() - 1) + " will not be used");
         }
     }
 }
