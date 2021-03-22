@@ -6,10 +6,15 @@
 #include <UdpLayer.h>
 
 #include <iostream>
+#include <string>
+
+#include "configuration/parser/Parser.h"
+#include "entities/Client.h"
+#include "entities/Router.h"
 
 using namespace std;
 
-int main() {
+int main(int argc, char *argv[]) {
     cout << "Hello, World!" << endl;
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
@@ -35,6 +40,24 @@ int main() {
     newPacket.computeCalculateFields();
 
     cout << newPacket.toString() << endl;
+
+    vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
+
+
+    // TODO logic here
+    for (auto device : *devices) {
+        if (auto *x = dynamic_cast<Router *>(device)) {
+            cout << x->ID << endl;
+        } else if (auto *x = dynamic_cast<Client *>(device)) {
+            cout << x->ID << endl;
+        }
+    }
+
+
+    for (auto device : *devices) {
+        delete device;
+    }
+    delete devices;
 
     return 0;
 }

@@ -18,11 +18,24 @@ ENDIF()
 
 
 set(SRC src)
+set(SRC_CONFIGURATION ${SRC}/configuration)
+set(SRC_CONFIGURATION_PARSER ${SRC_CONFIGURATION}/parser)
 set(SRC_ENTITIES ${SRC}/entities)
 
 
 set(SOURCE_FILES
-        ${SRC}/main.cpp)
+        ${SRC}/main.cpp
+        ${SRC_CONFIGURATION_PARSER}/Parser.cpp
+        ${SRC_CONFIGURATION_PARSER}/ParserClient.cpp
+        ${SRC_CONFIGURATION_PARSER}/ParserLink.cpp
+        ${SRC_CONFIGURATION_PARSER}/ParserNetworkCard.cpp
+        ${SRC_CONFIGURATION_PARSER}/ParserRouter.cpp
+        ${SRC_ENTITIES}/Client.cpp
+        ${SRC_ENTITIES}/Device.cpp
+        ${SRC_ENTITIES}/Link.cpp
+        ${SRC_ENTITIES}/NetworkCard.cpp
+        ${SRC_ENTITIES}/Router.cpp
+        )
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 
@@ -54,4 +67,14 @@ IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PCAP_PP_ROOT}/configure-linux.sh")
             )
 ELSE ()
     MESSAGE(FATAL_ERROR "PcapPlusPlus git submodule is absent. Run `git submodule update --init --recursive` to get it")
+ENDIF ()
+
+# yaml-cpp
+set(YAMLCPP_ROOT ${LIBRARIES_FOLDER}/yaml-cpp)
+IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${YAMLCPP_ROOT}/CMakeLists.txt")
+    add_subdirectory(${YAMLCPP_ROOT})
+    target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${YAMLCPP_ROOT}/include)
+    target_link_libraries(${CMAKE_PROJECT_NAME} yaml-cpp)
+ELSE ()
+    MESSAGE(FATAL_ERROR "yaml-cpp git submodule is absent. Run `git submodule update --init --recursive` to get it")
 ENDIF ()
