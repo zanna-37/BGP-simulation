@@ -17,6 +17,8 @@ void Logger::setTargetLogLevel(LogLevel newTargetLevel) {
     targetLevel = newTargetLevel;
 }
 
+void Logger::changeColorMode(bool enableColor) { useColor = enableColor; }
+
 void Logger::setOutputMode(bool newLongOutput) { longOutput = newLongOutput; }
 
 void addAfterAll(std::string&       data,
@@ -34,23 +36,25 @@ void Logger::log(LogLevel level, string message) {
     if (level >= targetLevel) {
         string output;
 
-        switch (level) {
-            case LogLevel::DEBUG:
-                output += COLOR_F_L_GREY;
-                break;
-            case LogLevel::VERBOSE:
-                output += COLOR_F_L_GREY;
-                break;
-            case LogLevel::SUCCESS:
-                output += COLOR_F_L_GREEN;
-                break;
-            case LogLevel::WARNING:
-                output += COLOR_F_L_YELLOW;
-                break;
-            case LogLevel::ERROR:
-            case LogLevel::FATAL:
-                output += COLOR_F_L_RED;
-                break;
+        if (useColor) {
+            switch (level) {
+                case LogLevel::DEBUG:
+                case LogLevel::VERBOSE:
+                    output += COLOR_F_L_GREY;
+                    break;
+                case LogLevel::SUCCESS:
+                    output += COLOR_F_L_GREEN;
+                    break;
+                case LogLevel::WARNING:
+                    output += COLOR_F_L_YELLOW;
+                    break;
+                case LogLevel::ERROR:
+                case LogLevel::FATAL:
+                    output += COLOR_F_L_RED;
+                    break;
+                case LogLevel::INFO:
+                    break;
+            }
         }
 
         if (longOutput) {
@@ -61,22 +65,26 @@ void Logger::log(LogLevel level, string message) {
             addAfterAll(message, "\n", padShort);
         }
 
-        switch (level) {
-            case LogLevel::VERBOSE:
-            case LogLevel::SUCCESS:
-            case LogLevel::WARNING:
-            case LogLevel::ERROR:
-                output += COLOR_F_DEFAULT;
-                output += message;
-                break;
-            case LogLevel::DEBUG:
-            case LogLevel::FATAL:
-                output += message;
-                output += COLOR_F_DEFAULT;
-                break;
-            case LogLevel::INFO:
-                output += message;
-                break;
+        if (useColor) {
+            switch (level) {
+                case LogLevel::VERBOSE:
+                case LogLevel::SUCCESS:
+                case LogLevel::WARNING:
+                case LogLevel::ERROR:
+                    output += COLOR_F_DEFAULT;
+                    output += message;
+                    break;
+                case LogLevel::DEBUG:
+                case LogLevel::FATAL:
+                    output += message;
+                    output += COLOR_F_DEFAULT;
+                    break;
+                case LogLevel::INFO:
+                    output += message;
+                    break;
+            }
+        } else {
+            output += message;
         }
 
 

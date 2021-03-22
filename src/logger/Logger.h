@@ -43,12 +43,15 @@ class Logger {
 
     void setOutputMode(bool longOutput);
 
+    void changeColorMode(bool enableColor);
+
     void log(LogLevel level, string message);
 
    private:
     static shared_ptr<Logger> logger;
     LogLevel                  targetLevel = LogLevel::INFO;
     bool                      longOutput  = false;
+    bool                      useColor    = true;
 
     string ESCAPE_CHAR = "\033";
     //# Escape charecters for Colors
