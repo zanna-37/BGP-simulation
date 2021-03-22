@@ -11,11 +11,13 @@
 #include "configuration/parser/Parser.h"
 #include "entities/Client.h"
 #include "entities/Router.h"
+#include "logger/Logger.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    cout << "Hello, World!" << endl;
+    Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
+    Logger::getInstance()->log(LogLevel::INFO, "START");
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
