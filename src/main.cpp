@@ -64,5 +64,14 @@ int main(int argc, char *argv[]) {
 
     Logger::getInstance()->log(LogLevel::VERBOSE, "END");
 
+    cout << endl;
+    Logger::getInstance()->log(LogLevel::DEBUG, "DEBUG");
+    Logger::getInstance()->log(LogLevel::VERBOSE, "VERBOSE");
+    Logger::getInstance()->log(LogLevel::INFO, "INFO");
+    Logger::getInstance()->log(LogLevel::SUCCESS, "SUCCESS");
+    Logger::getInstance()->log(LogLevel::WARNING, "WARNING");
+    Logger::getInstance()->log(LogLevel::ERROR, "ERROR");
+    Logger::getInstance()->log(LogLevel::FATAL, "FATAL");
+
     return 0;
 }
