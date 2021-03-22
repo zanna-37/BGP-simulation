@@ -52,6 +52,19 @@ class Logger {
     LogLevel                  targetLevel = LogLevel::INFO;
     bool                      longOutput  = false;
 
+    string ESCAPE_CHAR = "\033";
+    //# Escape charecters for Colors
+    //#		F	Foreground color
+    //#		L	Light color
+    //#		B	Background color
+    string COLOR_F_DEFAULT = ESCAPE_CHAR + "[39m";
+
+    string COLOR_F_L_GREY   = ESCAPE_CHAR + "[90m";
+    string COLOR_F_L_RED    = ESCAPE_CHAR + "[91m";
+    string COLOR_F_L_GREEN  = ESCAPE_CHAR + "[92m";
+    string COLOR_F_L_YELLOW = ESCAPE_CHAR + "[93m";
+
+
     Logger() = default;
 };
 

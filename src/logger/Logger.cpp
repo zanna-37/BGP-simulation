@@ -33,6 +33,26 @@ void addAfterAll(std::string&       data,
 void Logger::log(LogLevel level, string message) {
     if (level >= targetLevel) {
         string output;
+
+        switch (level) {
+            case LogLevel::DEBUG:
+                output += COLOR_F_L_GREY;
+                break;
+            case LogLevel::VERBOSE:
+                output += COLOR_F_L_GREY;
+                break;
+            case LogLevel::SUCCESS:
+                output += COLOR_F_L_GREEN;
+                break;
+            case LogLevel::WARNING:
+                output += COLOR_F_L_YELLOW;
+                break;
+            case LogLevel::ERROR:
+            case LogLevel::FATAL:
+                output += COLOR_F_L_RED;
+                break;
+        }
+
         if (longOutput) {
             output += levelMapLong.at(level);
             addAfterAll(message, "\n", padLong);
@@ -40,7 +60,27 @@ void Logger::log(LogLevel level, string message) {
             output += levelMapShort.at(level);
             addAfterAll(message, "\n", padShort);
         }
-        output += message;
+
+        switch (level) {
+            case LogLevel::VERBOSE:
+            case LogLevel::SUCCESS:
+            case LogLevel::WARNING:
+            case LogLevel::ERROR:
+                output += COLOR_F_DEFAULT;
+                output += message;
+                break;
+            case LogLevel::DEBUG:
+            case LogLevel::FATAL:
+                output += message;
+                output += COLOR_F_DEFAULT;
+                break;
+            case LogLevel::INFO:
+                output += message;
+                break;
+        }
+
+
+        switch (level) {}
 
         cout << output << endl;
         //        cout << chrono::steady_clock::now().time_since_epoch().count()
