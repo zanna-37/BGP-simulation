@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(USE_DEBUG OFF)
 IF (USE_DEBUG)
-    add_compile_definitions(DEBUG)
+    add_compile_definitions(DEBUG_GUARD)
     MESSAGE(NOTICE "Entering Debug Mode...")
 ENDIF()
 
