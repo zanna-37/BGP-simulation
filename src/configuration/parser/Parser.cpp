@@ -57,9 +57,8 @@ void Parser::throwInvalidKey(const string &key, const YAML::Node &node) {
 }
 
 vector<Device *> *Parser::parseAndBuild(char *filename) {
-    Logger::getInstance()->log(LogLevel::VERBOSE, "PARSING CONFIG FILE");
-    Logger::getInstance()->log(
-        LogLevel::VERBOSE, "Parsing from file \"" + string(filename) + "\"");
+    L_VERBOSE("PARSING CONFIG FILE");
+    L_VERBOSE("Parsing from file \"" + string(filename) + "\"");
 
     YAML::Node config_yaml = YAML::LoadFile(filename);
     assertNodeType(config_yaml, YAML::NodeType::value::Map);

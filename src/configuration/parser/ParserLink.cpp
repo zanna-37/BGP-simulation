@@ -5,7 +5,7 @@
 
 void ParserLink::parseAndAddBuiltLinks(const YAML::Node &links_yaml,
                                        vector<Device *> *devices_ptr) {
-    Logger::getInstance()->log(LogLevel::DEBUG, "Parsing Links");
+    L_DEBUG("Parsing Links");
 
     assertNodeType(links_yaml, YAML::NodeType::value::Sequence);
 

@@ -8,9 +8,7 @@ void Link::disconnect(NetworkCard *networkCard) {
     } else if (device_source_networkCards.second == networkCard) {
         device_source_networkCards.second = nullptr;
     } else {
-        Logger::getInstance()->log(
-            LogLevel::ERROR,
-            "This link is not connected to the specified networkCard");
+        L_ERROR("This link is not connected to the specified networkCard");
     }
 }
 
@@ -20,8 +18,7 @@ void Link::connect(NetworkCard *networkCard) {
     } else if (device_source_networkCards.second == nullptr) {
         device_source_networkCards.second = networkCard;
     } else {
-        Logger::getInstance()->log(LogLevel::ERROR,
-                                   "This link is already fully connected");
+        L_ERROR("This link is already fully connected");
     }
 }
 

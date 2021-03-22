@@ -17,7 +17,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
-    Logger::getInstance()->log(LogLevel::VERBOSE, "START");
+    L_VERBOSE("START");
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
@@ -56,22 +56,22 @@ int main(int argc, char *argv[]) {
     }
 
 
-    Logger::getInstance()->log(LogLevel::DEBUG, "DELETING OBJECTS");
+    L_DEBUG("DELETING OBJECTS");
     for (auto device : *devices) {
         delete device;
     }
     delete devices;
 
-    Logger::getInstance()->log(LogLevel::VERBOSE, "END");
+    L_VERBOSE("END");
 
     cout << endl;
-    Logger::getInstance()->log(LogLevel::DEBUG, "DEBUG");
-    Logger::getInstance()->log(LogLevel::VERBOSE, "VERBOSE");
-    Logger::getInstance()->log(LogLevel::INFO, "INFO");
-    Logger::getInstance()->log(LogLevel::SUCCESS, "SUCCESS");
-    Logger::getInstance()->log(LogLevel::WARNING, "WARNING");
-    Logger::getInstance()->log(LogLevel::ERROR, "ERROR");
-    Logger::getInstance()->log(LogLevel::FATAL, "FATAL");
+    L_DEBUG("DEBUG");
+    L_VERBOSE("VERBOSE");
+    L_INFO("INFO");
+    L_SUCCESS("SUCCESS");
+    L_WARNING("WARNING");
+    L_ERROR("ERROR");
+    L_FATAL("FATAL");
 
     return 0;
 }
