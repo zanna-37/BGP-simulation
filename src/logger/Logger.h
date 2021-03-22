@@ -39,8 +39,8 @@ class Logger {
 
    private:
     static shared_ptr<Logger> logger;
-    LogLevel                  targetLevel;
-    bool                      longOutput = false;
+    LogLevel                  targetLevel = LogLevel::INFO;
+    bool                      longOutput  = false;
 
     Logger() = default;
 };
