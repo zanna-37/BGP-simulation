@@ -19,15 +19,27 @@ void Logger::setTargetLogLevel(LogLevel newTargetLevel) {
 
 void Logger::setOutputMode(bool newLongOutput) { longOutput = newLongOutput; }
 
-void Logger::log(LogLevel level, const string& message) {
+void addAfterAll(std::string&       data,
+                 const std::string& toSearch,
+                 const std::string& replaceStr) {
+    size_t pos = data.find(toSearch);
+
+    while (pos != std::string::npos) {
+        data.insert(pos + 1, replaceStr);
+        pos = data.find(toSearch, pos + 1 + replaceStr.size());
+    }
+}
+
+void Logger::log(LogLevel level, string message) {
     if (level >= targetLevel) {
         string output;
         if (longOutput) {
             output += levelMapLong.at(level);
+            addAfterAll(message, "\n", padLong);
         } else {
             output += levelMapShort.at(level);
+            addAfterAll(message, "\n", padShort);
         }
-        output += " ";
         output += message;
 
         cout << output << endl;
