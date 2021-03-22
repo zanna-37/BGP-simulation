@@ -52,8 +52,7 @@ private:
     //   4) CollisionDetectEstablishedState
     bool dampPeerOscillations = false;
     bool delayOpen = false;
-    //   7) DelayOpenTime
-    //   8) DelayOpenTimer
+    std::chrono::seconds delayOpenTime = 0s; // TODO
     //   9) IdleHoldTime
     //  10) IdleHoldTimer
     //  11) PassiveTcpEstablishment
@@ -68,9 +67,13 @@ public:
 
     ~BGPStateMachine();
 
+    //mandatory
     Timer* connectRetryTimer = nullptr;
     Timer* holdTimer = nullptr;
     Timer* keepAliveTimer = nullptr;
+
+    //optional
+    Timer* delayOpenTimer;
 
     bool handleEvent(Event event);
 
@@ -108,6 +111,9 @@ public:
 
     std::chrono::seconds getKeepaliveTime() const { return keepaliveTime; }
     void setKeepaliveTime(const std::chrono::seconds &value) { keepaliveTime = value; }
+
+    std::chrono::seconds getDelayOpenTime() const { return delayOpenTime; }
+    void setDelayOpenTime(const std::chrono::seconds &value) { delayOpenTime = value; }
 
     //TODO print name of the current BGPState
 

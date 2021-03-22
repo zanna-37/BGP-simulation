@@ -27,6 +27,8 @@ private:
     Event timerExpires;
     BGPStateMachine* stateMachine;
     std::chrono::seconds interval;
+    bool running;
+    std::chrono::milliseconds remainingTime;
     
 
     void lock();
@@ -40,7 +42,12 @@ public:
 
     void stop();
     void join();
+    void reset();
 
+    bool isRunning() const { return running; }
+
+    std::chrono::milliseconds getRemainingTime() const { return remainingTime; }
+    void setRemainingTime(const std::chrono::milliseconds &value) { remainingTime = value; }
     
 };
 

@@ -5,6 +5,7 @@ BGPStateMachine :: BGPStateMachine(BGPConnection* connection, BGPState* state):c
     connectRetryTimer = new Timer("ConnectRetryTimer", ConnectRetryTimer_Expires, this, connectRetryTime);
     holdTimer = new Timer("HoldTimer", HoldTimer_Expires, this, holdTime);
     keepAliveTimer = new Timer("keepAliveTimer", KeepaliveTimer_Expires, this, keepaliveTime);
+    delayOpenTimer = new Timer("delayOpenTimer", DelayOpenTimer_Expires, this, delayOpenTime);
 
 
 }

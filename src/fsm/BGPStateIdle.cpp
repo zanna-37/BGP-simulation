@@ -31,34 +31,40 @@ bool BGPStateIdle :: onEvent(Event event){
     {
     case ManualStart:
     case AutomaticStart:
-        // - initializes all BGP resources for the peer connection,
+        // TODO initializes all BGP resources for the peer connection,
 
         // - sets ConnectRetryCounter to zero,
+        stateMachine->setConnectRetryCounter(0);
 
         // - starts the ConnectRetryTimer with the initial value,
+        stateMachine->connectRetryTimer->start();
 
-        // - initiates a TCP connection to the other BGP peer,
+        // TODO initiates a TCP connection to the other BGP peer,
 
-        // - listens for a connection that may be initiated by the remote
+        // TODO listens for a connection that may be initiated by the remote
         //   BGP peer, and
 
         // - changes its state to Connect.
+        stateMachine->changeState(new BGPStateConnect(stateMachine));
 
 
         break;
     case ManualStart_with_PassiveTcpEstablishment:
     case AutomaticStart_with_PassiveTcpEstablishment:
 
-        // - initializes all BGP resources,
+        // TODO initializes all BGP resources,
 
         // - sets the ConnectRetryCounter to zero,
+        stateMachine->setConnectRetryCounter(0);
 
         // - starts the ConnectRetryTimer with the initial value,
+        stateMachine->connectRetryTimer->start();
 
-        // - listens for a connection that may be initiated by the remote
+        // TODO listens for a connection that may be initiated by the remote
         //   peer, and
 
         // - changes its state to Active.
+        stateMachine->changeState(new BGPStateActive(stateMachine));
 
         break;
     case AutomaticStart_with_DampPeerOscillations:
@@ -66,9 +72,10 @@ bool BGPStateIdle :: onEvent(Event event){
     case IdleHoldTimer_Expires:
 
         if(stateMachine->getDampPeerOscillations()){
-    //   Upon receiving these 3 events, the local system will use these
-    //   events to prevent peer oscillations.  The method of preventing
-    //   persistent peer oscillation is outside the scope of this document.
+        // TODO: Do we need to implement DampPeerOscillations?
+        // Upon receiving these 3 events, the local system will use these
+        // events to prevent peer oscillations.  The method of preventing
+        // persistent peer oscillation is outside the scope of this document.
 
         }
 
