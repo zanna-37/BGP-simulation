@@ -1,6 +1,13 @@
 #include "Timer.h"
 
-Timer :: Timer(std::string const name):NAME(std::move(name)){
+Timer :: Timer( std::string const name, 
+                Event timerExpires, 
+                BGPStateMachine* stateMachine,
+                std::chrono::seconds interval):
+                NAME(std::move(name)), 
+                timerExpires(timerExpires), 
+                stateMachine(stateMachine),
+                interval(interval){
     exitSignal = false;
     lockedByUser = false;
     // lock();
@@ -24,19 +31,18 @@ void Timer :: unlock(){
     mutex.unlock();
 }
 
-void Timer :: start(const std::chrono::seconds & interval,BGPStateMachine* stateMachine, Event event){
+void Timer :: start(){
 
     if(!lockedByUser){
         lock();
-        timerThread = new std::thread([this, interval, stateMachine, event](){
+        timerThread = new std::thread([&](){
             auto start = std::chrono::steady_clock::now();
             std::cout << "Started "<< NAME << " of "<< interval.count() <<" seconds..."<< std::endl;
-            if(this->mutex.try_lock_for(interval)){
-                this->mutex.unlock();
+            if(mutex.try_lock_for(interval)){
+                mutex.unlock();
             }
-            if(!this->exitSignal){
-                stateMachine->handleEvent(event);
-                // stateMachine->*callback(event);
+            if(!exitSignal){
+                    stateMachine->handleEvent(timerExpires);
             }
 
             auto end = std::chrono::steady_clock::now();

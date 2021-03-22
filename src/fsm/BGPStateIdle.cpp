@@ -25,22 +25,25 @@ bool BGPStateIdle :: onEvent(Event event){
 
     //maybe curly parenthesis
 
-    //Has the event been handled?
     bool handled = true;
-
 
     switch (event)
     {
     case ManualStart:
     case AutomaticStart:
-        //initializes resources
-        //
-        stateMachine->setConnectRetryCounter(0);
-        //starts ConnectRetryTimer
-        //initiates a TCP connection to other BGP peer
-        //listens for a connection
+        // - initializes all BGP resources for the peer connection,
 
-        stateMachine->changeState(new BGPStateConnect(stateMachine));
+        // - sets ConnectRetryCounter to zero,
+
+        // - starts the ConnectRetryTimer with the initial value,
+
+        // - initiates a TCP connection to the other BGP peer,
+
+        // - listens for a connection that may be initiated by the remote
+        //   BGP peer, and
+
+        // - changes its state to Connect.
+
 
         break;
     case ManualStart_with_PassiveTcpEstablishment:
@@ -48,14 +51,14 @@ bool BGPStateIdle :: onEvent(Event event){
 
         // - initializes all BGP resources,
 
-        stateMachine->setConnectRetryCounter(0);
+        // - sets the ConnectRetryCounter to zero,
 
         // - starts the ConnectRetryTimer with the initial value,
 
         // - listens for a connection that may be initiated by the remote
         //   peer, and
 
-        stateMachine->changeState(new BGPStateActive(stateMachine));
+        // - changes its state to Active.
 
         break;
     case AutomaticStart_with_DampPeerOscillations:
@@ -63,7 +66,10 @@ bool BGPStateIdle :: onEvent(Event event){
     case IdleHoldTimer_Expires:
 
         if(stateMachine->getDampPeerOscillations()){
-            
+    //   Upon receiving these 3 events, the local system will use these
+    //   events to prevent peer oscillations.  The method of preventing
+    //   persistent peer oscillation is outside the scope of this document.
+
         }
 
         break;

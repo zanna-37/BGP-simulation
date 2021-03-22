@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstring>
 #include <thread>
+#include <chrono>
 
 
 #include "BGPState.h"
@@ -15,6 +16,8 @@
 
 class BGPConnection; //forward declaration
 class Timer;
+
+using namespace std::chrono_literals;
 
 class BGPStateMachine{
 
@@ -28,19 +31,18 @@ private:
 
     BGPState* currentState = nullptr;
     int connectRetryCounter = 0;
-    // int connectRetryTime = 120;
-    // int holdTime = 90;
-    // int keepaliveTime = 30;
-    //DEBUG
-    int connectRetryTime = 3;
-    int holdTime = 4;
-    int keepaliveTime = 5;
+    #ifdef DEBUG
+        std::chrono::seconds connectRetryTime = 3s;
+        std::chrono::seconds holdTime = 4s;
+        std::chrono::seconds keepaliveTime = 5s;
+    #else
+        std::chrono::seconds connectRetryTime = 120s;
+        std::chrono::seconds holdTime = 90s;
+        std::chrono::seconds keepaliveTime = 30s;        
+    #endif
 
     // https://gist.github.com/mcleary/b0bf4fa88830ff7c882d Timer implementation
 
-    Timer* connectRetryTimer = nullptr;
-    Timer* holdTimer = nullptr;
-    Timer* keepAliveTimer = nullptr;
     
     //Optional attributes
 
@@ -66,7 +68,9 @@ public:
 
     ~BGPStateMachine();
 
-
+    Timer* connectRetryTimer = nullptr;
+    Timer* holdTimer = nullptr;
+    Timer* keepAliveTimer = nullptr;
 
     bool handleEvent(Event event);
 
@@ -87,23 +91,23 @@ public:
     bool getDelayOpen() const { return delayOpen; }
     void setDelayOpen(bool value) { delayOpen = value; }
 
-    int getHoldTime() const { return holdTime; }
-    void setHoldTime(int value) { holdTime = value; }
-
     bool getSendNOTIFICATIONwithoutOPEN() const { return sendNOTIFICATIONwithoutOPEN; }
     void setSendNOTIFICATIONwithoutOPEN(bool value) { sendNOTIFICATIONwithoutOPEN = value; }
-
-    int getConnectRetryTime() const { return connectRetryTime; }
-    void setConnectRetryTime(int value) { connectRetryTime = value; }
-
-    int getKeepaliveTime() const { return keepaliveTime; }
-    void setKeepaliveTime(int value) { keepaliveTime = value; }
 
     BGPState* getPreviousState() const { return previousState; }
     void setPreviousState(BGPState* value) { previousState = value; }
 
     BGPState* getCurrentState() const { return currentState; }
     void setCurrentState(BGPState* value) { currentState = value; }
+
+    std::chrono::seconds getConnectRetryTime() const { return connectRetryTime; }
+    void setConnectRetryTime(const std::chrono::seconds &value) { connectRetryTime = value; }
+
+    std::chrono::seconds getHoldTime() const { return holdTime; }
+    void setHoldTime(const std::chrono::seconds &value) { holdTime = value; }
+
+    std::chrono::seconds getKeepaliveTime() const { return keepaliveTime; }
+    void setKeepaliveTime(const std::chrono::seconds &value) { keepaliveTime = value; }
 
     //TODO print name of the current BGPState
 

@@ -2,18 +2,10 @@
 
 BGPStateMachine :: BGPStateMachine(BGPConnection* connection, BGPState* state):connection(connection), currentState(state){
 
-    connectRetryTimer = new Timer("ConnectRetryTimer");
-    holdTimer = new Timer("HoldTimer");
-    keepAliveTimer = new Timer("keepAliveTimer");
+    connectRetryTimer = new Timer("ConnectRetryTimer", ConnectRetryTimer_Expires, this, connectRetryTime);
+    holdTimer = new Timer("HoldTimer", HoldTimer_Expires, this, holdTime);
+    keepAliveTimer = new Timer("keepAliveTimer", KeepaliveTimer_Expires, this, keepaliveTime);
 
-    //timers start
-
-    connectRetryTimer->start(std::chrono::seconds(connectRetryTime), this, ConnectRetryTimer_Expires);
-    holdTimer->start(std::chrono::seconds(holdTime), this, HoldTimer_Expires);
-    keepAliveTimer->start(std::chrono::seconds(keepaliveTime), this, KeepaliveTimer_Expires);
-    connectRetryTimer->join();
-    holdTimer->join();
-    keepAliveTimer->join();
 
 }
 BGPStateMachine :: ~BGPStateMachine(){

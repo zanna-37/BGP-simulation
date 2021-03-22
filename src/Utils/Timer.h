@@ -24,16 +24,19 @@ private:
     std::thread* timerThread = nullptr;
     std::atomic_bool exitSignal;
     const std::string NAME;
+    Event timerExpires;
+    BGPStateMachine* stateMachine;
+    std::chrono::seconds interval;
     
 
     void lock();
     void unlock();
 
 public:
-    Timer(std::string const name);
+    Timer(std::string const name, Event timerExpires, BGPStateMachine* stateMachine, std::chrono::seconds interval);
     ~Timer();
 
-    void start(const std::chrono::seconds & interval,BGPStateMachine* stateMachine, Event event);
+    void start();
 
     void stop();
     void join();
