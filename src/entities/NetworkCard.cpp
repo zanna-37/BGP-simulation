@@ -15,7 +15,7 @@ void NetworkCard::connect(const shared_ptr<Link>& linkToConnect) {
 
 void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
     if (link.get() == linkToDisconnect.get()) {
-        linkToDisconnect->connect(this);
+        linkToDisconnect->disconnect(this);
         link = nullptr;
     } else if (link == nullptr) {
         cout << "[-] (" << net_interface
