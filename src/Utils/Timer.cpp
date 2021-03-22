@@ -35,7 +35,6 @@ void Timer :: start(const std::chrono::seconds & interval,BGPStateMachine* state
                 this->mutex.unlock();
             }
             if(!this->exitSignal){
-                std::cout << "sadsadsad" <<std::endl;
                 stateMachine->handleEvent(event);
                 // stateMachine->*callback(event);
             }

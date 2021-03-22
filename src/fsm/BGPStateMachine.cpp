@@ -9,7 +9,11 @@ BGPStateMachine :: BGPStateMachine(BGPConnection* connection, BGPState* state):c
     //timers start
 
     connectRetryTimer->start(std::chrono::seconds(connectRetryTime), this, ConnectRetryTimer_Expires);
+    holdTimer->start(std::chrono::seconds(holdTime), this, HoldTimer_Expires);
+    keepAliveTimer->start(std::chrono::seconds(keepaliveTime), this, KeepaliveTimer_Expires);
     connectRetryTimer->join();
+    holdTimer->join();
+    keepAliveTimer->join();
 
 }
 BGPStateMachine :: ~BGPStateMachine(){

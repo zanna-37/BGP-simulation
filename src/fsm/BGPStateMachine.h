@@ -11,6 +11,8 @@
 #include "../Event.h"
 #include "../Utils/Timer.h"
 
+// debugging tokens
+
 class BGPConnection; //forward declaration
 class Timer;
 
@@ -27,9 +29,12 @@ private:
     BGPState* currentState = nullptr;
     int connectRetryCounter = 0;
     // int connectRetryTime = 120;
+    // int holdTime = 90;
+    // int keepaliveTime = 30;
+    //DEBUG
     int connectRetryTime = 3;
-    int holdTime = 90;
-    int keepaliveTime = 30;
+    int holdTime = 4;
+    int keepaliveTime = 5;
 
     // https://gist.github.com/mcleary/b0bf4fa88830ff7c882d Timer implementation
 
@@ -54,9 +59,6 @@ private:
     //  13) TrackTcpState
 
      
-
-    
-
 
 public:
     
