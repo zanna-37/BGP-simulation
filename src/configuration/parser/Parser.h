@@ -6,13 +6,20 @@
 
 using namespace std;
 
-vector<Device *> *parseAndBuild(char *filename);
+class Parser {
+   public:
+    static vector<Device *> *parseAndBuild(char *filename);
 
-string getNodeTypeName(YAML::NodeType::value nodeType);
+   protected:
+    static string getNodeTypeName(YAML::NodeType::value nodeType);
 
-void throwInvalidKey(const string &key, const YAML::Node &node);
+    static void throwInvalidKey(const string &key, const YAML::Node &node);
 
-void assertNodeType(const YAML::Node &    node,
-                    YAML::NodeType::value expectedNodeType);
+    static void assertNodeType(const YAML::Node &    node,
+                               YAML::NodeType::value expectedNodeType);
+
+   private:
+    Parser() = delete;
+};
 
 #endif  // BGP_SIMULATION_CONFIGURATION_PARSER_PARSER_H

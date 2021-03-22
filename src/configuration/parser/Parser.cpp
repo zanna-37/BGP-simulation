@@ -10,7 +10,7 @@
 #include "ParserRouter.h"
 
 
-string getNodeTypeName(YAML::NodeType::value nodeType) {
+string Parser::getNodeTypeName(YAML::NodeType::value nodeType) {
     string name;
     switch (nodeType) {
         case YAML::NodeType::Null: {
@@ -41,8 +41,8 @@ string getNodeTypeName(YAML::NodeType::value nodeType) {
     return name;
 }
 
-void assertNodeType(const YAML::Node &    node,
-                    YAML::NodeType::value expectedNodeType) {
+void Parser::assertNodeType(const YAML::Node &    node,
+                            YAML::NodeType::value expectedNodeType) {
     if (node.Type() != expectedNodeType) {
         throw runtime_error("Invalid config at line " +
                             to_string(node.Mark().line + 1) + ": expected " +
@@ -51,14 +51,14 @@ void assertNodeType(const YAML::Node &    node,
     }
 }
 
-void throwInvalidKey(const string &key, const YAML::Node &node) {
+void Parser::throwInvalidKey(const string &key, const YAML::Node &node) {
     throw runtime_error("Invalid config at line " +
                         to_string(node.Mark().line + 1) + ": unknown key \"" +
                         key + "\"");
 }
 
-vector<Device *> *parseAndBuild(char *filename) {
-    cout << "[#] Parsing config file" << endl;
+vector<Device *> *Parser::parseAndBuild(char *filename) {
+    cout << "[#] Parsing config file" << endl;  // TODO logger
     YAML::Node config_yaml = YAML::LoadFile(filename);
     assertNodeType(config_yaml, YAML::NodeType::value::Map);
 
@@ -69,11 +69,11 @@ vector<Device *> *parseAndBuild(char *filename) {
         YAML::Node devices_yaml = device_category_yaml.second;
 
         if (deviceCategory == "routers") {
-            parseAndAddBuiltRouters(devices_yaml, devices_ptr);
+            ParserRouter::parseAndAddBuiltRouters(devices_yaml, devices_ptr);
         } else if (deviceCategory == "clients") {
-            parseAndAddBuiltClients(devices_yaml, devices_ptr);
+            ParserClient::parseAndAddBuiltClients(devices_yaml, devices_ptr);
         } else if (deviceCategory == "links") {
-            parseAndAddBuiltLinks(devices_yaml, devices_ptr);
+            ParserLink::parseAndAddBuiltLinks(devices_yaml, devices_ptr);
         } else {
             throwInvalidKey(deviceCategory, device_category_yaml.first);
         }

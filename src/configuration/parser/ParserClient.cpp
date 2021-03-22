@@ -1,14 +1,12 @@
-#include <yaml-cpp/yaml.h>
+#include "ParserClient.h"
 
 #include <iostream>
 
 #include "../../entities/Client.h"
-#include "../../entities/Link.h"
-#include "Parser.h"
 #include "ParserNetworkCard.h"
 
-void parseAndAddBuiltClients(const YAML::Node &clients_yaml,
-                             vector<Device *> *devices_ptr) {
+void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
+                                           vector<Device *> *devices_ptr) {
     assertNodeType(clients_yaml, YAML::NodeType::value::Sequence);
 
     for (const auto &client_yaml : clients_yaml) {
@@ -22,7 +20,8 @@ void parseAndAddBuiltClients(const YAML::Node &clients_yaml,
             if (property == "id") {
                 ID = value.as<string>();
             } else if (property == "network") {
-                networkCards = parseAndBuildNetworkCards(value);
+                networkCards =
+                    ParserNetworkCard::parseAndBuildNetworkCards(value);
             } else {
                 throwInvalidKey(property, client_property_yaml.first);
             }

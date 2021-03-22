@@ -1,9 +1,6 @@
-#include <yaml-cpp/yaml.h>
+#include "ParserNetworkCard.h"
 
-#include "Parser.h"
-
-
-vector<NetworkCard*>* parseAndBuildNetworkCards(
+vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
     const YAML::Node& networkCards_yaml) {
     assertNodeType(networkCards_yaml, YAML::NodeType::value::Sequence);
 

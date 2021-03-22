@@ -1,11 +1,8 @@
-#include <memory>
-
-#include "../../entities/Device.h"
-#include "Parser.h"
+#include "ParserLink.h"
 
 
-void parseAndAddBuiltLinks(const YAML::Node &links_yaml,
-                           vector<Device *> *devices_ptr) {
+void ParserLink::parseAndAddBuiltLinks(const YAML::Node &links_yaml,
+                                       vector<Device *> *devices_ptr) {
     assertNodeType(links_yaml, YAML::NodeType::value::Sequence);
 
     for (const auto &link_yaml : links_yaml) {

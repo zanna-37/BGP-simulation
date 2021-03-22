@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 
     cout << newPacket.toString() << endl;
 
-    vector<Device *> *devices = parseAndBuild(argv[1]);
+    vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
 
     // TODO logic here
