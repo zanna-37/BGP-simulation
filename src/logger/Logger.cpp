@@ -17,9 +17,11 @@ void Logger::setTargetLogLevel(LogLevel newTargetLevel) {
     targetLevel = newTargetLevel;
 }
 
-void Logger::changeColorMode(bool enableColor) { useColor = enableColor; }
+void Logger::setEnableColor(bool enableColor) {
+    this->enableColor = enableColor;
+}
 
-void Logger::setOutputMode(bool newLongOutput) { longOutput = newLongOutput; }
+void Logger::setLongPrefix(bool longPrefix) { this->longPrefix = longPrefix; }
 
 void addAfterAll(std::string&       data,
                  const std::string& toSearch,
@@ -32,12 +34,12 @@ void addAfterAll(std::string&       data,
     }
 }
 
-void Logger::log(LogLevel level, string message) {
-    if (level >= targetLevel) {
+void Logger::log(LogLevel logLevel, string message) {
+    if (logLevel >= targetLevel) {
         string output;
 
-        if (useColor) {
-            switch (level) {
+        if (enableColor) {
+            switch (logLevel) {
                 case LogLevel::DEBUG:
                 case LogLevel::VERBOSE:
                     output += COLOR_FG_LIGHT_GREY;
@@ -57,16 +59,16 @@ void Logger::log(LogLevel level, string message) {
             }
         }
 
-        if (longOutput) {
-            output += levelMapLong.at(level);
+        if (longPrefix) {
+            output += levelMapLong.at(logLevel);
             addAfterAll(message, "\n", padLong);
         } else {
-            output += levelMapShort.at(level);
+            output += levelMapShort.at(logLevel);
             addAfterAll(message, "\n", padShort);
         }
 
-        if (useColor) {
-            switch (level) {
+        if (enableColor) {
+            switch (logLevel) {
                 case LogLevel::VERBOSE:
                 case LogLevel::SUCCESS:
                 case LogLevel::WARNING:
@@ -88,7 +90,7 @@ void Logger::log(LogLevel level, string message) {
         }
 
 
-        switch (level) {}
+        switch (logLevel) {}
 
         cout << output << endl;
         //        cout << chrono::steady_clock::now().time_since_epoch().count()
