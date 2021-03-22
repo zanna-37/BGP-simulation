@@ -19,6 +19,29 @@ enum class LogLevel : short {
 
 class Logger {
    public:
+    static shared_ptr<Logger> getInstance();
+
+    void setTargetLogLevel(LogLevel targetLevel);
+
+    void setOutputMode(bool longOutput);
+
+    void changeColorMode(bool enableColor);
+
+    void log(LogLevel level, string message);
+
+   private:
+    static shared_ptr<Logger> logger;
+    LogLevel                  targetLevel = LogLevel::INFO;
+    bool                      longOutput  = false;
+    bool                      useColor    = true;
+
+    string ESCAPE_CHAR           = "\033";
+    string COLOR_FG_DEFAULT      = ESCAPE_CHAR + "[39m";
+    string COLOR_FG_LIGHT_GREY   = ESCAPE_CHAR + "[90m";
+    string COLOR_FG_LIGHT_RED    = ESCAPE_CHAR + "[91m";
+    string COLOR_FG_LIGHT_GREEN  = ESCAPE_CHAR + "[92m";
+    string COLOR_FG_LIGHT_YELLOW = ESCAPE_CHAR + "[93m";
+
     map<LogLevel, string> levelMapLong = {{LogLevel::DEBUG, "[DEBUG  ] "},
                                           {LogLevel::VERBOSE, "[VERBOSE] "},
                                           {LogLevel::INFO, "[INFO   ] "},
@@ -36,34 +59,6 @@ class Logger {
                                            {LogLevel::ERROR, "[-] "},
                                            {LogLevel::FATAL, "[x] "}};
     const string          padShort      = "    ";
-
-    static shared_ptr<Logger> getInstance();
-
-    void setTargetLogLevel(LogLevel targetLevel);
-
-    void setOutputMode(bool longOutput);
-
-    void changeColorMode(bool enableColor);
-
-    void log(LogLevel level, string message);
-
-   private:
-    static shared_ptr<Logger> logger;
-    LogLevel                  targetLevel = LogLevel::INFO;
-    bool                      longOutput  = false;
-    bool                      useColor    = true;
-
-    string ESCAPE_CHAR = "\033";
-    //# Escape charecters for Colors
-    //#		F	Foreground color
-    //#		L	Light color
-    //#		B	Background color
-    string COLOR_F_DEFAULT = ESCAPE_CHAR + "[39m";
-
-    string COLOR_F_L_GREY   = ESCAPE_CHAR + "[90m";
-    string COLOR_F_L_RED    = ESCAPE_CHAR + "[91m";
-    string COLOR_F_L_GREEN  = ESCAPE_CHAR + "[92m";
-    string COLOR_F_L_YELLOW = ESCAPE_CHAR + "[93m";
 
 
     Logger() = default;

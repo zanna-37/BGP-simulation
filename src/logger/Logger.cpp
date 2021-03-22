@@ -40,17 +40,17 @@ void Logger::log(LogLevel level, string message) {
             switch (level) {
                 case LogLevel::DEBUG:
                 case LogLevel::VERBOSE:
-                    output += COLOR_F_L_GREY;
+                    output += COLOR_FG_LIGHT_GREY;
                     break;
                 case LogLevel::SUCCESS:
-                    output += COLOR_F_L_GREEN;
+                    output += COLOR_FG_LIGHT_GREEN;
                     break;
                 case LogLevel::WARNING:
-                    output += COLOR_F_L_YELLOW;
+                    output += COLOR_FG_LIGHT_YELLOW;
                     break;
                 case LogLevel::ERROR:
                 case LogLevel::FATAL:
-                    output += COLOR_F_L_RED;
+                    output += COLOR_FG_LIGHT_RED;
                     break;
                 case LogLevel::INFO:
                     break;
@@ -71,13 +71,13 @@ void Logger::log(LogLevel level, string message) {
                 case LogLevel::SUCCESS:
                 case LogLevel::WARNING:
                 case LogLevel::ERROR:
-                    output += COLOR_F_DEFAULT;
+                    output += COLOR_FG_DEFAULT;
                     output += message;
                     break;
                 case LogLevel::DEBUG:
                 case LogLevel::FATAL:
                     output += message;
-                    output += COLOR_F_DEFAULT;
+                    output += COLOR_FG_DEFAULT;
                     break;
                 case LogLevel::INFO:
                     output += message;
