@@ -11,17 +11,21 @@ enum Connection_status { active, failed };
 class NetworkCard;  // forward declaration
 class Link {
    public:
-    pair<NetworkCard *, NetworkCard *> device_source_networkCards;
-    Connection_status                  connection_status;
+    Connection_status connection_status;
 
     Link(Connection_status connection_status)
         : connection_status(connection_status) {}
+
+    NetworkCard *getPeerNetworkCardOrNull(NetworkCard *networkCard);
+
+   private:
+    pair<NetworkCard *, NetworkCard *> device_source_networkCards;
 
     void disconnect(NetworkCard *networkCard);
 
     void connect(NetworkCard *networkCard);
 
-    NetworkCard *getPeerNetworkCardOrNull(NetworkCard *networkCard);
+    friend class NetworkCard;
 };
 
 
