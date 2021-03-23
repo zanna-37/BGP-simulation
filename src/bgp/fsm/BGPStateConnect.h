@@ -12,7 +12,10 @@ private:
 
 public: 
     //Constructor
-    BGPStateConnect(BGPStateMachine* stateMachine) : BGPState(stateMachine){};
+    BGPStateConnect(BGPStateMachine* stateMachine) : BGPState(stateMachine){
+        NAME = "CONNECT";
+        L_DEBUG("State created: " + NAME);
+    };
 
     //Deconstructor
     ~BGPStateConnect();

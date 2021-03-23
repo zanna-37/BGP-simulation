@@ -2,6 +2,7 @@
 #define EVENT_H
 
  enum Event {
+            USER_DEFINED,
             ManualStart,
             ManualStop,
             AutomaticStart,

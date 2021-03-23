@@ -11,8 +11,12 @@ private:
     
 
 public: 
+
     //Constructor
-    BGPStateActive(BGPStateMachine* stateMachine) : BGPState(stateMachine){};
+    BGPStateActive(BGPStateMachine* stateMachine) : BGPState(stateMachine){
+        NAME = "ACTIVE";
+        L_DEBUG("State created: " + NAME);
+    };
 
     //Deconstructor
     ~BGPStateActive();

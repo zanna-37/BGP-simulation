@@ -13,7 +13,10 @@ private:
 
 public: 
     //Constructor
-    BGPStateOpenConfirm(BGPStateMachine* stateMachine) : BGPState(stateMachine){};
+    BGPStateOpenConfirm(BGPStateMachine* stateMachine) : BGPState(stateMachine){
+        NAME = "OPEN_CONFIRM";
+        L_DEBUG("State created: " + NAME);
+    };
 
     //Deconstructor
     ~BGPStateOpenConfirm();

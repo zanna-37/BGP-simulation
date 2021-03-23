@@ -12,7 +12,10 @@ private:
 
 public: 
     //Constructor
-    BGPStateIdle(BGPStateMachine* stateMachine): BGPState(stateMachine){};
+    BGPStateIdle(BGPStateMachine* stateMachine): BGPState(stateMachine){
+        NAME = "IDLE";
+        L_DEBUG("State created: " + NAME);
+    };
 
     //Deconstructor
     ~BGPStateIdle();

@@ -28,7 +28,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         // TODO sends the NOTIFICATION message with a Cease,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO deletes all routes associated with this connection,
 
@@ -46,7 +46,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         // TODO sends a NOTIFICATION with a Cease,
 
         // - sets the ConnectRetryTimer to zero
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO deletes all routes associated with this connection,
 
@@ -70,7 +70,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         //   Expired,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -94,7 +94,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         // FIXME restarts its KeepaliveTimer, unless the negotiated HoldTime
         //   value is zero.
         if(stateMachine->holdTimer->getRemainingTime() != 0ms){
-            stateMachine->keepAliveTimer->reset();
+            stateMachine->resetKeepAliveTimer();
             stateMachine->keepAliveTimer->start();
         }
         break;
@@ -117,7 +117,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         // TODO sends a NOTIFICATION with a Cease,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO deletes all routes associated with this connection,
 
@@ -141,7 +141,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
     case NotifMsg:
     case TcpConnectionFails:
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO deletes all routes associated with this connection,
 
@@ -158,7 +158,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         // FIXME restarts its HoldTimer, if the negotiated HoldTime value is
         //   non-zero, and
         if(stateMachine->getHoldTime() != 0ms){
-            stateMachine->holdTimer->reset();
+            stateMachine->resetHoldTimer();
             stateMachine->holdTimer->start();
         }
 
@@ -171,7 +171,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         // - restarts its HoldTimer, if the negotiated HoldTime value is
         //   non-zero, and
         if(stateMachine->getHoldTime() != 0ms){
-            stateMachine->holdTimer->reset();
+            stateMachine->resetHoldTimer();
             stateMachine->holdTimer->start();
         }
 
@@ -181,7 +181,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         // TODO sends a NOTIFICATION message with an Update error,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO deletes all routes associated with this connection,
 
@@ -213,7 +213,7 @@ bool BGPStateEnstablished :: onEvent(Event event){
         // TODO deletes all routes associated with this connection,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 

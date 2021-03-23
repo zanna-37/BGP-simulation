@@ -3,6 +3,7 @@
 
 #include "BGPStateMachine.h"
 #include "../Event.h"
+#include "../../logger/Logger.h"
 
 class BGPStateMachine; //forward declaration
 
@@ -13,6 +14,7 @@ public:
     virtual void execute() = 0;
     virtual void exit() = 0;
     BGPStateMachine* stateMachine;
+    string NAME;
     BGPState(BGPStateMachine* stateMachine): stateMachine(stateMachine){};
     virtual ~BGPState(){}
 

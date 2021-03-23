@@ -34,7 +34,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
         stateMachine->setConnectRetryCounter(0);
 
         // - sets the ConnectRetryTimer to zero, and
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // - changes its state to Idle.
         stateMachine->changeState(new BGPStateIdle(stateMachine));
@@ -43,7 +43,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
         // TODO sends the NOTIFICATION message with a Cease,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -65,7 +65,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
         //   Expired,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -87,7 +87,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
         // TODO sends a KEEPALIVE message,
 
         // - restarts the KeepaliveTimer, and
-        stateMachine->keepAliveTimer->reset();
+        stateMachine->resetKeepAliveTimer();
         stateMachine->keepAliveTimer->start();
 
         // - remains in the OpenConfirmed state.
@@ -104,7 +104,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
     case TcpConnectionFails:
     case NotifMsg:
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -124,7 +124,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
         break;
     case NotifMsgVerErr:
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -139,7 +139,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
             // TODO sends a NOTIFICATION with a Cease,
 
             // - sets the ConnectRetryTimer to zero,
-            stateMachine->connectRetryTimer->reset();
+            stateMachine->resetConnectRetryTimer();
 
             // TODO releases all BGP resources,
 
@@ -162,7 +162,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
         // TODO sends a NOTIFICATION message with the appropriate error code,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -183,7 +183,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
         // TODO sends a NOTIFICATION with a Cease,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources
 
@@ -204,7 +204,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
     case KeepAliveMsg:
 
         // FIXME restarts the HoldTimer and
-        stateMachine->holdTimer->reset();
+        stateMachine->resetHoldTimer();
         stateMachine->holdTimer->start();
 
         // - changes its state to Established.
@@ -220,7 +220,7 @@ bool BGPStateOpenConfirm :: onEvent(Event event){
         //   Error,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 

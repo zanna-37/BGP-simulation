@@ -12,6 +12,7 @@
 
 #include "../bgp/Event.h"
 #include "../bgp/fsm/BGPStateMachine.h"
+#include "../logger/Logger.h"
 
 
 // http://coliru.stacked-crooked.com/a/98fdcd78c99e948c
@@ -42,7 +43,6 @@ public:
 
     void stop();
     void join();
-    void reset();
 
     bool isRunning() const { return running; }
 

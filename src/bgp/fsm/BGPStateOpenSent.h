@@ -12,7 +12,10 @@ private:
 
 public: 
     //Constructor
-    BGPStateOpenSent(BGPStateMachine* stateMachine) : BGPState(stateMachine){};
+    BGPStateOpenSent(BGPStateMachine* stateMachine) : BGPState(stateMachine){
+        NAME = "OPEN_SENT";
+        L_DEBUG("State created: " + NAME);
+    };
 
     //Deconstructor
     ~BGPStateOpenSent();

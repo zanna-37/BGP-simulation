@@ -34,7 +34,7 @@ bool BGPStateConnect :: onEvent(Event event) {
 
         // - stops the ConnectRetryTimer and sets ConnectRetryTimer to
         //   zero, and
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // - changes its state to Idle.
         stateMachine->changeState(new BGPStateIdle(stateMachine));
@@ -44,10 +44,11 @@ bool BGPStateConnect :: onEvent(Event event) {
         // TODO drops the TCP connection,
 
         // - restarts the ConnectRetryTimer,
+        stateMachine->resetConnectRetryTimer();
         stateMachine->connectRetryTimer->start();
 
         // - stops the DelayOpenTimer and resets the timer to zero,
-        stateMachine->delayOpenTimer->reset();
+        stateMachine->resetDelayOpenTimer();
 
         // TODO initiates a TCP connection to the other BGP peer,
 
@@ -78,31 +79,31 @@ bool BGPStateConnect :: onEvent(Event event) {
         // If the DelayOpen attribute is set to TRUE, the local system:
         if(stateMachine->getDelayOpen()){
         
-        // - stops the ConnectRetryTimer (if running) and sets the
-        //   ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+            // - stops the ConnectRetryTimer (if running) and sets the
+            //   ConnectRetryTimer to zero,
+            stateMachine->resetConnectRetryTimer();
 
-        // - sets the DelayOpenTimer to the initial value, and
-        stateMachine->delayOpenTimer->start();
+            // - sets the DelayOpenTimer to the initial value, and
+            stateMachine->delayOpenTimer->start();
 
-        // - stays in the Connect state.
+            // - stays in the Connect state.
 
-        // If the DelayOpen attribute is set to FALSE, the local system:
+            // If the DelayOpen attribute is set to FALSE, the local system:
         }else{
-        // - stops the ConnectRetryTimer (if running) and sets the
-        //   ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+            // - stops the ConnectRetryTimer (if running) and sets the
+            //   ConnectRetryTimer to zero,
+            stateMachine->resetConnectRetryTimer();
 
-        // TODO completes BGP initialization
+            // TODO completes BGP initialization
 
-        // TODO sends an OPEN message to its peer,
+            // TODO sends an OPEN message to its peer,
 
-        // - NOT_SURE sets the HoldTimer to a large value, and
-        stateMachine->setDelayOpenTime(240s);
-        stateMachine->delayOpenTimer->start();
+            // - NOT_SURE sets the HoldTimer to a large value, and
+            stateMachine->setDelayOpenTime(240s);
+            stateMachine->delayOpenTimer->start();
 
-        // - changes its state to OpenSent.
-        stateMachine->changeState(new BGPStateOpenSent(stateMachine));
+            // - changes its state to OpenSent.
+            stateMachine->changeState(new BGPStateOpenSent(stateMachine));
         
         }
         break;
@@ -112,25 +113,24 @@ bool BGPStateConnect :: onEvent(Event event) {
     //   system:
         if(stateMachine->delayOpenTimer->isRunning()){
 
+            //     - restarts the ConnectRetryTimer with the initial value,
+            stateMachine->resetConnectRetryTimer();;
+            stateMachine->connectRetryTimer->start();
 
-        //     - restarts the ConnectRetryTimer with the initial value,
-        stateMachine->connectRetryTimer->stop();
-        stateMachine->connectRetryTimer->start();
+            //     - stops the DelayOpenTimer and resets its value to zero,
+            stateMachine->resetDelayOpenTimer();
 
-        //     - stops the DelayOpenTimer and resets its value to zero,
-        stateMachine->delayOpenTimer->reset();
+            //     -  TODO continues to listen for a connection that may be initiated by
+            //       the remote BGP peer, and
 
-        //     -  TODO continues to listen for a connection that may be initiated by
-        //       the remote BGP peer, and
+            //     - changes its state to Active.
+            stateMachine->changeState(new BGPStateActive(stateMachine));
 
-        //     - changes its state to Active.
-        stateMachine->changeState(new BGPStateActive(stateMachine));
-
-        //   If the DelayOpenTimer is not running, the local system:
+            //   If the DelayOpenTimer is not running, the local system:
         }else{
 
         //     - stops the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         //     TODO drops the TCP connection,
 
@@ -143,12 +143,12 @@ bool BGPStateConnect :: onEvent(Event event) {
     case BGPOpen_with_DelayOpenTimer_running:
         // - stops the ConnectRetryTimer (if running) and sets the
         //   ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO completes the BGP initialization,
 
         // - stops and clears the DelayOpenTimer (sets the value to zero),
-        stateMachine->delayOpenTimer->reset();
+        stateMachine->resetDelayOpenTimer();
 
         // TODO sends an OPEN message,
 
@@ -157,18 +157,18 @@ bool BGPStateConnect :: onEvent(Event event) {
         // - if the HoldTimer initial value is non-zero,
         if(stateMachine->holdTimer->getRemainingTime() != 0ms){
 
-        //     - starts the KeepaliveTimer with the initial value and
+            //     - starts the KeepaliveTimer with the initial value and
             stateMachine->keepAliveTimer->start();
 
-        //     - resets the HoldTimer to the negotiated value,
+            //     - resets the HoldTimer to the negotiated value,
             stateMachine->holdTimer->setRemainingTime(0ms); // NOT_SURE
 
-        //   else, if the HoldTimer initial value is zero,
+            //   else, if the HoldTimer initial value is zero,
         }else{
-        //     - resets the KeepaliveTimer and
-            stateMachine->keepAliveTimer->reset();
-        //     - resets the HoldTimer value to zero,
-            stateMachine->holdTimer->reset();
+            //     - resets the KeepaliveTimer and
+            stateMachine->resetKeepAliveTimer();
+            //     - resets the HoldTimer value to zero,
+            stateMachine->resetHoldTimer();
         }
         // - and changes its state to OpenConfirm.
         stateMachine->changeState(new BGPStateOpenConfirm(stateMachine));
@@ -185,7 +185,7 @@ bool BGPStateConnect :: onEvent(Event event) {
 
         // - stops the ConnectRetryTimer (if running) and sets the
         //   ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -207,10 +207,10 @@ bool BGPStateConnect :: onEvent(Event event) {
         if(stateMachine->delayOpenTimer->isRunning()){
             //     - stops the ConnectRetryTimer (if running) and sets the
             //       ConnectRetryTimer to zero,
-            stateMachine->connectRetryTimer->reset();
+            stateMachine->resetConnectRetryTimer();
 
             //     - stops and resets the DelayOpenTimer (sets to zero),
-            stateMachine->delayOpenTimer->reset();
+            stateMachine->resetDelayOpenTimer();
 
             //     TODO releases all BGP resources,
 
@@ -223,7 +223,7 @@ bool BGPStateConnect :: onEvent(Event event) {
         }else{
             //     - stops the ConnectRetryTimer and sets the ConnectRetryTimer to
             //       zero,
-            stateMachine->connectRetryTimer->reset();
+            stateMachine->resetConnectRetryTimer();
 
             //     TODO releases all BGP resources,
 
@@ -252,10 +252,10 @@ bool BGPStateConnect :: onEvent(Event event) {
     case UpdateMsgErr:
         // - if the ConnectRetryTimer is running, stops and resets the
         //   ConnectRetryTimer (sets to zero),
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
         // - if the DelayOpenTimer is running, stops and resets the
         //   DelayOpenTimer (sets to zero),
-        stateMachine->delayOpenTimer->reset();
+        stateMachine->resetDelayOpenTimer();
 
         // TODO releases all BGP resources,
 

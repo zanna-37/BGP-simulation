@@ -27,7 +27,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         // TODO sends the NOTIFICATION with a Cease,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -43,7 +43,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         // TODO sends the NOTIFICATION with a Cease,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all the BGP resources,
 
@@ -66,7 +66,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         //   Expired,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -99,7 +99,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         // TODO closes the BGP connection,
 
         // - restarts the ConnectRetryTimer,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
         stateMachine->connectRetryTimer->start();
 
         // TODO continues to listen for a connection that may be initiated by
@@ -110,7 +110,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         break;
     case BGPOpen:
         // - resets the DelayOpenTimer to zero,
-        stateMachine->delayOpenTimer->reset();
+        stateMachine->resetDelayOpenTimer();
 
         // TODO sets the BGP ConnectRetryTimer to zero,
 
@@ -129,7 +129,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         //  TODO sends a NOTIFICATION message with the appropriate error code,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -151,7 +151,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         // TODO sends a NOTIFICATION with a Cease,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -172,7 +172,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         break;
     case NotifMsgVerErr:
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 
@@ -194,7 +194,7 @@ bool BGPStateOpenSent :: onEvent(Event event){
         //   Machine Error,
 
         // - sets the ConnectRetryTimer to zero,
-        stateMachine->connectRetryTimer->reset();
+        stateMachine->resetConnectRetryTimer();
 
         // TODO releases all BGP resources,
 

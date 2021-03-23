@@ -8,6 +8,7 @@ Timer :: Timer( std::string const name,
                 timerExpires(timerExpires), 
                 stateMachine(stateMachine),
                 interval(interval){
+
     exitSignal = false;
     lockedByUser = false;
     running = false;
@@ -35,11 +36,11 @@ void Timer :: unlock(){
 
 void Timer :: start(){
 
-    if(!lockedByUser){
+    if(!running){
         lock();
         timerThread = new std::thread([&](){
             auto start = std::chrono::steady_clock::now();
-            std::cout << "Started "<< NAME << " of "<< interval.count() <<" seconds..."<< std::endl;
+            L_DEBUG("START " + NAME + ": " + to_string(interval.count()) + "s");
             running = true;
 
             //If the timer has benn stopped before, continue with the remaining value
@@ -48,7 +49,7 @@ void Timer :: start(){
                     mutex.unlock();
                 }
             }else{
-               if(mutex.try_lock_for(interval)){
+               if(mutex.try_lock_for(remainingTime)){
                     mutex.unlock();
                 } 
             }
@@ -58,10 +59,14 @@ void Timer :: start(){
             }
             auto end = std::chrono::steady_clock::now();
             remainingTime = std::chrono::duration_cast<std::chrono::milliseconds>(interval - std::chrono::duration_cast<std::chrono::milliseconds>(end - start));
-            std::cout << "Ended "<< NAME <<" after " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() 
-                      << "s. Locked = "<< lockedByUser << std::endl;
+            L_DEBUG("STOP " + NAME + " after " 
+                    + to_string(std::chrono::duration_cast<std::chrono::seconds>(end - start).count()) 
+                    + "s. Ended by user: " 
+                    + (exitSignal ? "Yes": "No"));
         
         });
+        // timerThread->join();
+        timerThread->detach();
     }else{
         std::cout << "Timer already started!" << std::endl;
     }
@@ -72,6 +77,7 @@ void Timer :: stop(){
     if(lockedByUser){
         exitSignal = true;
         running = false;
+        L_DEBUG("Timer " + NAME + "stopped")
         unlock();
     }
 }
@@ -83,12 +89,6 @@ void Timer :: join(){
     }else{
         std::cout << "Timer not started" << std::endl;
     }
-}
-
-void Timer :: reset(){
-
-    stop();
-    setRemainingTime(0ms);
 }
 
 

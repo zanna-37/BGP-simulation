@@ -11,6 +11,7 @@
 #include "../BGPConnection.h"
 #include "../Event.h"
 #include "../../utils/Timer.h"
+#include "../../logger/Logger.h"
 
 // debugging tokens
 
@@ -31,7 +32,7 @@ private:
 
     BGPState* currentState = nullptr;
     int connectRetryCounter = 0;
-    #ifdef DEBUG
+    #ifdef DEBUG_GUARD
         std::chrono::seconds connectRetryTime = 3s;
         std::chrono::seconds holdTime = 4s;
         std::chrono::seconds keepaliveTime = 5s;
@@ -63,7 +64,7 @@ private:
 
 public:
     
-    BGPStateMachine(BGPConnection* connection, BGPState* state);
+    BGPStateMachine(BGPConnection* connection);
 
     ~BGPStateMachine();
 
@@ -73,7 +74,7 @@ public:
     Timer* keepAliveTimer = nullptr;
 
     //optional
-    Timer* delayOpenTimer;
+    Timer* delayOpenTimer = nullptr;
 
     bool handleEvent(Event event);
 
@@ -83,6 +84,13 @@ public:
 
     // BGPState* currentState(){return currentState;}
     // BGPState* previousState(){return previousState;}
+
+    void resetConnectRetryTimer();
+    void resetHoldTimer();
+    void resetKeepAliveTimer();
+    void resetDelayOpenTimer();
+
+    void initializeTimers();
 
 
     int getConnectRetryCounter() const { return connectRetryCounter; }

@@ -12,7 +12,10 @@ private:
 
 public: 
     //Constructor
-    BGPStateEnstablished(BGPStateMachine* stateMachine) : BGPState(stateMachine){};
+    BGPStateEnstablished(BGPStateMachine* stateMachine) : BGPState(stateMachine){
+        NAME = "ENSTABLISHED";
+        L_DEBUG("State created: " + NAME);
+    };
 
     //Deconstructor
     ~BGPStateEnstablished();
