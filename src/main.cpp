@@ -11,11 +11,13 @@
 #include "configuration/parser/Parser.h"
 #include "entities/Client.h"
 #include "entities/Router.h"
+#include "logger/Logger.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    cout << "Hello, World!" << endl;
+    Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
+    L_VERBOSE("START");
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
@@ -54,10 +56,22 @@ int main(int argc, char *argv[]) {
     }
 
 
+    L_DEBUG("DELETING OBJECTS");
     for (auto device : *devices) {
         delete device;
     }
     delete devices;
+
+    L_VERBOSE("END");
+
+    cout << endl;
+    L_DEBUG("DEBUG");
+    L_VERBOSE("VERBOSE");
+    L_INFO("INFO");
+    L_SUCCESS("SUCCESS");
+    L_WARNING("WARNING");
+    L_ERROR("ERROR");
+    L_FATAL("FATAL");
 
     return 0;
 }

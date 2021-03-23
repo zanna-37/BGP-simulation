@@ -1,10 +1,9 @@
 #include "Parser.h"
 
-#include <iostream>
-
 #include "../../entities/Client.h"
 #include "../../entities/Device.h"
 #include "../../entities/Router.h"
+#include "../../logger/Logger.h"
 #include "ParserClient.h"
 #include "ParserLink.h"
 #include "ParserRouter.h"
@@ -58,7 +57,9 @@ void Parser::throwInvalidKey(const string &key, const YAML::Node &node) {
 }
 
 vector<Device *> *Parser::parseAndBuild(char *filename) {
-    cout << "[#] Parsing config file" << endl;  // TODO logger
+    L_VERBOSE("PARSING CONFIG FILE");
+    L_VERBOSE("Parsing from file \"" + string(filename) + "\"");
+
     YAML::Node config_yaml = YAML::LoadFile(filename);
     assertNodeType(config_yaml, YAML::NodeType::value::Map);
 

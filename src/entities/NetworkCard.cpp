@@ -1,6 +1,6 @@
 #include "NetworkCard.h"
 
-#include <iostream>
+#include "../logger/Logger.h"
 
 
 void NetworkCard::connect(const shared_ptr<Link>& linkToConnect) {
@@ -8,8 +8,7 @@ void NetworkCard::connect(const shared_ptr<Link>& linkToConnect) {
         linkToConnect->connect(this);
         link = linkToConnect;
     } else {
-        cout << "[-] (" << net_interface
-             << ") This interface is already connected" << endl;  // TODO ERROR
+        L_ERROR("(" + net_interface + ") This interface is already connected");
     }
 }
 
@@ -18,11 +17,9 @@ void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
         linkToDisconnect->disconnect(this);
         link = nullptr;
     } else if (link == nullptr) {
-        cout << "[-] (" << net_interface
-             << ") This interface has no link connected" << endl;  // TODO ERROR
+        L_ERROR("(" + net_interface + ") This interface has no link connected");
     } else {
-        cout << "[-] (" << net_interface
-             << ") This interface is not connected with the link specified"
-             << endl;  // TODO ERROR
+        L_ERROR("(" + net_interface +
+                ") This interface is not connected with the link specified");
     }
 }

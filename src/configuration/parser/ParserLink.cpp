@@ -1,8 +1,12 @@
 #include "ParserLink.h"
 
+#include "../../logger/Logger.h"
+
 
 void ParserLink::parseAndAddBuiltLinks(const YAML::Node &links_yaml,
                                        vector<Device *> *devices_ptr) {
+    L_DEBUG("Parsing Links");
+
     assertNodeType(links_yaml, YAML::NodeType::value::Sequence);
 
     for (const auto &link_yaml : links_yaml) {

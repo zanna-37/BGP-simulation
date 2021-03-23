@@ -1,11 +1,14 @@
 #include "ParserRouter.h"
 
 #include "../../entities/Router.h"
+#include "../../logger/Logger.h"
 #include "ParserNetworkCard.h"
 
 
 void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
                                            vector<Device *> *devices_ptr) {
+    L_DEBUG("Parsing Routers");
+
     assertNodeType(routers_yaml, YAML::NodeType::value::Sequence);
 
     for (const auto &router_yaml : routers_yaml) {

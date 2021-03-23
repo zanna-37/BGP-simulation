@@ -21,6 +21,7 @@ set(SRC src)
 set(SRC_CONFIGURATION ${SRC}/configuration)
 set(SRC_CONFIGURATION_PARSER ${SRC_CONFIGURATION}/parser)
 set(SRC_ENTITIES ${SRC}/entities)
+set(SRC_LOGGER ${SRC}/logger)
 
 
 set(SOURCE_FILES
@@ -35,6 +36,7 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/Link.cpp
         ${SRC_ENTITIES}/NetworkCard.cpp
         ${SRC_ENTITIES}/Router.cpp
+        ${SRC_LOGGER}/Logger.cpp
         )
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
