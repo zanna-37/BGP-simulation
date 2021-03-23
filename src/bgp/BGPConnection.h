@@ -4,32 +4,29 @@
 
 #include <cassert>
 
-#include "fsm/BGPStateMachine.h"
-#include "fsm/BGPStateIdle.h"
 #include "Event.h"
+#include "fsm/BGPStateIdle.h"
+#include "fsm/BGPStateMachine.h"
 
-class BGPStateMachine; //forward declaration
+class BGPStateMachine;  // forward declaration
 
 class BGPConnection {
-
-public:
-
-private:
+   public:
+   private:
     BGPStateMachine* stateMachine;
-    //other BGPConnection variables
+    // other BGPConnection variables
 
-public:
-    //Constructors
+   public:
+    // Constructors
     BGPConnection();
 
-    //Destructor
+    // Destructor
     ~BGPConnection();
 
     bool handleEvent(const Event event);
 
-    //Getter & Setter
-    BGPStateMachine* getStateMahine(){return stateMachine;}
-
+    // Getter & Setter
+    BGPStateMachine* getStateMahine() { return stateMachine; }
 };
 
 #endif

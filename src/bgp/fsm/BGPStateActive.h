@@ -1,24 +1,20 @@
 #ifndef BGPSTATEACTIVE_H
 #define BGPSTATEACTIVE_H
 
-#include "BGPStateMachine.h"
-#include "BGPState.h"
 #include "../BGPConnection.h"
+#include "BGPState.h"
+#include "BGPStateMachine.h"
 
-class BGPStateActive : public BGPState { 
-
-private:
-    
-
-public: 
-
-    //Constructor
-    BGPStateActive(BGPStateMachine* stateMachine) : BGPState(stateMachine){
+class BGPStateActive : public BGPState {
+   private:
+   public:
+    // Constructor
+    BGPStateActive(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         NAME = "ACTIVE";
         L_DEBUG("State created: " + NAME);
     };
 
-    //Deconstructor
+    // Deconstructor
     ~BGPStateActive();
 
     void enter();
@@ -26,7 +22,6 @@ public:
     void exit();
 
     bool onEvent(Event event);
-
 };
 
 #endif

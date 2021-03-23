@@ -8,11 +8,11 @@
 #include <iostream>
 #include <string>
 
+#include "bgp/BGPConnection.h"
 #include "configuration/parser/Parser.h"
 #include "entities/Client.h"
 #include "entities/Router.h"
 #include "logger/Logger.h"
-#include "bgp/BGPConnection.h"
 
 
 using namespace std;
@@ -51,24 +51,24 @@ int main(int argc, char *argv[]) {
     connection.handleEvent(ManualStop);
     this_thread::sleep_for(2s);
 
-    // vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
+    vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
 
-    // // TODO logic here
-    // for (auto device : *devices) {
-    //     if (auto *x = dynamic_cast<Router *>(device)) {
-    //         cout << x->ID << endl;
-    //     } else if (auto *x = dynamic_cast<Client *>(device)) {
-    //         cout << x->ID << endl;
-    //     }
-    // }
+    // TODO logic here
+    for (auto device : *devices) {
+        if (auto *x = dynamic_cast<Router *>(device)) {
+            cout << x->ID << endl;
+        } else if (auto *x = dynamic_cast<Client *>(device)) {
+            cout << x->ID << endl;
+        }
+    }
 
 
-    // L_DEBUG("DELETING OBJECTS");
-    // for (auto device : *devices) {
-    //     delete device;
-    // }
-    // delete devices;
+    L_DEBUG("DELETING OBJECTS");
+    for (auto device : *devices) {
+        delete device;
+    }
+    delete devices;
 
     L_VERBOSE("END");
 

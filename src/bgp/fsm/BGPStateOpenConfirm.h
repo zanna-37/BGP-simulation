@@ -2,23 +2,21 @@
 #define BGPSTATEOPENCONFIRM_H
 
 
-#include "BGPStateMachine.h"
-#include "BGPState.h"
 #include "../BGPConnection.h"
+#include "BGPState.h"
+#include "BGPStateMachine.h"
 
-class BGPStateOpenConfirm : public BGPState { 
-
-private:
-    
-
-public: 
-    //Constructor
-    BGPStateOpenConfirm(BGPStateMachine* stateMachine) : BGPState(stateMachine){
+class BGPStateOpenConfirm : public BGPState {
+   private:
+   public:
+    // Constructor
+    BGPStateOpenConfirm(BGPStateMachine* stateMachine)
+        : BGPState(stateMachine) {
         NAME = "OPEN_CONFIRM";
         L_DEBUG("State created: " + NAME);
     };
 
-    //Deconstructor
+    // Deconstructor
     ~BGPStateOpenConfirm();
 
     void enter();
@@ -26,7 +24,6 @@ public:
     void exit();
 
     bool onEvent(Event event);
-
 };
 
 #endif
