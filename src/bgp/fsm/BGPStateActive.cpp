@@ -119,6 +119,7 @@ bool BGPStateActive :: onEvent(Event event){
 
             //   - changes its state to OpenSent.
             stateMachine->changeState(new BGPStateOpenSent(stateMachine));
+        }
         break;
     case TcpConnectionFails:
         // - restarts the ConnectRetryTimer (with the initial value),

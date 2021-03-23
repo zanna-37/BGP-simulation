@@ -110,34 +110,35 @@ bool BGPStateConnect :: onEvent(Event event) {
     case TcpConnectionFails:
     //     If the DelayOpenTimer is running, the local
     //   system:
-    if(stateMachine->delayOpenTimer->isRunning()){
+        if(stateMachine->delayOpenTimer->isRunning()){
 
 
-    //     - restarts the ConnectRetryTimer with the initial value,
+        //     - restarts the ConnectRetryTimer with the initial value,
         stateMachine->connectRetryTimer->stop();
         stateMachine->connectRetryTimer->start();
 
-    //     - stops the DelayOpenTimer and resets its value to zero,
+        //     - stops the DelayOpenTimer and resets its value to zero,
         stateMachine->delayOpenTimer->reset();
 
-    //     -  TODO continues to listen for a connection that may be initiated by
-    //       the remote BGP peer, and
+        //     -  TODO continues to listen for a connection that may be initiated by
+        //       the remote BGP peer, and
 
-    //     - changes its state to Active.
+        //     - changes its state to Active.
         stateMachine->changeState(new BGPStateActive(stateMachine));
 
-    //   If the DelayOpenTimer is not running, the local system:
-    }else{
+        //   If the DelayOpenTimer is not running, the local system:
+        }else{
 
-    //     - stops the ConnectRetryTimer to zero,
+        //     - stops the ConnectRetryTimer to zero,
         stateMachine->connectRetryTimer->reset();
 
-    //     TODO drops the TCP connection,
+        //     TODO drops the TCP connection,
 
-    //     TODO releases all BGP resources, and
+        //     TODO releases all BGP resources, and
 
-    //     - changes its state to Idle.
+        //     - changes its state to Idle.
         stateMachine->changeState(new BGPStateActive(stateMachine));
+        }
         break;
     case BGPOpen_with_DelayOpenTimer_running:
         // - stops the ConnectRetryTimer (if running) and sets the

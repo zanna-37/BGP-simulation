@@ -13,7 +13,6 @@
 #include "entities/Router.h"
 #include "logger/Logger.h"
 
-#include "Utils/Timer.h"
 
 using namespace std;
 

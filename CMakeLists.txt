@@ -22,8 +22,9 @@ set(SRC_CONFIGURATION ${SRC}/configuration)
 set(SRC_CONFIGURATION_PARSER ${SRC_CONFIGURATION}/parser)
 set(SRC_ENTITIES ${SRC}/entities)
 set(SRC_LOGGER ${SRC}/logger)
-set(SRC_FSM ${SRC}/fsm) 
-set(SRC_UTILS ${SRC}/Utils)
+set(SRC_BGP ${SRC}/bgp)
+set(SRC_FSM ${SRC_BGP}/fsm) 
+set(SRC_UTILS ${SRC}/utils)
 
 
 set(SOURCE_FILES
@@ -39,7 +40,7 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/NetworkCard.cpp
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
-		${SRC}/BGPConnection.cpp
+		${SRC_BGP}/BGPConnection.cpp
 		# ${SRC_FSM}/BGPState.h
 		${SRC_FSM}/BGPStateActive.cpp
 		${SRC_FSM}/BGPStateConnect.cpp

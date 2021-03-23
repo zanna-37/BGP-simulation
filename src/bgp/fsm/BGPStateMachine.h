@@ -10,7 +10,7 @@
 #include "BGPState.h"
 #include "../BGPConnection.h"
 #include "../Event.h"
-#include "../Utils/Timer.h"
+#include "../../utils/Timer.h"
 
 // debugging tokens
 

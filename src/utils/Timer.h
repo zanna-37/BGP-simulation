@@ -10,8 +10,8 @@
 #include <iostream>
 #include <cstring>
 
-#include "../Event.h"
-#include "../fsm/BGPStateMachine.h"
+#include "../bgp/Event.h"
+#include "../bgp/fsm/BGPStateMachine.h"
 
 
 // http://coliru.stacked-crooked.com/a/98fdcd78c99e948c
