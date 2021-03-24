@@ -107,6 +107,13 @@ class Logger {
     void setEnableColor(bool enableColor);
 
     /**
+     * Show or hide the time when the log occurred.
+     *
+     * @param printTimestamp \a true enable the timestamp, \false disable it.
+     */
+    void setPrintTimestamp(bool printTimestamp);
+
+    /**
      * Log the \a message if the current \a level is lower or equal to \a
      * logLevel. The function will treat \code '\n' \endcode in a special manner
      * by printing an alignment padding after the newline.
@@ -120,7 +127,8 @@ class Logger {
     static shared_ptr<Logger> logger;
     LogLevel                  targetLevel = LogLevel::INFO;
     bool                      longPrefix  = false;
-    bool                      enableColor = true;
+    bool                      enableColor    = true;
+    bool                      printTimestamp = true;
 
     string ESCAPE_CHAR           = "\033";
     string COLOR_FG_DEFAULT      = ESCAPE_CHAR + "[39m";
@@ -146,6 +154,7 @@ class Logger {
                                            {LogLevel::ERROR, "[-] "},
                                            {LogLevel::FATAL, "[x] "}};
     const string          padShort      = "    ";
+    const string          padTimestamp  = "               ";
 
 
     Logger() = default;
