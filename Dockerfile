@@ -4,12 +4,8 @@
 #     docker build -t igang/build-cpp-env -f Dockerfile .
 #
 # Run:
-#     docker run --rm -v ".:/project" --name build_env igang/build-cpp-env [make command]
+#     docker run --rm -v "absolute/path/to/project:/project" --name build_env igang/build-cpp-env [make command]
 #
-#
-# Troubleshooting:
-#     Windows requires full path when using docker run
-# 	  example: docker run --rm -v "absolute\path\to\project:/project" --name build_env igang/build-cpp-env [make command]
 
 FROM ubuntu:20.04
 
