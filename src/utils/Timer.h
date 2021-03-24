@@ -16,40 +16,47 @@
 
 // http://coliru.stacked-crooked.com/a/98fdcd78c99e948c
 
+enum TimerState {
+    UNINITIALIZED,
+    TICKING,
+    EXECUTING_SCHEDULED_TASK,
+    COMPLETED,
+    CANCELLED
+};
+
+class BGPStateMachine;  // forward declaration
 class Timer {
    private:
-    std::timed_mutex          mutex;
-    std::atomic<bool>         lockedByUser;
-    std::thread*              timerThread = nullptr;
-    std::atomic_bool          exitSignal;
     const std::string         NAME;
-    Event                     timerExpires;
+    std::thread*              timerThread = nullptr;
     BGPStateMachine*          stateMachine;
-    std::chrono::seconds      interval;
-    bool                      running;
-    std::chrono::milliseconds remainingTime;
+    Event                     eventToSendUponExpire;
+    std::chrono::seconds      totalDuration;
+    std::chrono::milliseconds remainingDurationAfterPause;
 
+    std::mutex       mutex;
+    std::timed_mutex sleepMutex;
+    TimerState       timerState = UNINITIALIZED;
 
-    void lock();
-    void unlock();
 
    public:
-    Timer(std::string const    name,
-          Event                timerExpires,
+    Timer(std::string          name,
           BGPStateMachine*     stateMachine,
-          std::chrono::seconds interval);
+          Event                eventToSendUponExpire,
+          std::chrono::seconds totalDuration);
     ~Timer();
 
     void start();
 
     void stop();
-    void join();
 
-    bool isRunning() const { return running; }
+    TimerState getState() const { return timerState; }
 
-    std::chrono::milliseconds getRemainingTime() const { return remainingTime; }
+    std::chrono::milliseconds getRemainingTime() const {
+        return remainingDurationAfterPause;
+    }
     void setRemainingTime(const std::chrono::milliseconds& value) {
-        remainingTime = value;
+        remainingDurationAfterPause = value;
     }
 };
 

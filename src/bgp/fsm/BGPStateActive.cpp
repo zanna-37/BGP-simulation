@@ -14,8 +14,8 @@ bool BGPStateActive ::onEvent(Event event) {
     bool handled = true;
     switch (event) {
         case ManualStop:
-            if (stateMachine->delayOpenTimer->isRunning() &&
-                stateMachine->getDampPeerOscillations()) {
+            if (stateMachine->delayOpenTimer->getState() == TICKING &&
+                stateMachine->getSendNOTIFICATIONwithoutOPEN()) {
                 // - If the DelayOpenTimer is running and the
                 //   SendNOTIFICATIONwithoutOPEN session attribute is set, the
                 //   local system sends a NOTIFICATION with a Cease,

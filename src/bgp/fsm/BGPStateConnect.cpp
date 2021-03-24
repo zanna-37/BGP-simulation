@@ -102,7 +102,7 @@ bool BGPStateConnect ::onEvent(Event event) {
         case TcpConnectionFails:
             //     If the DelayOpenTimer is running, the local
             //   system:
-            if (stateMachine->delayOpenTimer->isRunning()) {
+            if (stateMachine->delayOpenTimer->getState() == TICKING) {
                 //     - restarts the ConnectRetryTimer with the initial value,
                 stateMachine->resetConnectRetryTimer();
                 ;
@@ -196,7 +196,7 @@ bool BGPStateConnect ::onEvent(Event event) {
 
             break;
         case NotifMsgVerErr:
-            if (stateMachine->delayOpenTimer->isRunning()) {
+            if (stateMachine->delayOpenTimer->getState() == TICKING) {
                 //     - stops the ConnectRetryTimer (if running) and sets the
                 //       ConnectRetryTimer to zero,
                 stateMachine->resetConnectRetryTimer();

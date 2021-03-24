@@ -1,92 +1,108 @@
 #include "Timer.h"
 
-Timer ::Timer(std::string const    name,
-              Event                timerExpires,
+Timer ::Timer(std::string          name,
               BGPStateMachine*     stateMachine,
-              std::chrono::seconds interval)
+              Event                eventToSendUponExpire,
+              std::chrono::seconds totalDuration)
     : NAME(std::move(name)),
-      timerExpires(timerExpires),
       stateMachine(stateMachine),
-      interval(interval) {
-    exitSignal    = false;
-    lockedByUser  = false;
-    running       = false;
-    remainingTime = 0ms;
-    // lock();
-}
+      eventToSendUponExpire(eventToSendUponExpire),
+      totalDuration(totalDuration),
+      remainingDurationAfterPause(std::chrono::milliseconds::min()) {}
 
 Timer ::~Timer() {
-    if (lockedByUser) {
-        unlock();
+    if (timerThread != nullptr) {
+        L_ERROR("Timer " + NAME +
+                " has not been stopped before deletion.\nCall stop() before "
+                "deleting the Timer.");
+        stop();
     }
-}
-
-void Timer ::lock() {
-    mutex.lock();
-    lockedByUser = true;
-}
-
-void Timer ::unlock() {
-    lockedByUser = false;
-    mutex.unlock();
 }
 
 void Timer ::start() {
-    if (!running) {
-        lock();
+    mutex.lock();
+
+    if (timerState != UNINITIALIZED) {
+        L_ERROR("Illegal state: timer already started.");
+    } else {
+        timerState = TICKING;
+        sleepMutex.lock();
+
         timerThread = new std::thread([&]() {
             auto start = std::chrono::steady_clock::now();
-            L_DEBUG("START " + NAME + ": " + to_string(interval.count()) + "s");
-            running = true;
 
-            // If the timer has benn stopped before, continue with the remaining
-            // value
-            if (remainingTime == 0ms) {
-                if (mutex.try_lock_for(interval)) {
-                    mutex.unlock();
-                }
+            std::chrono::milliseconds timeToSleep;
+
+            if (remainingDurationAfterPause.count() < 0) {
+                timeToSleep = totalDuration;
+                L_DEBUG("START " + NAME + ": " +
+                        to_string(timeToSleep.count()) + "ms");
             } else {
-                if (mutex.try_lock_for(remainingTime)) {
-                    mutex.unlock();
-                }
+                timeToSleep = remainingDurationAfterPause;
+                L_DEBUG("RESUME " + NAME + ": " +
+                        to_string(timeToSleep.count()) + "ms");
             }
 
-            if (!exitSignal) {
-                stateMachine->handleEvent(timerExpires);
+            sleepMutex.try_lock_for(timeToSleep);
+
+            mutex.lock();
+            if (timerState == TICKING) {
+                L_DEBUG("TIMEOUT " + NAME + ": performing actions")
+                timerState = EXECUTING_SCHEDULED_TASK;
+                stateMachine->enqueueEvent(eventToSendUponExpire);
+                timerState = COMPLETED;
+
+            } else {
+                L_DEBUG(NAME + ": " + "was stopped, skipping actions")
             }
+
             auto end = std::chrono::steady_clock::now();
-            remainingTime =
-                std::chrono::duration_cast<std::chrono::milliseconds>(
-                    interval -
-                    std::chrono::duration_cast<std::chrono::milliseconds>(
-                        end - start));
-            L_DEBUG("STOP " + NAME + " after " +
-                    to_string(std::chrono::duration_cast<std::chrono::seconds>(
-                                  end - start)
-                                  .count()) +
-                    "s. Ended by user: " + (exitSignal ? "Yes" : "No"));
+
+            L_DEBUG(
+                "END " + NAME + " after " +
+                to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
+                              end - start)
+                              .count()) +
+                "ms");
+            mutex.unlock();
         });
-        // timerThread->join();
-        timerThread->detach();
-    } else {
-        std::cout << "Timer already started!" << std::endl;
     }
+    mutex.unlock();
 }
+
+// void Timer ::pause() {
+//    remainingTime =
+//        std::chrono::duration_cast<std::chrono::milliseconds>(
+//            interval -
+//            std::chrono::duration_cast<std::chrono::milliseconds>(
+//                end - start));
+//}
 
 void Timer ::stop() {
-    if (lockedByUser) {
-        exitSignal = true;
-        running    = false;
-        L_DEBUG("Timer " + NAME + "stopped")
-        unlock();
+    mutex.lock();
+    switch (timerState) {
+        case UNINITIALIZED:
+            L_DEBUG("STOP " + NAME + ": state uninitialized");
+            break;
+        case TICKING:
+            timerState = CANCELLED;
+            sleepMutex.unlock();
+            L_DEBUG("STOP " + NAME + ": state ticking");
+            L_DEBUG("CANCEL " + NAME);
+            break;
+        case EXECUTING_SCHEDULED_TASK:
+        case COMPLETED:
+            L_DEBUG("STOP " + NAME + ": state expired");
+            break;
+        case CANCELLED:
+            L_DEBUG("STOP " + NAME + ": state already cancelled");
+            break;
     }
-}
+    mutex.unlock();
 
-void Timer ::join() {
     if (timerThread != nullptr) {
         timerThread->join();
         delete timerThread;
-    } else {
-        std::cout << "Timer not started" << std::endl;
+        timerThread = nullptr;
     }
 }

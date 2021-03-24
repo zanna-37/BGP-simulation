@@ -23,10 +23,7 @@ class BGPConnection {
     // Destructor
     ~BGPConnection();
 
-    bool handleEvent(const Event event);
-
-    // Getter & Setter
-    BGPStateMachine* getStateMahine() { return stateMachine; }
+    void enqueueEvent(Event event);
 };
 
 #endif

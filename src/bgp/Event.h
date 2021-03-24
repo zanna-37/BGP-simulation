@@ -1,8 +1,11 @@
 #ifndef EVENT_H
 #define EVENT_H
 
+#include <map>
+#include <string>
+
 enum Event {
-    USER_DEFINED,
+    __INTERNAL_SHUTDOWN,
     ManualStart,
     ManualStop,
     AutomaticStart,
@@ -32,5 +35,7 @@ enum Event {
     UpdateMsg,
     UpdateMsgErr
 };
+
+std::string getEventName(Event event);
 
 #endif

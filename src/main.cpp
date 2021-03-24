@@ -45,12 +45,6 @@ int main(int argc, char *argv[]) {
 
     cout << newPacket.toString() << endl;
 
-    BGPConnection connection;
-    connection.handleEvent(AutomaticStart);
-    this_thread::sleep_for(10s);
-    connection.handleEvent(ManualStop);
-    this_thread::sleep_for(2s);
-
     vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
 
@@ -70,16 +64,12 @@ int main(int argc, char *argv[]) {
     }
     delete devices;
 
-    L_VERBOSE("END");
+    BGPConnection connection;
+    connection.enqueueEvent(AutomaticStart);
+    this_thread::sleep_for(10s);
+    connection.enqueueEvent(ManualStop);
 
-    cout << endl;
-    L_DEBUG("DEBUG");
-    L_VERBOSE("VERBOSE");
-    L_INFO("INFO");
-    L_SUCCESS("SUCCESS");
-    L_WARNING("WARNING");
-    L_ERROR("ERROR");
-    L_FATAL("FATAL");
+    L_VERBOSE("END");
 
     return 0;
 }

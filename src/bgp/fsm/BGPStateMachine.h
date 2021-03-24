@@ -4,6 +4,7 @@
 #include <cassert>
 #include <chrono>
 #include <cstring>
+#include <queue>
 #include <thread>
 
 #include "../../logger/Logger.h"
@@ -12,20 +13,23 @@
 #include "../Event.h"
 #include "BGPState.h"
 
-// debugging tokens
-
-class BGPConnection;  // forward declaration
-class Timer;
-
 using namespace std::chrono_literals;
+
+class BGPState;       // forward declaration
+class BGPConnection;  // forward declaration
+class Timer;          // forward declaration
 
 class BGPStateMachine {
    private:
     BGPConnection* connection;
+    BGPState*      previousState = nullptr;  // TODO check if we really need it
 
-    BGPState* previousState = nullptr;
+    std::thread*            eventHandler = nullptr;
+    std::mutex              eventQueue_mutex;
+    std::condition_variable eventQueue_ready;
+    queue<Event>            eventQueue;
+
     // Mandatory session attributes
-
     BGPState* currentState        = nullptr;
     int       connectRetryCounter = 0;
 #ifdef DEBUG_GUARD
@@ -37,9 +41,6 @@ class BGPStateMachine {
     std::chrono::seconds holdTime         = 90s;
     std::chrono::seconds keepaliveTime    = 30s;
 #endif
-
-    // https://gist.github.com/mcleary/b0bf4fa88830ff7c882d Timer implementation
-
 
     // Optional attributes
 
@@ -56,28 +57,25 @@ class BGPStateMachine {
     bool sendNOTIFICATIONwithoutOPEN = false;
     //  13) TrackTcpState
 
-
    public:
     BGPStateMachine(BGPConnection* connection);
 
     ~BGPStateMachine();
 
-    // mandatory
+    // Mandatory session attributes
     Timer* connectRetryTimer = nullptr;
     Timer* holdTimer         = nullptr;
     Timer* keepAliveTimer    = nullptr;
 
-    // optional
+    // Optional session attributes
     Timer* delayOpenTimer = nullptr;
 
-    bool handleEvent(Event event);
+
+    void enqueueEvent(Event event);
 
     void changeState(BGPState* newState);
 
     void incrementConnectRetryCounter();
-
-    // BGPState* currentState(){return currentState;}
-    // BGPState* previousState(){return previousState;}
 
     void resetConnectRetryTimer();
     void resetHoldTimer();
