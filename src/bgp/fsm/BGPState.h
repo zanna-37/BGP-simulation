@@ -9,9 +9,6 @@ class BGPStateMachine;  // forward declaration
 
 class BGPState {
    public:
-    virtual void     enter()   = 0;
-    virtual void     execute() = 0;
-    virtual void     exit()    = 0;
     BGPStateMachine* stateMachine;
     string           NAME;
     BGPState(BGPStateMachine* stateMachine) : stateMachine(stateMachine){};

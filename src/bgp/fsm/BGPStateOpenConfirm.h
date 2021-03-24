@@ -19,10 +19,6 @@ class BGPStateOpenConfirm : public BGPState {
     // Deconstructor
     ~BGPStateOpenConfirm();
 
-    void enter();
-    void execute();
-    void exit();
-
     bool onEvent(Event event);
 };
 

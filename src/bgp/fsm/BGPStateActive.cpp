@@ -5,11 +5,6 @@
 
 BGPStateActive ::~BGPStateActive() {}
 
-void BGPStateActive ::enter() {}
-void BGPStateActive ::execute() {}
-
-void BGPStateActive ::exit() {}
-
 bool BGPStateActive ::onEvent(Event event) {
     bool handled = true;
     switch (event) {

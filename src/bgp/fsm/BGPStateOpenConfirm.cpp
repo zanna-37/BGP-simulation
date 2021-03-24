@@ -5,11 +5,6 @@
 
 BGPStateOpenConfirm ::~BGPStateOpenConfirm() {}
 
-void BGPStateOpenConfirm ::enter() {}
-void BGPStateOpenConfirm ::execute() {}
-
-void BGPStateOpenConfirm ::exit() {}
-
 bool BGPStateOpenConfirm ::onEvent(Event event) {
     bool handled = true;
 

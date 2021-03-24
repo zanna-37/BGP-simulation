@@ -17,10 +17,6 @@ class BGPStateConnect : public BGPState {
     // Deconstructor
     ~BGPStateConnect();
 
-    void enter();
-    void execute();
-    void exit();
-
     bool onEvent(Event event);
 };
 

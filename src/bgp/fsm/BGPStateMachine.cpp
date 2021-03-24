@@ -72,10 +72,7 @@ void BGPStateMachine ::changeState(BGPState* newState) {
     delete previousState;
 
     previousState = currentState;
-    currentState->exit();
     currentState = newState;
-
-    currentState->enter();
 }
 
 void BGPStateMachine ::incrementConnectRetryCounter() {

@@ -17,10 +17,6 @@ class BGPStateOpenSent : public BGPState {
     // Deconstructor
     ~BGPStateOpenSent();
 
-    void enter();
-    void execute();
-    void exit();
-
     bool onEvent(Event event);
 };
 

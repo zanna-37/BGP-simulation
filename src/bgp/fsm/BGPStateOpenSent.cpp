@@ -5,11 +5,6 @@
 
 BGPStateOpenSent ::~BGPStateOpenSent() {}
 
-void BGPStateOpenSent ::enter() {}
-void BGPStateOpenSent ::execute() {}
-
-void BGPStateOpenSent ::exit() {}
-
 bool BGPStateOpenSent ::onEvent(Event event) {
     bool handled = true;
 

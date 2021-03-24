@@ -3,11 +3,6 @@
 
 BGPStateEnstablished ::~BGPStateEnstablished() {}
 
-void BGPStateEnstablished ::enter() {}
-void BGPStateEnstablished ::execute() {}
-
-void BGPStateEnstablished ::exit() {}
-
 
 bool BGPStateEnstablished ::onEvent(Event event) {
     bool handled = true;

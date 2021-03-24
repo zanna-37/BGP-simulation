@@ -17,10 +17,6 @@ class BGPStateIdle : public BGPState {
     // Deconstructor
     ~BGPStateIdle();
 
-    void enter();
-    void execute();
-    void exit();
-
     bool onEvent(Event);
 };
 

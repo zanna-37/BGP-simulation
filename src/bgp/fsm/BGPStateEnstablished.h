@@ -18,10 +18,6 @@ class BGPStateEnstablished : public BGPState {
     // Deconstructor
     ~BGPStateEnstablished();
 
-    void enter();
-    void execute();
-    void exit();
-
     bool onEvent(Event event);
 };
 

@@ -8,10 +8,6 @@
 
 BGPStateConnect ::~BGPStateConnect() {}
 
-void BGPStateConnect ::enter() {}
-void BGPStateConnect ::execute() {}
-
-void BGPStateConnect ::exit() {}
 bool BGPStateConnect ::onEvent(Event event) {
     bool handled = true;
 

@@ -9,11 +9,6 @@
 
 BGPStateIdle ::~BGPStateIdle() {}
 
-void BGPStateIdle ::enter() {}
-void BGPStateIdle ::execute() {}
-
-void BGPStateIdle ::exit() {}
-
 bool BGPStateIdle ::onEvent(Event event) {
     // maybe curly parenthesis
 
