@@ -2,6 +2,7 @@
 #define BGPSIMULATION_ENTITIES_NET_DETAILS_H
 
 #include <memory>
+#include <string>
 
 #include "Link.h"
 

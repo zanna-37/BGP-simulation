@@ -7,7 +7,7 @@ ENDIF ()
 
 project(${TARGET_EXEC})
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(USE_DEBUG OFF)
@@ -22,6 +22,9 @@ set(SRC_CONFIGURATION ${SRC}/configuration)
 set(SRC_CONFIGURATION_PARSER ${SRC_CONFIGURATION}/parser)
 set(SRC_ENTITIES ${SRC}/entities)
 set(SRC_LOGGER ${SRC}/logger)
+set(SRC_BGP ${SRC}/bgp)
+set(SRC_FSM ${SRC_BGP}/fsm) 
+set(SRC_UTILS ${SRC}/utils)
 
 
 set(SOURCE_FILES
@@ -37,10 +40,26 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/NetworkCard.cpp
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
-        )
+        ${SRC_BGP}/BGPConnection.cpp
+        ${SRC_BGP}/Event.cpp
+        # ${SRC_FSM}/BGPState.h
+        ${SRC_FSM}/BGPStateActive.cpp
+        ${SRC_FSM}/BGPStateConnect.cpp
+        ${SRC_FSM}/BGPStateEnstablished.cpp
+        ${SRC_FSM}/BGPStateIdle.cpp
+        ${SRC_FSM}/BGPStateMachine.cpp
+        ${SRC_FSM}/BGPStateOpenConfirm.cpp
+        ${SRC_FSM}/BGPStateOpenSent.cpp
+        ${SRC_UTILS}/Timer.cpp
+        ${SRC_UTILS}/Timer.h
+
+)
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 
+###### -lpthread flag support ######
+find_package( Threads )
+target_link_libraries( ${CMAKE_PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} )
 
 ###### Libraries and dependencies #####
 

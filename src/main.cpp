@@ -8,10 +8,12 @@
 #include <iostream>
 #include <string>
 
+#include "bgp/BGPConnection.h"
 #include "configuration/parser/Parser.h"
 #include "entities/Client.h"
 #include "entities/Router.h"
 #include "logger/Logger.h"
+
 
 using namespace std;
 
@@ -62,16 +64,12 @@ int main(int argc, char *argv[]) {
     }
     delete devices;
 
-    L_VERBOSE("END");
+    BGPConnection connection;
+    connection.enqueueEvent(AutomaticStart);
+    this_thread::sleep_for(10s);
+    connection.enqueueEvent(ManualStop);
 
-    cout << endl;
-    L_DEBUG("DEBUG");
-    L_VERBOSE("VERBOSE");
-    L_INFO("INFO");
-    L_SUCCESS("SUCCESS");
-    L_WARNING("WARNING");
-    L_ERROR("ERROR");
-    L_FATAL("FATAL");
+    L_VERBOSE("END");
 
     return 0;
 }
