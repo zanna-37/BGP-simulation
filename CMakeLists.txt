@@ -25,6 +25,7 @@ set(SRC_LOGGER ${SRC}/logger)
 set(SRC_BGP ${SRC}/bgp)
 set(SRC_FSM ${SRC_BGP}/fsm) 
 set(SRC_UTILS ${SRC}/utils)
+set(SRC_IP ${SRC}/ip)
 
 
 set(SOURCE_FILES
@@ -42,7 +43,6 @@ set(SOURCE_FILES
         ${SRC_LOGGER}/Logger.cpp
         ${SRC_BGP}/BGPConnection.cpp
         ${SRC_BGP}/Event.cpp
-        # ${SRC_FSM}/BGPState.h
         ${SRC_FSM}/BGPStateActive.cpp
         ${SRC_FSM}/BGPStateConnect.cpp
         ${SRC_FSM}/BGPStateEnstablished.cpp
@@ -51,7 +51,8 @@ set(SOURCE_FILES
         ${SRC_FSM}/BGPStateOpenConfirm.cpp
         ${SRC_FSM}/BGPStateOpenSent.cpp
         ${SRC_UTILS}/Timer.cpp
-        ${SRC_UTILS}/Timer.h
+        ${SRC_IP}/RoutingTable.cpp
+        ${SRC_IP}/TableRow.cpp
 
 )
 

@@ -17,6 +17,7 @@ class Router : public virtual Device {
      * The Autonomous System number this router belongs to.
      */
     string AS_number;
+    bool   running = false;
     // TODO: announced_prefixes
     // TODO: local_preferences
     // TODO: trust

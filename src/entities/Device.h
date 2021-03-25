@@ -1,10 +1,16 @@
 #ifndef BGPSIMULATION_ENTITIES_DEVICE_H
 #define BGPSIMULATION_ENTITIES_DEVICE_H
 
+#include <IPv4Layer.h>
+
+#include <mutex>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
+#include "../ip/RoutingTable.h"
+#include "../ip/TableRow.h"
 #include "NetworkCard.h"
 
 using namespace std;
@@ -43,19 +49,20 @@ class Device {
      * A list of all the network interfaces of a device.
      */
     vector<NetworkCard *> *networkCards;
+    std::thread *          deviceThread = nullptr;
+    RoutingTable           routingTable;
 
     Device(string                 ID,
            pcpp::IPv4Address      defaultGateway,
-           vector<NetworkCard *> *networkCards)
-        : ID(std::move(ID)),
-          defaultGateway(defaultGateway),
-          networkCards(networkCards) {}
+           vector<NetworkCard *> *networkCards);
+
 
     virtual ~Device() {
         for (auto networkCard : *networkCards) {
             delete networkCard;
         }
         delete networkCards;
+        delete deviceThread;
     }
 
     /**
@@ -69,6 +76,10 @@ class Device {
      */
     NetworkCard *getNetworkCardByInterfaceOrNull(
         const string &interfaceToSearch);
+
+    void receiveMessage(std::string data);
+
+    void forwardMessage(std::string data);
 };
 
 
