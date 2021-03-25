@@ -7,10 +7,9 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
     auto* networkCards = new vector<NetworkCard*>;
 
     for (const auto& networkCard_yaml : networkCards_yaml) {
-        string interface;
-        string IP_str;
-        string netmask_str;
-        string defaultGateway;
+        string            interface;
+        pcpp::IPv4Address IP;
+        pcpp::IPv4Address netmask;
 
         for (const auto& detail_yaml : networkCard_yaml) {
             string     property = detail_yaml.first.as<std::string>();
@@ -19,19 +18,16 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
             if (property == "interface") {
                 interface = value.as<string>();
             } else if (property == "IP") {
-                IP_str = value.as<string>();
+                string IP_str = value.as<string>();
+                IP            = pcpp::IPv4Address(IP_str);
             } else if (property == "netmask") {
-                netmask_str = value.as<string>();
-            } else if (property == "default_gateway") {
-                defaultGateway = value.as<string>();
+                string netmask_str = value.as<string>();
+                netmask            = pcpp::IPv4Address(netmask_str);
             } else {
                 throwInvalidKey(property, detail_yaml.first);
             }
         }
-        networkCards->push_back(
-            new NetworkCard(interface,
-                            pcpp::IPv4Address(IP_str),
-                            pcpp::IPv4Address(netmask_str)));
+        networkCards->push_back(new NetworkCard(interface, IP, netmask));
     }
 
     return networkCards;

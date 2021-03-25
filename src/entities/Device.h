@@ -14,14 +14,14 @@ class NetworkCard;  // forward declaration
 class Device {
    public:
     string                 ID;
-    string                 defaultGateway;
+    pcpp::IPv4Address      defaultGateway;
     vector<NetworkCard *> *networkCards;
 
     Device(string                 ID,
-           string                 defaultGateway,
+           pcpp::IPv4Address      defaultGateway,
            vector<NetworkCard *> *networkCards)
         : ID(std::move(ID)),
-          defaultGateway(std::move(defaultGateway)),
+          defaultGateway(defaultGateway),
           networkCards(networkCards) {}
 
     virtual ~Device() {

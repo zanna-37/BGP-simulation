@@ -17,7 +17,7 @@ class Router : public virtual Device {
 
     Router(string                 ID,
            string                 AS_number,
-           string                 defaultGateway,
+           pcpp::IPv4Address      defaultGateway,
            vector<NetworkCard *> *networkCards)
         : Device(std::move(ID), defaultGateway, networkCards),
           AS_number(std::move(AS_number)) {}

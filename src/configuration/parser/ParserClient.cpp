@@ -12,7 +12,7 @@ void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
 
     for (const auto &client_yaml : clients_yaml) {
         string                 ID;
-        string                 defaultGateway;
+        pcpp::IPv4Address      defaultGateway;
         vector<NetworkCard *> *networkCards = nullptr;
 
         for (const auto &client_property_yaml : client_yaml) {
@@ -22,7 +22,8 @@ void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
             if (property == "id") {
                 ID = value.as<string>();
             } else if (property == "default_gateway") {
-                defaultGateway = value.as<string>();
+                string defaultGateway_str = value.as<string>();
+                defaultGateway = pcpp::IPv4Address(defaultGateway_str);
             } else if (property == "networkCard") {
                 networkCards =
                     ParserNetworkCard::parseAndBuildNetworkCards(value);

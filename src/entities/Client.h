@@ -12,7 +12,7 @@ using namespace std;
 class Client : public virtual Device {
    public:
     Client(string                 ID,
-           string                 defaultGateway,
+           pcpp::IPv4Address      defaultGateway,
            vector<NetworkCard *> *networkCards)
         : Device(std::move(ID), defaultGateway, networkCards) {}
 
