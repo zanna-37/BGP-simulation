@@ -1,6 +1,8 @@
 #ifndef BGPSIMULATION_ENTITIES_NET_DETAILS_H
 #define BGPSIMULATION_ENTITIES_NET_DETAILS_H
 
+#include <IPv4Layer.h>
+
 #include <memory>
 #include <string>
 
@@ -11,12 +13,14 @@ using namespace std;
 class Link;  // forward declaration
 class NetworkCard {
    public:
-    string           net_interface;
-    string           IP;
-    string           netmask;
-    shared_ptr<Link> link;
+    string            net_interface;
+    pcpp::IPv4Address IP;
+    pcpp::IPv4Address netmask;
+    shared_ptr<Link>  link;
 
-    NetworkCard(string net_interface, string IP, string netmask)
+    NetworkCard(string            net_interface,
+                pcpp::IPv4Address IP,
+                pcpp::IPv4Address netmask)
         : net_interface(std::move(net_interface)),
           IP(std::move(IP)),
           netmask(std::move(netmask)) {}
