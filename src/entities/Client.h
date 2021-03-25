@@ -11,8 +11,10 @@ using namespace std;
 
 class Client : public virtual Device {
    public:
-    Client(string ID, vector<NetworkCard *> *networkCards)
-        : Device(std::move(ID), networkCards) {}
+    Client(string                 ID,
+           string                 defaultGateway,
+           vector<NetworkCard *> *networkCards)
+        : Device(std::move(ID), defaultGateway, networkCards) {}
 
     ~Client() override = default;
 };

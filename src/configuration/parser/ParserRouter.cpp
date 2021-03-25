@@ -14,6 +14,7 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
     for (const auto &router_yaml : routers_yaml) {
         string                 ID;
         string                 AS_number;
+        string                 defaultGateway;
         vector<NetworkCard *> *networkCards = nullptr;
 
         for (const auto &router_property_yaml : router_yaml) {
@@ -24,7 +25,9 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
                 ID = value.as<string>();
             } else if (property == "AS_number") {
                 AS_number = value.as<string>();
-            } else if (property == "network") {
+            } else if (property == "default_gateway") {
+                defaultGateway = value.as<string>();
+            } else if (property == "networkCard") {
                 networkCards =
                     ParserNetworkCard::parseAndBuildNetworkCards(value);
             } else {
@@ -32,6 +35,7 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
             }
         }
 
-        devices_ptr->push_back(new Router(ID, AS_number, networkCards));
+        devices_ptr->push_back(
+            new Router(ID, AS_number, defaultGateway, networkCards));
     }
 }

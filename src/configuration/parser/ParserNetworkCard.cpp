@@ -28,8 +28,7 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
                 throwInvalidKey(property, detail_yaml.first);
             }
         }
-        networkCards->push_back(
-            new NetworkCard(interface, IP, netmask, default_gateway));
+        networkCards->push_back(new NetworkCard(interface, IP, netmask));
     }
 
     return networkCards;

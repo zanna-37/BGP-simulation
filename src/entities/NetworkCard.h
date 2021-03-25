@@ -14,17 +14,12 @@ class NetworkCard {
     string           net_interface;
     string           IP;
     string           netmask;
-    string           default_gateway;
     shared_ptr<Link> link;
 
-    NetworkCard(string net_interface,
-                string IP,
-                string netmask,
-                string default_gateway)
+    NetworkCard(string net_interface, string IP, string netmask)
         : net_interface(std::move(net_interface)),
           IP(std::move(IP)),
-          netmask(std::move(netmask)),
-          default_gateway(std::move(default_gateway)) {}
+          netmask(std::move(netmask)) {}
 
     /**
      * Connect the networkCard to the specified link.

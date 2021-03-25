@@ -2,6 +2,7 @@
 #define BGPSIMULATION_ENTITIES_DEVICE_H
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "NetworkCard.h"
@@ -13,10 +14,15 @@ class NetworkCard;  // forward declaration
 class Device {
    public:
     string                 ID;
+    string                 defaultGateway;
     vector<NetworkCard *> *networkCards;
 
-    Device(string ID, vector<NetworkCard *> *networkCards)
-        : ID(std::move(ID)), networkCards(networkCards) {}
+    Device(string                 ID,
+           string                 defaultGateway,
+           vector<NetworkCard *> *networkCards)
+        : ID(std::move(ID)),
+          defaultGateway(std::move(defaultGateway)),
+          networkCards(networkCards) {}
 
     virtual ~Device() {
         for (auto networkCard : *networkCards) {
