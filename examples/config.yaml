@@ -1,0 +1,48 @@
+---
+routers:
+  - id: R1
+    AS_number: AS_1
+    networkCard:
+      - interface: eth0
+        IP: 90.36.25.1
+        netmask: 255.255.0.0
+      - interface: eth1
+        IP: 85.90.20.1
+        netmask: 255.255.0.0
+
+  - id: R2
+    AS_number: AS_2
+    default_gateway: 85.90.20.1
+    networkCard:
+      - interface: eth0
+        IP: 26.37.3.2
+        netmask: 255.255.0.0
+      - interface: eth5
+        IP: 85.90.20.2
+        netmask: 255.255.0.0
+
+clients:
+  - id: C1
+    default_gateway: 90.36.25.1
+    networkCard:
+      - interface: eth0
+        IP: 90.36.25.123
+        netmask: 255.255.0.0
+  - id: C2
+    default_gateway: 26.37.3.2
+    networkCard:
+      - interface: eth0
+        IP: 26.37.3.1
+        netmask: 255.255.0.0
+
+links:
+  - device_ids: [R1, C1]
+    device_source_interfaces: [eth0, eth0]
+    connection_status: active
+  - device_ids: [R2, C2]
+    device_source_interfaces: [eth0, eth0]
+    connection_status: active
+  - device_ids: [R1, R2]
+    device_source_interfaces: [eth1, eth5]
+    connection_status: active
+...
