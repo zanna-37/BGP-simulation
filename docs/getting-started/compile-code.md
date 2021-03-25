@@ -4,12 +4,8 @@
 ## Build locally
 - `make build`
   - Compiles all the files, put them into the `cmake-release` directory, and produce the executable file.
-- `make run`
-  - Compiles all the files and run the program.
 - `make dbuild`
   - Similar to `make build` but all the files are compiled in DEBUG mode (`DEBUG_GUARD` is set). The build directory is `cmake-debug`.
-- `make drun`
-  - Similar to `make run` but relies on `make dbuild` for the compilation.
 - `make clean`
   - Deletes the build folders: `cmake-release` and `cmake-debug`.
 
