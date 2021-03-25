@@ -1,4 +1,4 @@
-.PHONY = build run clean dbuild drun
+.PHONY = build dbuild clean
 
 TARGET_EXEC := BGP_simulation
 BUILD_DIR := cmake-release
@@ -15,6 +15,7 @@ $(DEBUG_DIR)/Makefile: CMakeLists.txt
 	@echo "[.] Generating debug build files...";
 	cmake -DTARGET_EXEC:STRING=$(TARGET_EXEC) -S . -B $(DEBUG_DIR)
 
+# Compile
 build: $(BUILD_DIR)/Makefile
 	@echo;
 	@echo "[.] Building program...";
@@ -26,16 +27,7 @@ dbuild: $(DEBUG_DIR)/Makefile
 	@cmake -DUSE_DEBUG=ON $(DEBUG_DIR)
 	@cmake --build $(DEBUG_DIR)
 
-run: build
-	@echo;
-	@echo "[.] Running program...";
-	@$(BUILD_DIR)/$(TARGET_EXEC)
-
-drun: dbuild
-	@echo;
-	@echo "[.] Running program in DEBUG mode...";
-	@$(DEBUG_DIR)/$(TARGET_EXEC)
-
+# Cleanup
 clean:
 	@echo
 	@echo "[.] Cleaning up...";
