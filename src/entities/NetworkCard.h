@@ -13,15 +13,15 @@ using namespace std;
 class Link;  // forward declaration
 class NetworkCard {
    public:
-    string            net_interface;
+    string            netInterface;
     pcpp::IPv4Address IP;
     pcpp::IPv4Address netmask;
     shared_ptr<Link>  link;
 
-    NetworkCard(string            net_interface,
+    NetworkCard(string            netInterface,
                 pcpp::IPv4Address IP,
                 pcpp::IPv4Address netmask)
-        : net_interface(std::move(net_interface)),
+        : netInterface(std::move(netInterface)),
           IP(std::move(IP)),
           netmask(std::move(netmask)) {}
 

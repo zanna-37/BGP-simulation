@@ -3,7 +3,7 @@
 NetworkCard *Device::getNetworkCardByInterfaceOrNull(
     const string &interfaceToSearch) {
     for (const auto &networkCard : *networkCards) {
-        if (networkCard->net_interface == interfaceToSearch) {
+        if (networkCard->netInterface == interfaceToSearch) {
             return networkCard;
         }
     }

@@ -8,7 +8,7 @@ void NetworkCard::connect(const shared_ptr<Link>& linkToConnect) {
         linkToConnect->connect(this);
         link = linkToConnect;
     } else {
-        L_ERROR("(" + net_interface + ") This interface is already connected");
+        L_ERROR("(" + netInterface + ") This interface is already connected");
     }
 }
 
@@ -17,9 +17,9 @@ void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
         linkToDisconnect->disconnect(this);
         link = nullptr;
     } else if (link == nullptr) {
-        L_ERROR("(" + net_interface + ") This interface has no link connected");
+        L_ERROR("(" + netInterface + ") This interface has no link connected");
     } else {
-        L_ERROR("(" + net_interface +
+        L_ERROR("(" + netInterface +
                 ") This interface is not connected with the link specified");
     }
 }

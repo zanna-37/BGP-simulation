@@ -10,7 +10,7 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
         string interface;
         string IP_str;
         string netmask_str;
-        string default_gateway;
+        string defaultGateway;
 
         for (const auto& detail_yaml : networkCard_yaml) {
             string     property = detail_yaml.first.as<std::string>();
@@ -23,7 +23,7 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
             } else if (property == "netmask") {
                 netmask_str = value.as<string>();
             } else if (property == "default_gateway") {
-                default_gateway = value.as<string>();
+                defaultGateway = value.as<string>();
             } else {
                 throwInvalidKey(property, detail_yaml.first);
             }
