@@ -50,8 +50,13 @@ void Device::start() {
         while (running) {
             L_DEBUG(ID + "sleeping ...zzz...");
             this_thread::sleep_for(1s);
+            for (NetworkCard *networkCard : *networkCards) {
+                networkCard->sendPacket("Test");
+            }
         }
     });
 }
-
-void Device::sendMessage(std::string data) {}
+// do we need it? (just send it to the network card)
+void Device::sendPacket(std::string data, NetworkCard networkCard) {
+    networkCard.sendPacket(data);
+}

@@ -85,7 +85,7 @@ class Device {
 
     void forwardMessage(std::string data);
 
-    void sendMessage(std::string data);
+    void sendPacket(std::string data, NetworkCard networkCard);
 };
 
 

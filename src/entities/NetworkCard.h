@@ -39,6 +39,7 @@ class NetworkCard {
      * disconnected.
      */
     shared_ptr<Link> link = nullptr;
+    Device*          owner;
 
     NetworkCard(string            netInterface,
                 pcpp::IPv4Address IP,
@@ -66,6 +67,10 @@ class NetworkCard {
      * @param linkToConnect The link to disconnect from.
      */
     void disconnect(const shared_ptr<Link>& linkToDisconnect);
+
+    void sendPacket(std::string data);
+
+    void receivePacket(std::string data);
 };
 
 #endif  // BGPSIMULATION_ENTITIES_NET_DETAILS_H
