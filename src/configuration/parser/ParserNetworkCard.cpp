@@ -10,6 +10,7 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
         string            interface;
         pcpp::IPv4Address IP;
         pcpp::IPv4Address netmask;
+        pcpp::MacAddress  mac("00:00:00:00:00:00");
 
         for (const auto& detail_yaml : networkCard_yaml) {
             string     property = detail_yaml.first.as<std::string>();
@@ -23,11 +24,15 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
             } else if (property == "netmask") {
                 string netmask_str = value.as<string>();
                 netmask            = pcpp::IPv4Address(netmask_str);
+            } else if (property == "mac") {
+                string mac_str = value.as<string>();
+                mac            = pcpp::MacAddress(mac_str);
             } else {
                 throwInvalidKey(property, detail_yaml.first);
             }
         }
-        networkCards->push_back(new NetworkCard(interface, IP, netmask, owner));
+        networkCards->push_back(
+            new NetworkCard(interface, IP, netmask, mac, owner));
     }
 
     return networkCards;

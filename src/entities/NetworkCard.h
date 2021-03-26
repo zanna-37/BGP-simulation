@@ -1,11 +1,14 @@
 #ifndef BGPSIMULATION_ENTITIES_NET_DETAILS_H
 #define BGPSIMULATION_ENTITIES_NET_DETAILS_H
 
+#include <EthLayer.h>
 #include <IPv4Layer.h>
+#include <Packet.h>
 
 #include <memory>
 #include <string>
 
+#include "../utils/MacGenerator.h"
 #include "Link.h"
 
 using namespace std;
@@ -42,15 +45,15 @@ class NetworkCard {
      */
     shared_ptr<Link> link = nullptr;
     Device*          owner;
+    pcpp::MacAddress mac = pcpp::MacAddress::Zero;
 
     NetworkCard(string            netInterface,
                 pcpp::IPv4Address IP,
                 pcpp::IPv4Address netmask,
-                Device*           owner)
-        : netInterface(std::move(netInterface)),
-          IP(std::move(IP)),
-          netmask(std::move(netmask)),
-          owner(owner) {}
+                pcpp::MacAddress  mac,
+                Device*           owner);
+
+    ~NetworkCard();
 
     /**
      * Connect the networkCard to the specified link.
@@ -72,9 +75,9 @@ class NetworkCard {
      */
     void disconnect(const shared_ptr<Link>& linkToDisconnect);
 
-    void sendPacket(std::string data);
+    void sendPacket(pcpp::Packet* packet);
 
-    void receivePacket(std::string data);
+    void receivePacket(pcpp::Packet* packet);
 };
 
 #endif  // BGPSIMULATION_ENTITIES_NET_DETAILS_H

@@ -2,6 +2,7 @@
 #define BGPSIMULATION_ENTITIES_DEVICE_H
 
 #include <IPv4Layer.h>
+#include <Packet.h>
 
 #include <mutex>
 #include <string>
@@ -58,8 +59,8 @@ class Device {
 
     virtual ~Device() {
         running = false;
-        deviceThread->join();
-        for (auto networkCard : *networkCards) {
+        // deviceThread->join();
+        for (NetworkCard *networkCard : *networkCards) {
             delete networkCard;
         }
         delete networkCards;
@@ -85,7 +86,9 @@ class Device {
 
     void forwardMessage(std::string data);
 
-    void sendPacket(std::string data, NetworkCard networkCard);
+    void sendPacket(pcpp::Packet *packet, NetworkCard *networkCard);
+
+    void receivePacket(pcpp::Packet *packet);
 };
 
 

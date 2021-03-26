@@ -1,6 +1,10 @@
 #ifndef BGPSIMULATION_ENTITIES_LINK_H
 #define BGPSIMULATION_ENTITIES_LINK_H
 
+#include <Packet.h>
+#include <assert.h>
+#include <sys/time.h>
+
 #include "NetworkCard.h"
 
 
@@ -39,6 +43,15 @@ class Link {
      * networkCard is not connected to the link.
      */
     NetworkCard *getPeerNetworkCardOrNull(NetworkCard *networkCard);
+
+    void sendPacket(pcpp::Packet *packet, NetworkCard *origin);
+
+    void receivePacket(pair<const uint8_t *, int> data,
+                       NetworkCard *              destination);
+
+    pair<const uint8_t *, int> serialize(pcpp::Packet *packet);
+
+    pcpp::Packet *deserialize(const uint8_t *rawData, int rawDataLen);
 
    private:
     /**

@@ -4,6 +4,7 @@
 #include <Packet.h>
 #include <SystemUtils.h>
 #include <UdpLayer.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <string>
@@ -18,6 +19,7 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
+    srand(time(NULL) + getpid());
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
     L_VERBOSE("START");
 
@@ -55,6 +57,7 @@ int main(int argc, char *argv[]) {
         } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
             cout << x->ID << endl;
         }
+        device->start();
     }
 
     this_thread::sleep_for(5s);
@@ -65,10 +68,10 @@ int main(int argc, char *argv[]) {
     }
     delete devices;
 
-    BGPConnection connection;
-    connection.enqueueEvent(AutomaticStart);
-    this_thread::sleep_for(10s);
-    connection.enqueueEvent(ManualStop);
+    // BGPConnection connection;
+    // connection.enqueueEvent(AutomaticStart);
+    // this_thread::sleep_for(10s);
+    // connection.enqueueEvent(ManualStop);
 
     L_VERBOSE("END");
 

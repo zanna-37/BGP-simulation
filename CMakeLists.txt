@@ -53,6 +53,7 @@ set(SOURCE_FILES
         ${SRC_UTILS}/Timer.cpp
         ${SRC_IP}/RoutingTable.cpp
         ${SRC_IP}/TableRow.cpp
+        ${SRC_UTILS}/MacGenerator.cpp
 
 )
 

@@ -45,17 +45,21 @@ void Device::start() {
 
     routingTable.printTable();
 
-    deviceThread = new std::thread([&]() {
-        while (running) {
-            L_DEBUG(ID + "sleeping ...zzz...");
-            this_thread::sleep_for(1s);
-            for (NetworkCard *networkCard : *networkCards) {
-                networkCard->sendPacket("Test");
-            }
-        }
-    });
+    // deviceThread = new std::thread([&]() {
+    //     while (running) {
+    //         L_DEBUG(ID + "sleeping ...zzz...");
+    //         this_thread::sleep_for(1s);
+    //         // for (NetworkCard *networkCard : *networkCards) {
+    //         //     // networkCard->sendPacket("Test");
+    //         // }
+    //     }
+    // });
 }
-// do we need it? (just send it to the network card)
-void Device::sendPacket(std::string data, NetworkCard networkCard) {
-    networkCard.sendPacket(data);
+
+void Device::sendPacket(pcpp::Packet *packet, NetworkCard *networkCard) {
+    pcpp::IPv4Layer ipHeader;
+    packet->addLayer(&ipHeader);
+    networkCard->sendPacket(packet);
 }
+
+void Device::receivePacket(pcpp::Packet *packet) {}

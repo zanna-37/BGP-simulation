@@ -81,5 +81,7 @@ std::string getEventName(Event event) {
             return "[" + std::to_string(UpdateMsg) + "-UpdateMsg]";
         case UpdateMsgErr:
             return "[" + std::to_string(UpdateMsgErr) + "-UpdateMsg error]";
+        default:
+            return "THIS SHOULD NEVER HAPPEN";
     }
 }
