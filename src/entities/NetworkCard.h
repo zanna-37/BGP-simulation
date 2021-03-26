@@ -10,7 +10,9 @@
 
 using namespace std;
 
-class Link;  // forward declaration
+
+class Link;    // forward declaration
+class Device;  // forward declaration
 
 /**
  * This abstracts the concept of a network card.
@@ -43,10 +45,12 @@ class NetworkCard {
 
     NetworkCard(string            netInterface,
                 pcpp::IPv4Address IP,
-                pcpp::IPv4Address netmask)
+                pcpp::IPv4Address netmask,
+                Device*           owner)
         : netInterface(std::move(netInterface)),
           IP(std::move(IP)),
-          netmask(std::move(netmask)) {}
+          netmask(std::move(netmask)),
+          owner(owner) {}
 
     /**
      * Connect the networkCard to the specified link.

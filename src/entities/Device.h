@@ -53,9 +53,7 @@ class Device {
     RoutingTable           routingTable;
     bool                   running;
 
-    Device(string                 ID,
-           pcpp::IPv4Address      defaultGateway,
-           vector<NetworkCard *> *networkCards);
+    Device(string ID, pcpp::IPv4Address defaultGateway);
 
 
     virtual ~Device() {
@@ -67,6 +65,8 @@ class Device {
         delete networkCards;
         delete deviceThread;
     }
+
+    void addCards(vector<NetworkCard *> *networkCards);
 
     /**
      * Get the networkCard associated with the specified interface.

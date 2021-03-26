@@ -1,16 +1,11 @@
 #include "Device.h"
 
 
-Device::Device(string                 ID,
-               pcpp::IPv4Address      defaultGateway,
-               vector<NetworkCard *> *networkCards)
-    : ID(std::move(ID)),
-      defaultGateway(defaultGateway),
-      networkCards(networkCards) {
-    start();
-}
+Device::Device(string ID, pcpp::IPv4Address defaultGateway)
+    : ID(std::move(ID)), defaultGateway(defaultGateway) {}
 
 NetworkCard *Device::getNetworkCardByInterfaceOrNull(
+
     const string &interfaceToSearch) {
     for (const auto &networkCard : *networkCards) {
         if (networkCard->netInterface == interfaceToSearch) {
@@ -18,6 +13,10 @@ NetworkCard *Device::getNetworkCardByInterfaceOrNull(
         }
     }
     return nullptr;
+}
+
+void Device::addCards(vector<NetworkCard *> *networkCards) {
+    this->networkCards = networkCards;
 }
 
 

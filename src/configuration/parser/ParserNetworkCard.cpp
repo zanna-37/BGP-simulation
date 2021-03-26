@@ -1,7 +1,7 @@
 #include "ParserNetworkCard.h"
 
 vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
-    const YAML::Node& networkCards_yaml) {
+    const YAML::Node& networkCards_yaml, Device* owner) {
     assertNodeType(networkCards_yaml, YAML::NodeType::value::Sequence);
 
     auto* networkCards = new vector<NetworkCard*>;
@@ -27,7 +27,7 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
                 throwInvalidKey(property, detail_yaml.first);
             }
         }
-        networkCards->push_back(new NetworkCard(interface, IP, netmask));
+        networkCards->push_back(new NetworkCard(interface, IP, netmask, owner));
     }
 
     return networkCards;

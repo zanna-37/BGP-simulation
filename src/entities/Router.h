@@ -22,11 +22,8 @@ class Router : public virtual Device {
     // TODO: local_preferences
     // TODO: trust
 
-    Router(string                 ID,
-           string                 AS_number,
-           pcpp::IPv4Address      defaultGateway,
-           vector<NetworkCard *> *networkCards)
-        : Device(std::move(ID), defaultGateway, networkCards),
+    Router(string ID, string AS_number, pcpp::IPv4Address defaultGateway)
+        : Device(std::move(ID), defaultGateway),
           AS_number(std::move(AS_number)) {}
 
     ~Router() override = default;

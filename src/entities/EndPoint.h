@@ -14,10 +14,8 @@ using namespace std;
  */
 class EndPoint : public virtual Device {
    public:
-    EndPoint(string                 ID,
-             pcpp::IPv4Address      defaultGateway,
-             vector<NetworkCard *> *networkCards)
-        : Device(std::move(ID), defaultGateway, networkCards) {}
+    EndPoint(string ID, pcpp::IPv4Address defaultGateway)
+        : Device(std::move(ID), defaultGateway) {}
 
     ~EndPoint() override = default;
 };
