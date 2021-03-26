@@ -31,10 +31,11 @@ set(SRC_BGP_PACKETS ${SRC_BGP}/packets)
 set(SRC_TCP ${SRC}/tcp)
 set(SRC_TCP_FSM ${SRC_TCP}/fsm)
 set(SRC_SOCKET ${SRC}/socket)
-
+set(SRC_SERVER ${SRC}/server)
 
 set(SOURCE_FILES
-        ${SRC}/main.cpp
+        # ${SRC}/main.cpp
+        ${SRC_SERVER}/Server.cpp
         ${SRC_CONFIGURATION_PARSER}/Parser.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserClient.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserLink.cpp
@@ -130,4 +131,14 @@ IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${YAMLCPP_ROOT}/CMakeLists.txt")
     target_link_libraries(${CMAKE_PROJECT_NAME} yaml-cpp)
 ELSE ()
     MESSAGE(FATAL_ERROR "yaml-cpp git submodule is absent. Run `git submodule update --init --recursive` to get it")
+ENDIF ()
+
+# pistache
+set(PISTACHE_ROOT ${LIBRARIES_FOLDER}/pistache)
+IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PISTACHE_ROOT}/CMakeLists.txt")
+    add_subdirectory(${PISTACHE_ROOT})
+    target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${PISTACHE_ROOT}/include)
+    target_link_libraries(${CMAKE_PROJECT_NAME} pistache)
+ELSE ()
+    MESSAGE(FATAL_ERROR "pistache git submodule is absent. Run `git submodule update --init --recursive` to get it")
 ENDIF ()
