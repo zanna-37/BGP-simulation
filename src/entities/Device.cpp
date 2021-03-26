@@ -7,6 +7,21 @@ Device::Device(string                 ID,
     : ID(std::move(ID)),
       defaultGateway(defaultGateway),
       networkCards(networkCards) {
+    start();
+}
+
+NetworkCard *Device::getNetworkCardByInterfaceOrNull(
+    const string &interfaceToSearch) {
+    for (const auto &networkCard : *networkCards) {
+        if (networkCard->netInterface == interfaceToSearch) {
+            return networkCard;
+        }
+    }
+    return nullptr;
+}
+
+
+void Device::start() {
     for (NetworkCard *networkCard : *networkCards) {
         pcpp::IPv4Address networkIP(
             (networkCard->IP.toInt() & networkCard->netmask.toInt()));
@@ -30,14 +45,13 @@ Device::Device(string                 ID,
     }
 
     routingTable.printTable();
+
+    deviceThread = new std::thread([&]() {
+        while (running) {
+            L_DEBUG(ID + "sleeping ...zzz...");
+            this_thread::sleep_for(1s);
+        }
+    });
 }
 
-NetworkCard *Device::getNetworkCardByInterfaceOrNull(
-    const string &interfaceToSearch) {
-    for (const auto &networkCard : *networkCards) {
-        if (networkCard->netInterface == interfaceToSearch) {
-            return networkCard;
-        }
-    }
-    return nullptr;
-}
+void Device::sendMessage(std::string data) {}

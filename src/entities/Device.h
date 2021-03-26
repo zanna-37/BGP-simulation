@@ -51,6 +51,7 @@ class Device {
     vector<NetworkCard *> *networkCards;
     std::thread *          deviceThread = nullptr;
     RoutingTable           routingTable;
+    bool                   running;
 
     Device(string                 ID,
            pcpp::IPv4Address      defaultGateway,
@@ -58,6 +59,8 @@ class Device {
 
 
     virtual ~Device() {
+        running = false;
+        deviceThread->join();
         for (auto networkCard : *networkCards) {
             delete networkCard;
         }
@@ -77,9 +80,12 @@ class Device {
     NetworkCard *getNetworkCardByInterfaceOrNull(
         const string &interfaceToSearch);
 
+    void start();
     void receiveMessage(std::string data);
 
     void forwardMessage(std::string data);
+
+    void sendMessage(std::string data);
 };
 
 

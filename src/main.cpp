@@ -57,6 +57,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    this_thread::sleep_for(5s);
 
     L_DEBUG("DELETING OBJECTS");
     for (auto device : *devices) {
