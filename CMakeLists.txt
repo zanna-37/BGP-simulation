@@ -142,3 +142,13 @@ IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${PISTACHE_ROOT}/CMakeLists.txt")
 ELSE ()
     MESSAGE(FATAL_ERROR "pistache git submodule is absent. Run `git submodule update --init --recursive` to get it")
 ENDIF ()
+
+# rapidJSON
+
+set(RAPIDJSON_ROOT ${LIBRARIES_FOLDER}/rapidjson)
+
+IF (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${RAPIDJSON_ROOT}")
+    target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${RAPIDJSON_ROOT}/include)
+ELSE ()
+    MESSAGE(FATAL_ERROR "rapidjson git submodule is absent. Run `git submodule update --init --recursive` to get it")
+ENDIF ()
