@@ -21,7 +21,9 @@ docker build -t igang/build-cpp-env -f Dockerfile .
 Then, run the container that will compile all the sources. You should specify the `[make command]` to execute. See the [Build locally](#build-locally) section.
 
 ```bash
-docker run --rm -v "absolute/path/to/project:/project" --name build_env igang/build-cpp-env [make command]
+docker run --rm -v "</absolute_path_to_project>:/project" --name build_env igang/build-cpp-env [make command]
+
+# example: docker run --rm -v "/Users/nickname/protocol_processing_security/simulation:/project" --name build_env igang/build-cpp-env make build
 ```
 
 ## Build through Clion Remote Host
