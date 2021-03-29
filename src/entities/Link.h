@@ -3,7 +3,7 @@
 
 #include <Packet.h>
 #include <assert.h>
-#include <sys/time.h>
+#include <time.h>
 
 #include "NetworkCard.h"
 
@@ -51,7 +51,7 @@ class Link {
 
     pair<const uint8_t *, int> serialize(pcpp::Packet *packet);
 
-    pcpp::Packet *deserialize(const uint8_t *rawData, int rawDataLen);
+    pcpp::Packet *deserialize(uint8_t *rawData, int rawDataLen);
 
    private:
     /**

@@ -42,20 +42,36 @@ void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
     }
 }
 
-void NetworkCard::sendPacket(pcpp::Packet* packet) {
+void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
     if (link->connection_status == Connection_status::active) {
+        L_DEBUG("Sending packet using " + netInterface + " through link");
         NetworkCard*   destination = link->getPeerNetworkCardOrNull(this);
-        pcpp::EthLayer ethHeader(mac, destination->mac);
-        packet->addLayer(&ethHeader);
-        link->sendPacket(packet, destination);
+        pcpp::EthLayer ethLayer(mac, destination->mac);
+        layers->push(&ethLayer);
+        pcpp::Packet packet;
+        while (!layers->empty()) {
+            packet.addLayer(layers->top());
+            layers->pop();
+        }
+        packet.computeCalculateFields();
+        link->sendPacket(&packet, destination);
     }
 }
 
-void NetworkCard::receivePacket(pcpp::Packet* packet) {
-    pcpp::EthLayer* ethHeader = packet->getLayerOfType<pcpp::EthLayer>();
+void NetworkCard::receivePacket(pcpp::Packet* receivedPacket) {
+    // pcpp::EthLayer* ethHeader = packet->getLayerOfType<pcpp::EthLayer>();
+    stack<pcpp::Layer*> layers;
 
+    pcpp::Packet* packet = new pcpp::Packet(*receivedPacket);
+
+    pcpp::Layer* currentLayer = packet->getLastLayer();
+    while (currentLayer != nullptr) {
+        layers.push(currentLayer);
+        currentLayer = currentLayer->getPrevLayer();
+    }
     // compute mac layer stuff
 
-    packet->removeLayer(ethHeader->getProtocol());
-    owner->receivePacket(packet);
+    layers.pop();
+    owner->receivePacket(&layers, this);
+    delete packet;
 }

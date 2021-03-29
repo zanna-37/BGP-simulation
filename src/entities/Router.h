@@ -27,6 +27,9 @@ class Router : public virtual Device {
           AS_number(std::move(AS_number)) {}
 
     ~Router() override = default;
+
+    void forwardMessage(stack<pcpp::Layer *> *layers,
+                        NetworkCard *         networkCard) override;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_ROUTER_H

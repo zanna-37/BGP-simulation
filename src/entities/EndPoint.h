@@ -18,6 +18,9 @@ class EndPoint : public virtual Device {
         : Device(std::move(ID), defaultGateway) {}
 
     ~EndPoint() override = default;
+
+    void forwardMessage(stack<pcpp::Layer *> *layers,
+                        NetworkCard *         networkCard) override;
 };
 
 #endif  // BGP_SIMULATION_ENTITIES_ENDPOINT_H

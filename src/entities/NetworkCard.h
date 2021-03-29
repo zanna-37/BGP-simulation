@@ -6,6 +6,7 @@
 #include <Packet.h>
 
 #include <memory>
+#include <stack>
 #include <string>
 
 #include "../utils/MacGenerator.h"
@@ -75,7 +76,7 @@ class NetworkCard {
      */
     void disconnect(const shared_ptr<Link>& linkToDisconnect);
 
-    void sendPacket(pcpp::Packet* packet);
+    void sendPacket(stack<pcpp::Layer*>* layers);
 
     void receivePacket(pcpp::Packet* packet);
 };

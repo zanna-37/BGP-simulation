@@ -3,8 +3,10 @@
 
 #include <IPv4Layer.h>
 #include <Packet.h>
+#include <TcpLayer.h>
 
 #include <mutex>
+#include <stack>
 #include <string>
 #include <thread>
 #include <utility>
@@ -82,13 +84,14 @@ class Device {
         const string &interfaceToSearch);
 
     void start();
-    void receiveMessage(std::string data);
+    void processMessage(stack<pcpp::Layer *> *layers);
 
-    void forwardMessage(std::string data);
+    virtual void forwardMessage(stack<pcpp::Layer *> *layers,
+                                NetworkCard *         networkCard) = 0;
 
-    void sendPacket(pcpp::Packet *packet, NetworkCard *networkCard);
+    void sendPacket(stack<pcpp::Layer *> *layers, NetworkCard *networkCard);
 
-    void receivePacket(pcpp::Packet *packet);
+    void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
 };
 
 

@@ -44,5 +44,5 @@ links:
     connection_status: active
   - device_ids: [R1, R2]
     device_source_interfaces: [eth1, eth5]
-    connection_status: failed
+    connection_status: active
 ...

@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <stack>
 #include <string>
 
 #include "bgp/BGPConnection.h"
@@ -40,8 +41,8 @@ int main(int argc, char *argv[]) {
 
     newPacket.addLayer(&newEthernetLayer);
     newPacket.addLayer(&newIPLayer);
-    newPacket.addLayer(&newUdpLayer);
-    newPacket.addLayer(&newDnsLayer);
+    // newPacket.addLayer(&newUdpLayer);
+    // newPacket.addLayer(&newDnsLayer);
 
     newPacket.computeCalculateFields();
 
@@ -60,6 +61,18 @@ int main(int argc, char *argv[]) {
         device->start();
     }
 
+    // pcpp::EthLayer ethLayer(pcpp::MacAddress("11:11:11:11:11:11"),
+    //                         pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
+    // testPacket.addLayer(&ethLayer);
+    pcpp::IPv4Layer ipLayer(
+        pcpp::IPv4Address(devices->at(0)->networkCards->front()->IP),
+        pcpp::IPv4Address("90.36.25.123"));
+
+    stack<pcpp::Layer *> layers;
+    layers.push(&newDnsLayer);
+    layers.push(&newUdpLayer);
+    layers.push(&ipLayer);
+    devices->at(0)->sendPacket(&layers, devices->at(0)->networkCards->front());
     this_thread::sleep_for(5s);
 
     L_DEBUG("DELETING OBJECTS");

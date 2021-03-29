@@ -34,10 +34,13 @@ NetworkCard *Link::getPeerNetworkCardOrNull(NetworkCard *networkCard) {
 
 void Link::sendPacket(pcpp::Packet *packet, NetworkCard *destination) {
     assert(destination);
-
     pair<const uint8_t *, int> data = serialize(packet);
     if (connection_status == Connection_status::active) {
         receivePacket(data, destination);
+    } else {
+        L_ERROR("PHYSICAL LINK BROKEN: " +
+                getPeerNetworkCardOrNull(destination)->netInterface + " -> " +
+                destination->netInterface);
     }
 }
 
@@ -45,14 +48,15 @@ void Link::receivePacket(pair<const uint8_t *, int> data,
                          NetworkCard *              destination) {
     assert(destination);
 
-    const uint8_t *rawData = new uint8_t[data.second * sizeof(uint8_t)];
+    uint8_t *rawData = new uint8_t[data.second * sizeof(uint8_t)];
 
-    memcpy(&rawData, data.first, data.second);
+    std::copy(data.first, data.first + data.second * sizeof(uint8_t), rawData);
 
-    delete data.first;
-    pcpp::Packet *receivedPacket = deserialize(rawData, data.second);
 
+    pcpp::Packet *receivedPacket =
+        deserialize((uint8_t *)rawData, data.second * sizeof(uint8_t));
     destination->receivePacket(receivedPacket);
+    delete receivedPacket;
 }
 
 pair<const uint8_t *, int> Link::serialize(pcpp::Packet *packet) {
@@ -62,17 +66,18 @@ pair<const uint8_t *, int> Link::serialize(pcpp::Packet *packet) {
     int            rawDataLen = rawPacket->getRawDataLen();
 
     // TODO need it?
-    delete packet;
+    // delete packet;
 
     return std::make_pair(rawData, rawDataLen);
 }
 
-pcpp::Packet *Link::deserialize(const uint8_t *rawData, int rawDataLen) {
-    struct timeval timestamp;
-    gettimeofday(&timestamp, NULL);
-    pcpp::RawPacket rawPacket(rawData, rawDataLen, timestamp, true);
+pcpp::Packet *Link::deserialize(uint8_t *rawData, int rawDataLen) {
+    struct timespec timestamp;
+    timespec_get(&timestamp, TIME_UTC);
+    pcpp::RawPacket *rawPacket =
+        new pcpp::RawPacket(rawData, rawDataLen, timestamp, true);
 
-    pcpp::Packet *packet = new pcpp::Packet(&rawPacket);
+    pcpp::Packet *packet = new pcpp::Packet(rawPacket, true);
 
     return packet;
 }

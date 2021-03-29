@@ -28,7 +28,8 @@ void Device::start() {
         TableRow row(networkIP,
                      networkCard->netmask,
                      pcpp::IPv4Address::Zero,
-                     networkCard->netInterface);
+                     networkCard->netInterface,
+                     networkCard);
 
         routingTable.insertRow(row);
 
@@ -37,7 +38,8 @@ void Device::start() {
             TableRow row(pcpp::IPv4Address::Zero,
                          pcpp::IPv4Address::Zero,
                          defaultGateway,
-                         networkCard->netInterface);
+                         networkCard->netInterface,
+                         networkCard);
 
             routingTable.insertRow(row);
         }
@@ -56,10 +58,30 @@ void Device::start() {
     // });
 }
 
-void Device::sendPacket(pcpp::Packet *packet, NetworkCard *networkCard) {
-    pcpp::IPv4Layer ipHeader;
-    packet->addLayer(&ipHeader);
-    networkCard->sendPacket(packet);
+void Device::sendPacket(stack<pcpp::Layer *> *layers,
+                        NetworkCard *         networkCard) {
+    L_DEBUG("Sending packet from " + ID + " using " +
+            networkCard->netInterface);
+    networkCard->sendPacket(layers);
 }
 
-void Device::receivePacket(pcpp::Packet *packet) {}
+void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
+    pcpp::IPv4Layer * ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
+    pcpp::IPv4Address dstAddress = ipLayer->getDstIPv4Address();
+
+    if (dstAddress == origin->IP) {
+        L_DEBUG("processing message");
+        processMessage(layers);
+    } else {
+        TableRow *nextHop_row = routingTable.findNextHop(dstAddress);
+        if (nextHop_row == nullptr) {
+            L_ERROR("DESTINATION UNREACHABLE");
+        } else {
+            forwardMessage(layers, nextHop_row->networkCard);
+        }
+    }
+}
+
+void Device::processMessage(stack<pcpp::Layer *> *layers) {
+    L_DEBUG("RICEVUTO: " + ID);
+}
