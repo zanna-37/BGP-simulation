@@ -4,34 +4,10 @@
    Example of a REST endpoint with routing
 */
 
-#include <pistache/endpoint.h>
-#include <pistache/http.h>
-#include <pistache/router.h>
+#include "Server.h"
 
-#include <algorithm>
 
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/prettywriter.h"
-
-using namespace std;
-using namespace Pistache;
-using namespace rapidjson;
-
-void printCookies(const Http::Request& req) {
-    auto cookies = req.cookies();
-    std::cout << "Cookies: [" << std::endl;
-    const std::string indent(4, ' ');
-    for (const auto& c : cookies) {
-        std::cout << indent << c.name << " = " << c.value << std::endl;
-    }
-    std::cout << "]" << std::endl;
-}
-
-namespace Generic {
-
-void handleReady(const Rest::Request&, Http::ResponseWriter response) {
+void ApiEndpoint::index(const Rest::Request&, Http::ResponseWriter response) {
     Document doc;
 
     // Create JSON with objects
@@ -48,7 +24,7 @@ void handleReady(const Rest::Request&, Http::ResponseWriter response) {
         doc.AddMember("Sexy", s, doc.GetAllocator());
      */
 
-    StringBuffer         buf;
+    StringBuffer               buf;
     PrettyWriter<StringBuffer> writer(buf);
     /*     doc.Accept(writer);
      */
@@ -154,7 +130,7 @@ void handleReady(const Rest::Request&, Http::ResponseWriter response) {
     writer.EndObject();
 
     writer.EndArray();
-    
+
 
     writer.EndObject();
 
@@ -163,58 +139,45 @@ void handleReady(const Rest::Request&, Http::ResponseWriter response) {
     response.send(Http::Code::Ok, buf.GetString());
 }
 
-}  // namespace Generic
 
-class StatsEndpoint {
-   public:
-    explicit StatsEndpoint(Address addr)
-        : httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {}
-
-    void init(size_t thr = 2) {
-        auto opts = Http::Endpoint::options().threads(static_cast<int>(thr));
-        httpEndpoint->init(opts);
-        setupRoutes();
-    }
-
-    void start() {
-        httpEndpoint->setHandler(router.handler());
-        httpEndpoint->serve();
-    }
-
-   private:
-    void setupRoutes() {
-        using namespace Rest;
-
-        Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
-    }
-
-
-    using Lock  = std::mutex;
-    using Guard = std::lock_guard<Lock>;
-    Lock metricsLock;
-
-    std::shared_ptr<Http::Endpoint> httpEndpoint;
-    Rest::Router                    router;
-};
-
-int main(int argc, char* argv[]) {
-    Port port(9080);
-
-    int thr = 2;
-
-    if (argc >= 2) {
-        port = static_cast<uint16_t>(std::stol(argv[1]));
-
-        if (argc == 3) thr = std::stoi(argv[2]);
-    }
-
-    Address addr(Ipv4::any(), port);
-
-    cout << "Cores = " << hardware_concurrency() << endl;
-    cout << "Using " << thr << " threads" << endl;
-
-    StatsEndpoint stats(addr);
-
-    stats.init(thr);
-    stats.start();
+void ApiEndpoint::init(size_t thr = 2) {
+    auto opts = Http::Endpoint::options().flags(Tcp::Options::ReuseAddr);
+    opts = Http::Endpoint::options().threads(static_cast<int>(thr));
+    httpEndpoint->init(opts);
+    setupRoutes();
 }
+
+void ApiEndpoint::start() {
+    httpEndpoint->setHandler(router.handler());
+    httpEndpoint->serve();
+}
+
+void ApiEndpoint::setupRoutes() {
+    using namespace Rest;
+
+    Routes::Get(router, "/", Routes::bind(&ApiEndpoint::index, this));
+}
+
+void ApiEndpoint::getNetwork(const Rest::Request&,
+                             Http::ResponseWriter response) {}
+
+void ApiEndpoint::getNodes(const Rest::Request&,
+                           Http::ResponseWriter response) {}
+
+void ApiEndpoint::getLinks(const Rest::Request&,
+                           Http::ResponseWriter response) {}
+
+void ApiEndpoint::setLink(const Rest::Request&,
+                          Http::ResponseWriter response) {}
+
+void ApiEndpoint::removeLink(const Rest::Request&,
+                             Http::ResponseWriter response) {}
+
+void ApiEndpoint::removeNode(const Rest::Request&,
+                             Http::ResponseWriter response) {}
+
+void ApiEndpoint::getPackets(const Rest::Request&,
+                             Http::ResponseWriter response) {}
+
+void ApiEndpoint::setReady(const Rest::Request&,
+                           Http::ResponseWriter response) {}
