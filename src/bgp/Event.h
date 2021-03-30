@@ -36,6 +36,11 @@ enum Event {
     UpdateMsgErr
 };
 
+/**
+ * Return the string name of the event
+ * @param event the event code
+ * @return string name of the event
+ */
 std::string getEventName(Event event);
 
 #endif

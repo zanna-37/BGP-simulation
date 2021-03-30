@@ -46,15 +46,34 @@ class Timer {
           std::chrono::seconds totalDuration);
     ~Timer();
 
+    /**
+     * Start the timer thread setting the duration to the default valued defined in the constructor
+     */
     void start();
 
+    /**
+     * Stop the timer and join the timer thread
+     */
     void stop();
 
+    /**
+     * Get the actual state of the timer
+     * @return the timer state value
+     */
     TimerState getState() const { return timerState; }
 
+    /**
+     * Get the remaining duration of the timer
+     * @return the remaining time
+     */
     std::chrono::milliseconds getRemainingTime() const {
         return remainingDurationAfterPause;
     }
+
+    /**
+     * Set the remaining duration after a timer pause
+     * @param value the remaining duration
+     */
     void setRemainingTime(const std::chrono::milliseconds& value) {
         remainingDurationAfterPause = value;
     }
