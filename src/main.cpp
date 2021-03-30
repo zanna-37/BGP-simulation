@@ -20,6 +20,7 @@
 #include "entities/EndPoint.h"
 #include "entities/Router.h"
 #include "logger/Logger.h"
+#include "server/Server.h"
 
 
 using namespace std;
@@ -28,6 +29,22 @@ int main(int argc, char *argv[]) {
     srand(time(NULL) + getpid());
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
     L_VERBOSE("main", "START");
+
+    Pistache::Port port(9080);
+
+    int thr = 2;
+
+
+
+    Pistache::Address addr(Ipv4::any(), port);
+
+    cout << "Cores = " << hardware_concurrency() << endl;
+    cout << "Using " << thr << " threads" << endl;
+
+    ApiEndpoint stats(addr);
+
+    stats.init(thr);
+    stats.start();
 
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));

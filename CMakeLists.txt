@@ -35,7 +35,7 @@ set(SRC_SERVER ${SRC}/server)
 
 
 set(SOURCE_FILES
-        # ${SRC}/main.cpp
+        ${SRC}/main.cpp
         ${SRC_SERVER}/Server.cpp
         ${SRC_CONFIGURATION_PARSER}/Parser.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserClient.cpp
