@@ -32,18 +32,6 @@ int main(int argc, char *argv[]) {
 
     L_VERBOSE("main", "START");
 
-    int thr = 2;
-    Pistache::Port port(9080);
-    Pistache::Address addr(Ipv4::any(), port);
-
-    cout << "Cores = " << hardware_concurrency() << endl;
-    cout << "Using " << thr << " threads" << endl;
-
-    ApiEndpoint stats(addr);
-
-    stats.init(thr);
-    stats.start();
-
     // TODO REMOVE ME, just examples
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                      pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
@@ -112,6 +100,20 @@ int main(int argc, char *argv[]) {
 
     if (argc > 1) {
         std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
+
+        // Define address port and and threads for the rest server
+        Pistache::Port port(9080);
+        int thr = 2;
+        Pistache::Address addr(Ipv4::any(), port);
+
+        //Start rest server
+        cout << "Cores = " << hardware_concurrency() << endl;
+        cout << "Using " << thr << " threads" << endl;
+
+        ApiEndpoint stats(addr);
+
+        stats.init(thr);
+        stats.start();
 
         for (auto device : *devices) {
             /* TODO REMOVE ME, just an example
