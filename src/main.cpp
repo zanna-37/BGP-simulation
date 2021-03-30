@@ -30,21 +30,7 @@ int main(int argc, char *argv[]) {
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
     L_VERBOSE("main", "START");
 
-    Pistache::Port port(9080);
-
-    int thr = 2;
-
-
-
-    Pistache::Address addr(Ipv4::any(), port);
-
-    cout << "Cores = " << hardware_concurrency() << endl;
-    cout << "Using " << thr << " threads" << endl;
-
-    ApiEndpoint stats(addr);
-
-    stats.init(thr);
-    stats.start();
+    // Tests
 
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
@@ -110,10 +96,28 @@ int main(int argc, char *argv[]) {
 
     cout << newPacket.toString() << endl;
 
+    // End tests
+
     vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
 
     // TODO logic here
+
+        // Define address port and and threads for the rest server
+    Pistache::Port port(9080);
+    int thr = 2;
+    Pistache::Address addr(Ipv4::any(), port);
+
+    //Start rest server
+    cout << "Cores = " << hardware_concurrency() << endl;
+    cout << "Using " << thr << " threads" << endl;
+
+    ApiEndpoint stats(addr);
+
+    stats.init(thr);
+    stats.start();
+
+    // Debug trial
     for (auto device : *devices) {
         if (auto *x = dynamic_cast<Router *>(device)) {
             cout << x->ID << endl;
