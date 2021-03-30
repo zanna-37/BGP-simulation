@@ -1,0 +1,21 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: dependencies
+      run: git submodule update --init --recursive
+    - name: build docker image
+      run: docker build -t igang/build-cpp-env -f Dockerfile .
+    - name: make build
+      run: docker run --rm -v "$(pwd):/project" --name build_env igang/build-cpp-env make build
