@@ -47,15 +47,36 @@ void Device::start() {
 
     routingTable.printTable();
 
-    // deviceThread = new std::thread([&]() {
-    //     while (running) {
-    //         L_DEBUG(ID + "sleeping ...zzz...");
-    //         this_thread::sleep_for(1s);
-    //         // for (NetworkCard *networkCard : *networkCards) {
-    //         //     // networkCard->sendPacket("Test");
-    //         // }
-    //     }
-    // });
+    running      = true;
+    deviceThread = new std::thread([&]() {
+        while (running) {
+            unique_lock<std::mutex> packetsEventQueue_uniqueLock(
+                receivedPacketsEventQueue_mutex);
+            while (receivedPacketsEventQueue.empty() && running) {
+                receivedPacketsEventQueue_wakeup.wait(
+                    packetsEventQueue_uniqueLock);
+
+                if (receivedPacketsEventQueue.empty() && running) {
+                    L_DEBUG("Spurious Wakeup");
+                }
+            }
+
+            if (running) {
+                L_DEBUG("Queue not empty: handling event");
+                ReceivedPacketEvent *event = receivedPacketsEventQueue.front();
+                L_DEBUG("Packet arrived at " +
+                        event->networkCard->netInterface);
+                receivedPacketsEventQueue.pop();
+
+                event->networkCard->handleNextPacket();
+
+                delete event;
+            } else {
+                L_VERBOSE("Shutting down:" + ID);
+            }
+            packetsEventQueue_uniqueLock.unlock();
+        }
+    });
 }
 
 void Device::sendPacket(stack<pcpp::Layer *> *layers,
@@ -84,4 +105,28 @@ void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
 
 void Device::processMessage(stack<pcpp::Layer *> *layers) {
     L_DEBUG("RICEVUTO: " + ID);
+
+    // TODO pass layer to TCP
+    while (!(layers->empty())) {
+        pcpp::Layer *layer = layers->top();
+        layers->pop();
+        delete layer;
+    }
 }
+
+void Device::enqueueEvent(ReceivedPacketEvent *event) {
+    L_DEBUG("Enqueueing event in " + ID + " event queue");
+    unique_lock<std::mutex> packetsEventQueue_uniqueLock(
+        receivedPacketsEventQueue_mutex);
+
+    receivedPacketsEventQueue.push(event);
+    receivedPacketsEventQueue_wakeup.notify_one();
+
+    packetsEventQueue_uniqueLock.unlock();
+}
+
+// ReceivedPacketEvent methods
+
+ReceivedPacketEvent::ReceivedPacketEvent(NetworkCard *networkCard,
+                                         Description  description)
+    : networkCard(networkCard), description(description) {}

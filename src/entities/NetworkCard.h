@@ -4,8 +4,10 @@
 #include <EthLayer.h>
 #include <IPv4Layer.h>
 #include <Packet.h>
+#include <ProtocolType.h>
 
 #include <memory>
+#include <queue>
 #include <stack>
 #include <string>
 
@@ -44,9 +46,11 @@ class NetworkCard {
      * The link this network card is attached to, or \a nullptr when
      * disconnected.
      */
-    shared_ptr<Link> link = nullptr;
-    Device*          owner;
-    pcpp::MacAddress mac = pcpp::MacAddress::Zero;
+    shared_ptr<Link>     link = nullptr;
+    Device*              owner;
+    pcpp::MacAddress     mac = pcpp::MacAddress::Zero;
+    queue<pcpp::Packet*> receivedPacketsQueue;
+
 
     NetworkCard(string            netInterface,
                 pcpp::IPv4Address IP,
@@ -79,6 +83,8 @@ class NetworkCard {
     void sendPacket(stack<pcpp::Layer*>* layers);
 
     void receivePacket(pcpp::Packet* packet);
+
+    void handleNextPacket();
 };
 
 #endif  // BGPSIMULATION_ENTITIES_NET_DETAILS_H

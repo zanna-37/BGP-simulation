@@ -11,6 +11,8 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <queue>
+#include <condition_variable>
 
 #include "../ip/RoutingTable.h"
 #include "../ip/TableRow.h"
@@ -18,6 +20,7 @@
 
 using namespace std;
 
+class ReceivedPacketEvent;
 
 class NetworkCard;  // forward declaration
 
@@ -56,12 +59,21 @@ class Device {
     RoutingTable           routingTable;
     bool                   running;
 
+    std::mutex receivedPacketsEventQueue_mutex; //mutex to lock the queue
+    std::condition_variable receivedPacketsEventQueue_wakeup; //condition variable set when the queue is not empty
+    queue<ReceivedPacketEvent*> receivedPacketsEventQueue; //queue of events
+
     Device(string ID, pcpp::IPv4Address defaultGateway);
 
 
     virtual ~Device() {
         running = false;
-        // deviceThread->join();
+
+        unique_lock<std::mutex> packetsEventQueue_uniqueLock(
+        receivedPacketsEventQueue_mutex);
+        receivedPacketsEventQueue_wakeup.notify_one();
+        packetsEventQueue_uniqueLock.unlock();
+        deviceThread->join();
         for (NetworkCard *networkCard : *networkCards) {
             delete networkCard;
         }
@@ -92,7 +104,22 @@ class Device {
     void sendPacket(stack<pcpp::Layer *> *layers, NetworkCard *networkCard);
 
     void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
+
+    void enqueueEvent(ReceivedPacketEvent *event);
 };
 
+class ReceivedPacketEvent {
+
+    public:
+    NetworkCard* networkCard;
+
+    enum Description {
+        PACKET_ARRIVED
+    };
+    Description description;
+    ReceivedPacketEvent(NetworkCard* networkCard, Description description);
+    ~ReceivedPacketEvent(){}
+
+};
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H

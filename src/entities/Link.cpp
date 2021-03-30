@@ -56,7 +56,6 @@ void Link::receivePacket(pair<const uint8_t *, int> data,
     pcpp::Packet *receivedPacket =
         deserialize((uint8_t *)rawData, data.second * sizeof(uint8_t));
     destination->receivePacket(receivedPacket);
-    delete receivedPacket;
 }
 
 pair<const uint8_t *, int> Link::serialize(pcpp::Packet *packet) {

@@ -59,19 +59,31 @@ void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
 }
 
 void NetworkCard::receivePacket(pcpp::Packet* receivedPacket) {
-    // pcpp::EthLayer* ethHeader = packet->getLayerOfType<pcpp::EthLayer>();
+    L_DEBUG("Enqueueing event in " + netInterface + " queue");
+    receivedPacketsQueue.push(receivedPacket);
+    ReceivedPacketEvent* event = new ReceivedPacketEvent(
+        this, ReceivedPacketEvent::Description::PACKET_ARRIVED);
+    owner->enqueueEvent(event);
+}
+
+void NetworkCard::handleNextPacket() {
+    pcpp::Packet*       receivedPacket = receivedPacketsQueue.front();
     stack<pcpp::Layer*> layers;
 
-    pcpp::Packet* packet = new pcpp::Packet(*receivedPacket);
-
-    pcpp::Layer* currentLayer = packet->getLastLayer();
+    pcpp::Layer* currentLayer = receivedPacket->getLastLayer();
     while (currentLayer != nullptr) {
-        layers.push(currentLayer);
-        currentLayer = currentLayer->getPrevLayer();
+        pcpp::ProtocolType protocol = currentLayer->getProtocol();
+        layers.push(receivedPacket->detachLayer(protocol));
+        currentLayer = receivedPacket->getLastLayer();
     }
-    // compute mac layer stuff
 
+
+    delete receivedPacket;
+
+
+    pcpp::EthLayer* ethLayer = dynamic_cast<pcpp::EthLayer*>(layers.top());
     layers.pop();
+    // compute mac layer stuff
+    delete ethLayer;
     owner->receivePacket(&layers, this);
-    delete packet;
 }
