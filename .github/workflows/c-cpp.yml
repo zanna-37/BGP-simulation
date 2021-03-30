@@ -15,5 +15,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: dependencies
       run: git submodule update --init --recursive
-    - name: make
-      run: make build
+    - name: build docker image
+      run: docker build -t igang/build-cpp-env -f Dockerfile .
+    - name: make build
+      run: docker run --rm -v "$(pwd):/project" --name build_env igang/build-cpp-env make build
