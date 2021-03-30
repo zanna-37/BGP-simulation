@@ -7,16 +7,16 @@
 
 using namespace std;
 
-#define L_DEBUG(message) Logger::getInstance()->log(LogLevel::DEBUG, message);
+#define L_DEBUG(message) Logger::getInstance()->log(LogLevel::DEBUG, message)
 #define L_VERBOSE(message) \
-    Logger::getInstance()->log(LogLevel::VERBOSE, message);
-#define L_INFO(message) Logger::getInstance()->log(LogLevel::INFO, message);
+    Logger::getInstance()->log(LogLevel::VERBOSE, message)
+#define L_INFO(message) Logger::getInstance()->log(LogLevel::INFO, message)
 #define L_SUCCESS(message) \
-    Logger::getInstance()->log(LogLevel::SUCCESS, message);
+    Logger::getInstance()->log(LogLevel::SUCCESS, message)
 #define L_WARNING(message) \
     Logger::getInstance()->log(LogLevel::WARNING, message);
-#define L_ERROR(message) Logger::getInstance()->log(LogLevel::ERROR, message);
-#define L_FATAL(message) Logger::getInstance()->log(LogLevel::FATAL, message);
+#define L_ERROR(message) Logger::getInstance()->log(LogLevel::ERROR, message)
+#define L_FATAL(message) Logger::getInstance()->log(LogLevel::FATAL, message)
 
 enum class LogLevel : short {
     /**
