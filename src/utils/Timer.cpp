@@ -47,13 +47,13 @@ void Timer ::start() {
 
             mutex.lock();
             if (timerState == TICKING) {
-                L_DEBUG("TIMEOUT " + NAME + ": performing actions")
+                L_DEBUG("TIMEOUT " + NAME + ": performing actions");
                 timerState = EXECUTING_SCHEDULED_TASK;
                 stateMachine->enqueueEvent(eventToSendUponExpire);
                 timerState = COMPLETED;
 
             } else {
-                L_DEBUG(NAME + ": " + "was stopped, skipping actions")
+                L_DEBUG(NAME + ": " + "was stopped, skipping actions");
             }
 
             auto end = std::chrono::steady_clock::now();
