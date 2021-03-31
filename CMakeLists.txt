@@ -26,6 +26,8 @@ set(SRC_BGP ${SRC}/bgp)
 set(SRC_FSM ${SRC_BGP}/fsm) 
 set(SRC_UTILS ${SRC}/utils)
 set(SRC_IP ${SRC}/ip)
+set(SRC_TCP ${SRC}/tcp)
+set(SRC_TCP_FSM ${SRC_TCP}/fsm)
 
 
 set(SOURCE_FILES
@@ -54,6 +56,15 @@ set(SOURCE_FILES
         ${SRC_IP}/RoutingTable.cpp
         ${SRC_IP}/TableRow.cpp
         ${SRC_UTILS}/MacGenerator.cpp
+        ${SRC_TCP}/TCPConnection.cpp
+        ${SRC_TCP}/TCPEvent.cpp
+        ${SRC_TCP_FSM}/TCPStateClosed.cpp
+        ${SRC_TCP_FSM}/TCPStateClosing.cpp
+        ${SRC_TCP_FSM}/TCPStateEnstablished.cpp
+        ${SRC_TCP_FSM}/TCPStateListen.cpp
+        ${SRC_TCP_FSM}/TCPStateMachine.cpp
+        ${SRC_TCP_FSM}/TCPStateSYNReceived.cpp
+        ${SRC_TCP_FSM}/TCPStateSYNSent.cpp
 
 )
 
