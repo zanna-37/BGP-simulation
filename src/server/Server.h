@@ -5,8 +5,6 @@
 #include <pistache/http.h>
 #include <pistache/router.h>
 
-// #include <algorithm>
-
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
@@ -21,15 +19,31 @@ class ApiEndpoint {
     explicit ApiEndpoint(Address addr)
         : httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {}
 
+    /**
+     * @brief Initialize the number of wanted threads for the rest server
+     *
+     * @param thr Number of threads
+     */
     void init(size_t thr);
 
+    /**
+     * @brief Start servign the APIs
+     *
+     */
     void start();
 
-    std::shared_ptr<Http::Endpoint> httpEndpoint;
-
    private:
+    /**
+     * @brief Define the routes for each api and their methods
+     *
+     */
     void setupRoutes();
 
+    /**
+     * @brief Get the status of the Network
+     *
+     * @param response Handler used to send back the reply
+     */
     void getNetwork(const Rest::Request&, Http::ResponseWriter response);
 
     void getNodes(const Rest::Request&, Http::ResponseWriter response);
@@ -46,14 +60,19 @@ class ApiEndpoint {
 
     void setReady(const Rest::Request&, Http::ResponseWriter response);
 
+    /**
+     * @brief General reply with JSON
+     *
+     * @param response Handler used to send back the reply
+     */
     void index(const Rest::Request&, Http::ResponseWriter response);
 
     using Lock  = std::mutex;
     using Guard = std::lock_guard<Lock>;
     Lock metricsLock;
 
-    
-    Rest::Router router;
+    std::shared_ptr<Http::Endpoint> httpEndpoint;
+    Rest::Router                    router;
 };
 
 #endif
