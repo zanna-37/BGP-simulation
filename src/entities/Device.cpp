@@ -89,6 +89,7 @@ void Device::sendPacket(stack<pcpp::Layer *> *layers,
 void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
     pcpp::IPv4Layer * ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
     pcpp::IPv4Address dstAddress = ipLayer->getDstIPv4Address();
+    layers->pop();
 
     if (dstAddress == origin->IP) {
         L_DEBUG("processing message");

@@ -71,15 +71,18 @@ class BGPStateMachine {
     Timer* delayOpenTimer = nullptr;
 
     /**
-     * Enqueue the event in the Finite state Machine event queue. It is called from BGPConnection::enqueue event
-     * @warning this method should be called by the BGPConnection. Use BGPConnection::enqueue instead
+     * Enqueue the event in the Finite state Machine event queue. It is called
+     * from BGPConnection::enqueue event
+     * @warning this method should be called by the BGPConnection. Use
+     * BGPConnection::enqueueEvent instead
      * @param event the event triggered
      */
     void enqueueEvent(Event event);
 
     /**
      * Change the current state of the Finite State Machine
-     * @param newState the newly created state that becomes the new current state of the Finite State Machine
+     * @param newState the newly created state that becomes the new current
+     * state of the Finite State Machine
      */
     void changeState(BGPState* newState);
 
@@ -114,7 +117,7 @@ class BGPStateMachine {
      * Get the connectRetrycounter
      * @return the connectRetryCounter value
      */
-    int  getConnectRetryCounter() const { return connectRetryCounter; }
+    int getConnectRetryCounter() const { return connectRetryCounter; }
     /**
      * Set the connectRetryCounter
      * @param value the value of connectRetryCounter
@@ -161,7 +164,8 @@ class BGPStateMachine {
     }
 
     /**
-     * Get the previousState of the Finite State Machine. Used for recreating the flow of the FSM
+     * Get the previousState of the Finite State Machine. Used for recreating
+     * the flow of the FSM
      * @return the previousState value
      */
     BGPState* getPreviousState() const { return previousState; }
@@ -169,10 +173,11 @@ class BGPStateMachine {
      * Set the previousState
      * @param value the value of previousState
      */
-    void      setPreviousState(BGPState* value) { previousState = value; }
+    void setPreviousState(BGPState* value) { previousState = value; }
 
     /**
-     * Get the currentState of the Finite State Machine. Used for recreating the flow of the FSM
+     * Get the currentState of the Finite State Machine. Used for recreating the
+     * flow of the FSM
      * @return the currentState value
      */
     BGPState* getCurrentState() const { return currentState; }
@@ -181,7 +186,7 @@ class BGPStateMachine {
      * Set the currentState
      * @param value the value of currentState
      */
-    void      setCurrentState(BGPState* value) { currentState = value; }
+    void setCurrentState(BGPState* value) { currentState = value; }
 
     /**
      * Get the connectRetryTime default value. Used by connectRetryTimer
@@ -220,7 +225,7 @@ class BGPStateMachine {
      * Set the keepAliveTime default value
      * @param value the value of keepAliveTime
      */
-    void                 setKeepaliveTime(const std::chrono::seconds& value) {
+    void setKeepaliveTime(const std::chrono::seconds& value) {
         keepaliveTime = value;
     }
 
@@ -233,7 +238,7 @@ class BGPStateMachine {
      * Set the delayOpenTime default value
      * @param value the value of delayOpenTime
      */
-    void                 setDelayOpenTime(const std::chrono::seconds& value) {
+    void setDelayOpenTime(const std::chrono::seconds& value) {
         delayOpenTime = value;
     }
 
