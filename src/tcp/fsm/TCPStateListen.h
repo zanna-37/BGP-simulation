@@ -4,6 +4,7 @@
 #include "../TCPConnection.h"
 #include "TCPState.h"
 #include "TCPStateMachine.h"
+#include "TCPStateSYNReceived.h"
 class TCPStateListen : public TCPState {
    public:
     TCPStateListen(TCPStateMachine* stateMachine) : TCPState(stateMachine) {

@@ -3,7 +3,9 @@
 
 #include "../TCPConnection.h"
 #include "TCPState.h"
+#include "TCPStateEnstablished.h"
 #include "TCPStateMachine.h"
+#include "TCPStateSYNReceived.h"
 class TCPStateSYNSent : public TCPState {
    public:
     TCPStateSYNSent(TCPStateMachine* stateMachine) : TCPState(stateMachine) {

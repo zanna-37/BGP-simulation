@@ -3,9 +3,10 @@
 
 #include "../TCPConnection.h"
 #include "TCPState.h"
+#include "TCPStateClosing.h"
+#include "TCPStateFINWait2.h"
 #include "TCPStateMachine.h"
 class TCPStateFINWait1 : public TCPState {
-   private:
    public:
     TCPStateFINWait1(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "FIN-WAIT-1";

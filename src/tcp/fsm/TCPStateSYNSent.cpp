@@ -2,13 +2,15 @@
 
 
 bool TCPStateSYNSent::onEvent(TCPEvent event) {
-    bool handled;
+    bool handled = true;
     switch (event) {
         case ReceiveSYN_SendACK:
             // If the device that has sent its SYN message receives a SYN from
             // the other device but not an ACK for its own SYN, it acknowledges
             // the SYN it receives and then transitions to SYN-RECEIVED to wait
             // for the acknowledgment to its SYN.
+            stateMachine->changeState(new TCPStateSYNReceived(stateMachine));
+
 
             break;
         case ReceiveSYNACKSendACK:
@@ -16,6 +18,8 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
             // to its SYN and also a SYN from the other device, it acknowledges
             // the SYN received and then moves straight to the ESTABLISHED
             // state.
+            stateMachine->changeState(new TCPStateEnstablished(stateMachine));
+
             break;
 
         default:

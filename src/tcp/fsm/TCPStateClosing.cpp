@@ -1,11 +1,13 @@
 #include "TCPStateClosing.h"
 
 bool TCPStateClosing::onEvent(TCPEvent event) {
-    bool handled;
+    bool handled = true;
     switch (event) {
         case ReceiveACKforFIN:
             // The device receives an acknowledgment for its close request. It
             // transitions to the TIME-WAIT state.
+
+            stateMachine->changeState(new TCPStateTimeWait(stateMachine));
             break;
 
         default:

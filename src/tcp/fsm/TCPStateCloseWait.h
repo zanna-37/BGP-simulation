@@ -3,12 +3,12 @@
 
 #include "../TCPConnection.h"
 #include "TCPState.h"
+#include "TCPStateLastACK.h"
 #include "TCPStateMachine.h"
 class TCPStateCloseWait : public TCPState {
-   private:
    public:
     TCPStateCloseWait(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
-        NAME = "CLOSE-WAIT";
+        NAME = "CLOSE_WAIT";
         L_DEBUG("State created: " + NAME);
     }
 

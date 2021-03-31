@@ -4,6 +4,7 @@
 #include "../TCPConnection.h"
 #include "TCPState.h"
 #include "TCPStateMachine.h"
+#include "TCPStateTimeWait.h"
 class TCPStateClosing : public TCPState {
    public:
     TCPStateClosing(TCPStateMachine* stateMachine) : TCPState(stateMachine) {

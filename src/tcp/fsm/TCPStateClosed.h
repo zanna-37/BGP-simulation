@@ -3,9 +3,10 @@
 
 #include "../TCPConnection.h"
 #include "TCPState.h"
+#include "TCPStateListen.h"
 #include "TCPStateMachine.h"
+#include "TCPStateSYNSent.h"
 class TCPStateClosed : public TCPState {
-   private:
    public:
     TCPStateClosed(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "CLOSED";

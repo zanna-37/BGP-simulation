@@ -3,9 +3,9 @@
 
 #include "../TCPConnection.h"
 #include "TCPState.h"
+#include "TCPStateClosed.h"
 #include "TCPStateMachine.h"
 class TCPStateLastACK : public TCPState {
-   private:
    public:
     TCPStateLastACK(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "LAST-ACK";

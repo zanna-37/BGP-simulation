@@ -65,6 +65,11 @@ set(SOURCE_FILES
         ${SRC_TCP_FSM}/TCPStateMachine.cpp
         ${SRC_TCP_FSM}/TCPStateSYNReceived.cpp
         ${SRC_TCP_FSM}/TCPStateSYNSent.cpp
+        ${SRC_TCP_FSM}/TCPStateCloseWait.cpp
+        ${SRC_TCP_FSM}/TCPStateFINWait1.cpp
+        ${SRC_TCP_FSM}/TCPStateFINWait2.cpp
+        ${SRC_TCP_FSM}/TCPStateLastACK.cpp
+        ${SRC_TCP_FSM}/TCPStateTimeWait.cpp
 
 )
 

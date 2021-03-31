@@ -3,9 +3,9 @@
 
 #include "../TCPConnection.h"
 #include "TCPState.h"
+#include "TCPStateClosed.h"
 #include "TCPStateMachine.h"
 class TCPStateTimeWait : public TCPState {
-   private:
    public:
     TCPStateTimeWait(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "TIME-WAIT";
