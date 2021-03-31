@@ -71,7 +71,8 @@ class BGPStateMachine {
     Timer* delayOpenTimer = nullptr;
 
     /**
-     * Enqueues the event in the Finite state Machine event queue. It is called from BGPConnection::enqueue event
+     * Enqueue the event in the Finite state Machine event queue. It is called from BGPConnection::enqueue event
+     * @warning this method should be called by the BGPConnection. Use BGPConnection::enqueue instead
      * @param event the event triggered
      */
     void enqueueEvent(Event event);
@@ -105,7 +106,7 @@ class BGPStateMachine {
     void resetDelayOpenTimer();
 
     /**
-     *  Initialize the new timers to the default value
+     *  Initialize the new timers to the default values
      */
     void initializeTimers();
 

@@ -32,7 +32,7 @@ class Timer {
     BGPStateMachine*          stateMachine;
     Event                     eventToSendUponExpire;
     std::chrono::seconds      totalDuration;
-    std::chrono::milliseconds remainingDurationAfterPause;
+    std::chrono::milliseconds duration;
 
     std::mutex       mutex;
     std::timed_mutex sleepMutex;
@@ -47,7 +47,8 @@ class Timer {
     ~Timer();
 
     /**
-     * Start the timer thread setting the duration to the default valued defined in the constructor
+     * Start the timer thread setting the duration to the default value defined
+     * in the constructor
      */
     void start();
 
@@ -63,20 +64,13 @@ class Timer {
     TimerState getState() const { return timerState; }
 
     /**
-     * Get the remaining duration of the timer
-     * @return the remaining time
+     * return the remaining time after a pause.It differs from total duration
+     * because total duration is the initial default value of the timer,
+     *  while duration is uninitialized when the timer starts for the first
+     * time and it is used only if the user call Timer::pause (// TODO)
+     * @return the duration value
      */
-    std::chrono::milliseconds getRemainingTime() const {
-        return remainingDurationAfterPause;
-    }
-
-    /**
-     * Set the remaining duration after a timer pause
-     * @param value the remaining duration
-     */
-    void setRemainingTime(const std::chrono::milliseconds& value) {
-        remainingDurationAfterPause = value;
-    }
+    std::chrono::milliseconds getDuration() const { return duration; }
 };
 
 #endif

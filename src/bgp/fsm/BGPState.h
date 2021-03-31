@@ -15,7 +15,8 @@ class BGPState {
     virtual ~BGPState() {}
 
     /**
-     * The current state handle the event received and returns if everything went fine (the error was handled correctly). Called by the BGPStateMachine event hendler.
+     * The current state handles the event received and returns if everything went fine (the error was handled correctly). 
+     * @warning this method should only be called by the BGPStateMachine event handler.
      * @param event the event triggered.
      * @return boolean indicating if the event was handled correctly
      */
