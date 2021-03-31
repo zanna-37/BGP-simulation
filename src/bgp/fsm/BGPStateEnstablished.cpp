@@ -76,7 +76,7 @@ bool BGPStateEnstablished ::onEvent(Event event) {
 
             // FIXME restarts its KeepaliveTimer, unless the negotiated HoldTime
             //   value is zero.
-            if (stateMachine->holdTimer->getRemainingTime() != 0ms) {
+            if (stateMachine->holdTimer->getDuration() != 0ms) {
                 stateMachine->resetKeepAliveTimer();
                 stateMachine->keepAliveTimer->start();
             }

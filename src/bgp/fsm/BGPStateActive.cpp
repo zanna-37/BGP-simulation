@@ -60,7 +60,8 @@ bool BGPStateActive ::onEvent(Event event) {
 
             // - sets its hold timer to a large value ( A HoldTimer value of 4
             // minutes is also suggested for this state transition.), and
-            stateMachine->holdTimer->setRemainingTime(240s);
+            stateMachine->holdTimer =
+                new Timer("holdTimer", stateMachine, HoldTimer_Expires, 240s);
             stateMachine->holdTimer->start();
 
             // - changes its state to OpenSent
@@ -103,7 +104,8 @@ bool BGPStateActive ::onEvent(Event event) {
 
                 //   - sets its HoldTimer to a large value, and
                 stateMachine->resetHoldTimer();
-                stateMachine->holdTimer->setRemainingTime(240s);
+                stateMachine->holdTimer = new Timer(
+                    "holdTimer", stateMachine, HoldTimer_Expires, 240s);
                 stateMachine->holdTimer->start();
 
 
@@ -146,8 +148,8 @@ bool BGPStateActive ::onEvent(Event event) {
 
             // TODO sends a KEEPALIVE message,
 
-            // - if the HoldTimer value is non-zero,
-            if (stateMachine->holdTimer->getRemainingTime() != 0ms) {
+            // - if the HoldTimer value is non-zero, // FIXME
+            if (stateMachine->holdTimer->getDuration() != 0ms) {
                 //     - starts the KeepaliveTimer to initial value,
                 stateMachine->keepAliveTimer->start();
 
