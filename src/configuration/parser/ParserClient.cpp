@@ -1,6 +1,6 @@
 #include "ParserClient.h"
 
-#include "../../entities/Client.h"
+#include "../../entities/EndPoint.h"
 #include "../../logger/Logger.h"
 #include "ParserNetworkCard.h"
 
@@ -32,7 +32,7 @@ void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
             }
         }
 
-        devices_ptr->push_back(new Client(ID, defaultGateway, networkCards));
+        devices_ptr->push_back(new EndPoint(ID, defaultGateway, networkCards));
 
         if (networkCards->size() > 1) {
             L_WARNING("Found multiple networkCards on " + ID + "\n" + "Last " +

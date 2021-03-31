@@ -40,6 +40,15 @@ class Timer {
 
 
    public:
+    /**
+     * Timer constructor
+     * @param name the string name of the timer
+     * @param stateMachine a pointer to the owner state machine
+     * @param eventToSendUponExpire the name of the event to send upon the
+     * expiration of the timer
+     * @param totalDuration the initial total duration of the timer. Usually it
+     * is set to the default value that can be found inside the state machine
+     */
     Timer(std::string          name,
           BGPStateMachine*     stateMachine,
           Event                eventToSendUponExpire,
