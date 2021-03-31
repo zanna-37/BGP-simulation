@@ -34,7 +34,7 @@ set(SOURCE_FILES
         ${SRC_CONFIGURATION_PARSER}/ParserLink.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserNetworkCard.cpp
         ${SRC_CONFIGURATION_PARSER}/ParserRouter.cpp
-        ${SRC_ENTITIES}/Client.cpp
+        ${SRC_ENTITIES}/EndPoint.cpp
         ${SRC_ENTITIES}/Device.cpp
         ${SRC_ENTITIES}/Link.cpp
         ${SRC_ENTITIES}/NetworkCard.cpp

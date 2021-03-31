@@ -23,6 +23,10 @@ class BGPConnection {
     // Destructor
     ~BGPConnection();
 
+    /**
+     * Enqueue an event handled by the BGPConnection State Machine.
+     * @param event the event triggered
+     */
     void enqueueEvent(Event event);
 };
 

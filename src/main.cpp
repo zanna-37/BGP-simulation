@@ -10,7 +10,7 @@
 
 #include "bgp/BGPConnection.h"
 #include "configuration/parser/Parser.h"
-#include "entities/Client.h"
+#include "entities/EndPoint.h"
 #include "entities/Router.h"
 #include "logger/Logger.h"
 
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
     for (auto device : *devices) {
         if (auto *x = dynamic_cast<Router *>(device)) {
             cout << x->ID << endl;
-        } else if (auto *x = dynamic_cast<Client *>(device)) {
+        } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
             cout << x->ID << endl;
         }
     }

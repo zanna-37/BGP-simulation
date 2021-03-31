@@ -1,5 +1,5 @@
-#ifndef BGP_SIMULATION_ENTITIES_CLIENT_H
-#define BGP_SIMULATION_ENTITIES_CLIENT_H
+#ifndef BGP_SIMULATION_ENTITIES_ENDPOINT_H
+#define BGP_SIMULATION_ENTITIES_ENDPOINT_H
 
 #include <string>
 #include <vector>
@@ -9,14 +9,14 @@
 
 using namespace std;
 
-class Client : public virtual Device {
+class EndPoint : public virtual Device {
    public:
-    Client(string                 ID,
+    EndPoint(string                 ID,
            pcpp::IPv4Address      defaultGateway,
            vector<NetworkCard *> *networkCards)
         : Device(std::move(ID), defaultGateway, networkCards) {}
 
-    ~Client() override = default;
+    ~EndPoint() override = default;
 };
 
-#endif  // BGP_SIMULATION_ENTITIES_CLIENT_H
+#endif  // BGP_SIMULATION_ENTITIES_ENDPOINT_H

@@ -1,7 +1,7 @@
 #include "Parser.h"
 
-#include "../../entities/Client.h"
 #include "../../entities/Device.h"
+#include "../../entities/EndPoint.h"
 #include "../../entities/Router.h"
 #include "../../logger/Logger.h"
 #include "ParserClient.h"

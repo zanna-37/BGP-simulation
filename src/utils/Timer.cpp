@@ -8,7 +8,7 @@ Timer ::Timer(std::string          name,
       stateMachine(stateMachine),
       eventToSendUponExpire(eventToSendUponExpire),
       totalDuration(totalDuration),
-      remainingDurationAfterPause(std::chrono::milliseconds::min()) {}
+      duration(std::chrono::milliseconds::min()) {}
 
 Timer ::~Timer() {
     if (timerThread != nullptr) {
@@ -33,12 +33,12 @@ void Timer ::start() {
 
             std::chrono::milliseconds timeToSleep;
 
-            if (remainingDurationAfterPause.count() < 0) {
+            if (duration.count() < 0) {
                 timeToSleep = totalDuration;
                 L_DEBUG("START " + NAME + ": " +
                         to_string(timeToSleep.count()) + "ms");
             } else {
-                timeToSleep = remainingDurationAfterPause;
+                timeToSleep = duration;
                 L_DEBUG("RESUME " + NAME + ": " +
                         to_string(timeToSleep.count()) + "ms");
             }

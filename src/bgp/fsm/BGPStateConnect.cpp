@@ -141,13 +141,15 @@ bool BGPStateConnect ::onEvent(Event event) {
 
             // TODO sends a KEEPALIVE message,
 
-            // - if the HoldTimer initial value is non-zero,
-            if (stateMachine->holdTimer->getRemainingTime() != 0ms) {
+            // - if the HoldTimer initial value is non-zero, // FIXME
+            if (stateMachine->holdTimer->getDuration() != 0ms) {
                 //     - starts the KeepaliveTimer with the initial value and
                 stateMachine->keepAliveTimer->start();
 
-                //     - resets the HoldTimer to the negotiated value,
-                stateMachine->holdTimer->setRemainingTime(0ms);  // NOT_SURE
+                //     - resets the HoldTimer to the negotiated value, // FIXME
+                stateMachine->holdTimer = new Timer(
+                    "holdTimer", stateMachine, HoldTimer_Expires, 240s);
+                // stateMachine->holdTimer->setRemainingTime(0ms);  // NOT_SURE
 
                 //   else, if the HoldTimer initial value is zero,
             } else {

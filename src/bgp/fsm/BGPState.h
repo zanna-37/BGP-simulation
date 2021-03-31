@@ -14,9 +14,14 @@ class BGPState {
     BGPState(BGPStateMachine* stateMachine) : stateMachine(stateMachine){};
     virtual ~BGPState() {}
 
+    /**
+     * The current state handles the event received and returns if everything went fine (the error was handled correctly). 
+     * @warning this method should only be called by the BGPStateMachine event handler.
+     * @param event the event triggered.
+     * @return boolean indicating if the event was handled correctly
+     */
     virtual bool onEvent(Event) = 0;
 
-    // You can implement here some global reactions to Events
 };
 
 #endif

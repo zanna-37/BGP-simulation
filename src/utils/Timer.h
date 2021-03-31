@@ -32,7 +32,7 @@ class Timer {
     BGPStateMachine*          stateMachine;
     Event                     eventToSendUponExpire;
     std::chrono::seconds      totalDuration;
-    std::chrono::milliseconds remainingDurationAfterPause;
+    std::chrono::milliseconds duration;
 
     std::mutex       mutex;
     std::timed_mutex sleepMutex;
@@ -40,24 +40,46 @@ class Timer {
 
 
    public:
+    /**
+     * Timer constructor
+     * @param name the string name of the timer
+     * @param stateMachine a pointer to the owner state machine
+     * @param eventToSendUponExpire the name of the event to send upon the
+     * expiration of the timer
+     * @param totalDuration the initial total duration of the timer. Usually it
+     * is set to the default value that can be found inside the state machine
+     */
     Timer(std::string          name,
           BGPStateMachine*     stateMachine,
           Event                eventToSendUponExpire,
           std::chrono::seconds totalDuration);
     ~Timer();
 
+    /**
+     * Start the timer thread setting the duration to the default value defined
+     * in the constructor
+     */
     void start();
 
+    /**
+     * Stop the timer and join the timer thread
+     */
     void stop();
 
+    /**
+     * Get the actual state of the timer
+     * @return the timer state value
+     */
     TimerState getState() const { return timerState; }
 
-    std::chrono::milliseconds getRemainingTime() const {
-        return remainingDurationAfterPause;
-    }
-    void setRemainingTime(const std::chrono::milliseconds& value) {
-        remainingDurationAfterPause = value;
-    }
+    /**
+     * return the remaining time after a pause.It differs from total duration
+     * because total duration is the initial default value of the timer,
+     *  while duration is uninitialized when the timer starts for the first
+     * time and it is used only if the user call Timer::pause (// TODO)
+     * @return the duration value
+     */
+    std::chrono::milliseconds getDuration() const { return duration; }
 };
 
 #endif
