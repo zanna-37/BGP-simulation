@@ -35,6 +35,7 @@ NetworkCard *Link::getPeerNetworkCardOrNull(NetworkCard *networkCard) {
 void Link::sendPacket(pcpp::Packet *packet, NetworkCard *destination) {
     assert(destination);
     pair<const uint8_t *, int> data = serialize(packet);
+    delete packet;
     if (connection_status == Connection_status::active) {
         receivePacket(data, destination);
     } else {
@@ -48,24 +49,20 @@ void Link::receivePacket(pair<const uint8_t *, int> data,
                          NetworkCard *              destination) {
     assert(destination);
 
-    uint8_t *rawData = new uint8_t[data.second * sizeof(uint8_t)];
-
-    std::copy(data.first, data.first + data.second * sizeof(uint8_t), rawData);
-
 
     pcpp::Packet *receivedPacket =
-        deserialize((uint8_t *)rawData, data.second * sizeof(uint8_t));
+        deserialize((uint8_t *)data.first, data.second * sizeof(uint8_t));
     destination->receivePacket(receivedPacket);
 }
 
 pair<const uint8_t *, int> Link::serialize(pcpp::Packet *packet) {
-    pcpp::RawPacket *rawPacket = packet->getRawPacket();
-
-    const uint8_t *rawData    = rawPacket->getRawData();
-    int            rawDataLen = rawPacket->getRawDataLen();
-
-    // TODO need it?
-    // delete packet;
+    uint8_t *rawData =
+        new uint8_t[packet->getRawPacket()->getRawDataLen() * sizeof(uint8_t)];
+    std::copy(packet->getRawPacket()->getRawData(),
+              packet->getRawPacket()->getRawData() +
+                  packet->getRawPacket()->getRawDataLen() * sizeof(uint8_t),
+              rawData);
+    int rawDataLen = packet->getRawPacket()->getRawDataLen();
 
     return std::make_pair(rawData, rawDataLen);
 }

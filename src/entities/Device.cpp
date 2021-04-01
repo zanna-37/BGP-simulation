@@ -169,6 +169,7 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
             // FIXME
             delete ipLayer;
             delete tcpLayer;
+            delete layers;
 
         } else {
             L_INFO("PORT closed or server not listening");

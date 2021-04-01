@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     layers.push(&ipLayer);
     // devices->at(0)->sendPacket(&layers,
     // devices->at(0)->networkCards->front());
-    this_thread::sleep_for(10s);
+    this_thread::sleep_for(5s);
     delete testAddress;
 
     L_DEBUG("DELETING OBJECTS");

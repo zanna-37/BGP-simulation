@@ -45,17 +45,17 @@ void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
 void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
     if (link->connection_status == active) {
         L_DEBUG("Sending packet using " + netInterface + " through link");
-        NetworkCard*   destination = link->getPeerNetworkCardOrNull(this);
-        pcpp::EthLayer ethLayer(mac, destination->mac);
-        layers->push(&ethLayer);
-        pcpp::Packet packet;
+        NetworkCard*    destination = link->getPeerNetworkCardOrNull(this);
+        pcpp::EthLayer* ethLayer    = new pcpp::EthLayer(mac, destination->mac);
+        layers->push(ethLayer);
+        pcpp::Packet* packet = new pcpp::Packet(100);
         while (!layers->empty()) {
-            packet.addLayer(layers->top());
+            packet->addLayer(layers->top(), true);
             layers->pop();
         }
         delete layers;
-        packet.computeCalculateFields();
-        link->sendPacket(&packet, destination);
+        packet->computeCalculateFields();
+        link->sendPacket(packet, destination);
     }
 }
 
@@ -68,13 +68,13 @@ void NetworkCard::receivePacket(pcpp::Packet* receivedPacket) {
 }
 
 void NetworkCard::handleNextPacket() {
-    pcpp::Packet*       receivedPacket = receivedPacketsQueue.front();
-    stack<pcpp::Layer*> layers;
+    pcpp::Packet*        receivedPacket = receivedPacketsQueue.front();
+    stack<pcpp::Layer*>* layers         = new stack<pcpp::Layer*>();
 
     pcpp::Layer* currentLayer = receivedPacket->getLastLayer();
     while (currentLayer != nullptr) {
         pcpp::ProtocolType protocol = currentLayer->getProtocol();
-        layers.push(receivedPacket->detachLayer(protocol));
+        layers->push(receivedPacket->detachLayer(protocol));
         currentLayer = receivedPacket->getLastLayer();
     }
 
@@ -82,9 +82,9 @@ void NetworkCard::handleNextPacket() {
     delete receivedPacket;
 
 
-    pcpp::EthLayer* ethLayer = dynamic_cast<pcpp::EthLayer*>(layers.top());
-    layers.pop();
+    pcpp::EthLayer* ethLayer = dynamic_cast<pcpp::EthLayer*>(layers->top());
+    layers->pop();
     // compute mac layer stuff
     delete ethLayer;
-    owner->receivePacket(&layers, this);
+    owner->receivePacket(layers, this);
 }
