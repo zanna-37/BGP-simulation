@@ -23,7 +23,7 @@ TCPStateMachine::TCPStateMachine(TCPConnection* connection)
             eventQueue.pop();
             eventQueue_uniqueLock.unlock();
 
-            if (event == __INTERNAL_SHUTDOWN) {
+            if (event == __TCP_SHUTDOWN) {
                 running = false;
             } else {
                 L_DEBUG("Passing event " + getEventName(event) +
@@ -42,10 +42,10 @@ TCPStateMachine::TCPStateMachine(TCPConnection* connection)
 
 
 TCPStateMachine::~TCPStateMachine() {
-    enqueueEvent(__INTERNAL_SHUTDOWN);
+    enqueueEvent(__TCP_SHUTDOWN);
     eventHandler->join();
     delete eventHandler;
-
+    delete previousState;
     delete currentState;
 }
 
@@ -60,7 +60,11 @@ void TCPStateMachine::enqueueEvent(TCPEvent event) {
 void TCPStateMachine::changeState(TCPState* newState) {
     assert(newState);
 
-    delete currentState;
+    delete previousState;
+    previousState = currentState;
+    L_VERBOSE("State change: " + currentState->NAME + " -> " + newState->NAME);
 
     currentState = newState;
 }
+
+TCPState* TCPStateMachine::getCurrentState() const { return currentState; }

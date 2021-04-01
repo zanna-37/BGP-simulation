@@ -1,9 +1,10 @@
 #ifndef TCPEVENT_H
 #define TCPEVENT_H
-
 #include <string>
+
+#include "../logger/Logger.h"
 enum TCPEvent {
-    __INTERNAL_SHUTDOWN,
+    __TCP_SHUTDOWN,
     PassiveOpen,
     ActiveOpen_SendSYN,
     ReceiveClientSYN_SendSYNACK,

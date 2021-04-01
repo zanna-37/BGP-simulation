@@ -27,14 +27,14 @@ void RoutingTable::printElement(T t) {
     std::cout << left << setw(width) << setfill(separator) << t;
 }
 
-TableRow* RoutingTable::findNextHop(pcpp::IPv4Address dstAddress) {
-    int       longestMatch = -1;
-    TableRow* result       = nullptr;
+NetworkCard* RoutingTable::findNextHop(pcpp::IPv4Address dstAddress) {
+    int          longestMatch = -1;
+    NetworkCard* result       = nullptr;
     for (TableRow row : table) {
         if (dstAddress.matchSubnet(row.networkIP, row.netmask) &&
             row.toCIDR() > longestMatch) {
             longestMatch = row.toCIDR();
-            result       = &row;
+            result       = row.networkCard;
         }
     }
 

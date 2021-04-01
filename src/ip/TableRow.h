@@ -21,8 +21,9 @@ class TableRow {
              pcpp::IPv4Address defaultGateway,
              std::string       netInterface,
              NetworkCard*      networkCard);
-
     ~TableRow(){};
+
+    // TableRow operator=(const TableRow& other);
 
     int toCIDR();
 };

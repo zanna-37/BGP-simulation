@@ -5,17 +5,19 @@
 #include <Packet.h>
 #include <TcpLayer.h>
 
+#include <condition_variable>
+#include <map>
 #include <mutex>
+#include <queue>
 #include <stack>
 #include <string>
 #include <thread>
 #include <utility>
 #include <vector>
-#include <queue>
-#include <condition_variable>
 
 #include "../ip/RoutingTable.h"
 #include "../ip/TableRow.h"
+#include "../tcp/TCPConnection.h"
 #include "NetworkCard.h"
 
 using namespace std;
@@ -23,6 +25,7 @@ using namespace std;
 class ReceivedPacketEvent;
 
 class NetworkCard;  // forward declaration
+class TCPConnection;
 
 /**
  * This class abstracts the concept of a general network device
@@ -59,27 +62,21 @@ class Device {
     RoutingTable           routingTable;
     bool                   running;
 
-    std::mutex receivedPacketsEventQueue_mutex; //mutex to lock the queue
-    std::condition_variable receivedPacketsEventQueue_wakeup; //condition variable set when the queue is not empty
-    queue<ReceivedPacketEvent*> receivedPacketsEventQueue; //queue of events
+    std::mutex receivedPacketsEventQueue_mutex;  // mutex to lock the queue
+    std::condition_variable
+        receivedPacketsEventQueue_wakeup;  // condition variable set when the
+                                           // queue is not empty
+    queue<ReceivedPacketEvent *> receivedPacketsEventQueue;  // queue of events
+
+
+    std::map<std::size_t, TCPConnection *> tcpConnections;
+
+    TCPConnection *listenConnection = nullptr;
 
     Device(string ID, pcpp::IPv4Address defaultGateway);
 
 
-    virtual ~Device() {
-        running = false;
-
-        unique_lock<std::mutex> packetsEventQueue_uniqueLock(
-        receivedPacketsEventQueue_mutex);
-        receivedPacketsEventQueue_wakeup.notify_one();
-        packetsEventQueue_uniqueLock.unlock();
-        deviceThread->join();
-        for (NetworkCard *networkCard : *networkCards) {
-            delete networkCard;
-        }
-        delete networkCards;
-        delete deviceThread;
-    }
+    virtual ~Device();
 
     void addCards(vector<NetworkCard *> *networkCards);
 
@@ -101,25 +98,32 @@ class Device {
     virtual void forwardMessage(stack<pcpp::Layer *> *layers,
                                 NetworkCard *         networkCard) = 0;
 
-    void sendPacket(stack<pcpp::Layer *> *layers, NetworkCard *networkCard);
+    void sendPacket(stack<pcpp::Layer *> *layers);
 
     void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
 
     void enqueueEvent(ReceivedPacketEvent *event);
+
+    void listen();
+    void connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort);
+
+    TCPConnection *getExistingConnectionOrNull(pcpp::IPv4Layer *ipLayer,
+                                               pcpp::TcpLayer * tcpLayer);
+
+    void addTCPConnection(TCPConnection *connection);
+
+   private:
+    std::size_t tcpConnectionHash(pcpp::IPv4Address dstAddr, uint16_t dstPort);
 };
 
 class ReceivedPacketEvent {
+   public:
+    NetworkCard *networkCard;
 
-    public:
-    NetworkCard* networkCard;
-
-    enum Description {
-        PACKET_ARRIVED
-    };
+    enum Description { PACKET_ARRIVED };
     Description description;
-    ReceivedPacketEvent(NetworkCard* networkCard, Description description);
-    ~ReceivedPacketEvent(){}
-
+    ReceivedPacketEvent(NetworkCard *networkCard, Description description);
+    ~ReceivedPacketEvent() {}
 };
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H

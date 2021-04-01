@@ -2,6 +2,8 @@
 #define TCPSTATE_H
 
 
+#include <stack>
+
 #include "../../logger/Logger.h"
 #include "../TCPEvent.h"
 #include "TCPStateMachine.h"

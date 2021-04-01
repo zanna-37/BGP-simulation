@@ -18,7 +18,7 @@ class RoutingTable {
 
     void printTable();
 
-    TableRow* findNextHop(pcpp::IPv4Address dstAddress);
+    NetworkCard* findNextHop(pcpp::IPv4Address dstAddress);
 
    private:
     vector<TableRow> table;

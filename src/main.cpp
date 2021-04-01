@@ -61,6 +61,10 @@ int main(int argc, char *argv[]) {
         device->start();
     }
 
+    devices->at(0)->listen();
+    pcpp::IPv4Address *testAddress = new pcpp::IPv4Address("90.36.25.1");
+    devices->at(2)->connect(testAddress, 179);
+
     // pcpp::EthLayer ethLayer(pcpp::MacAddress("11:11:11:11:11:11"),
     //                         pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
     // testPacket.addLayer(&ethLayer);
@@ -72,8 +76,10 @@ int main(int argc, char *argv[]) {
     layers.push(&newDnsLayer);
     layers.push(&newUdpLayer);
     layers.push(&ipLayer);
-    devices->at(0)->sendPacket(&layers, devices->at(0)->networkCards->front());
-    this_thread::sleep_for(5s);
+    // devices->at(0)->sendPacket(&layers,
+    // devices->at(0)->networkCards->front());
+    this_thread::sleep_for(10s);
+    delete testAddress;
 
     L_DEBUG("DELETING OBJECTS");
     for (auto device : *devices) {

@@ -6,6 +6,7 @@
 #include <queue>
 #include <thread>
 
+#include "../../entities/Device.h"
 #include "../../logger/Logger.h"
 #include "../TCPConnection.h"
 #include "../TCPEvent.h"
@@ -14,9 +15,8 @@ class TCPState;       // forward declaration
 class TCPConnection;  // forward declaration
 class TCPStateMachine {
    private:
-    TCPConnection* connection;
-
-    TCPState* currentState = nullptr;
+    TCPState* previousState = nullptr;
+    TCPState* currentState  = nullptr;
 
     std::thread*            eventHandler = nullptr;
     std::mutex              eventQueue_mutex;
@@ -25,6 +25,7 @@ class TCPStateMachine {
 
 
    public:
+    TCPConnection* connection = nullptr;
     TCPStateMachine(TCPConnection* connection);
 
     ~TCPStateMachine();
@@ -32,5 +33,7 @@ class TCPStateMachine {
     void changeState(TCPState* newState);
 
     void enqueueEvent(TCPEvent);
+
+    TCPState* getCurrentState() const;
 };
 #endif
