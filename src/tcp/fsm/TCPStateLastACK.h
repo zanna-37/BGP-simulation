@@ -8,7 +8,7 @@
 class TCPStateLastACK : public TCPState {
    public:
     TCPStateLastACK(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "LAST-ACK";
         L_DEBUG("State created: " + NAME);

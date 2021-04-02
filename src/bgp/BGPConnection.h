@@ -4,21 +4,24 @@
 
 #include <cassert>
 
-#include "Event.h"
+#include "BGPEvent.h"
 #include "fsm/BGPStateIdle.h"
 #include "fsm/BGPStateMachine.h"
 
+template <class Connection, class State, class Event>
 class BGPStateMachine;  // forward declaration
-
+class BGPState;
+class Device;
 class BGPConnection {
    public:
    private:
-    BGPStateMachine* stateMachine;
+    BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine = nullptr;
     // other BGPConnection variables
 
    public:
+    Device* owner;
     // Constructors
-    BGPConnection();
+    BGPConnection(Device* owner);
 
     // Destructor
     ~BGPConnection();
@@ -27,7 +30,7 @@ class BGPConnection {
      * Enqueue an event handled by the BGPConnection State Machine.
      * @param event the event triggered
      */
-    void enqueueEvent(Event event);
+    void enqueueEvent(BGPEvent event);
 };
 
 #endif

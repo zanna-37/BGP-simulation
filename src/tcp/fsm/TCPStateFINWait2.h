@@ -8,7 +8,7 @@
 class TCPStateFINWait2 : public TCPState {
    public:
     TCPStateFINWait2(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "FIN-WAIT-2";
         L_DEBUG("State created: " + NAME);

@@ -9,7 +9,8 @@ class BGPStateActive : public BGPState {
    private:
    public:
     // Constructor
-    BGPStateActive(StateMachine<BGPConnection, BGPState, Event>* stateMachine)
+    BGPStateActive(
+        BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine)
         : BGPState(stateMachine) {
         NAME = "ACTIVE";
         L_DEBUG("State created: " + NAME);
@@ -18,7 +19,7 @@ class BGPStateActive : public BGPState {
     // Deconstructor
     ~BGPStateActive();
 
-    bool onEvent(Event event);
+    bool onEvent(BGPEvent event);
 };
 
 #endif

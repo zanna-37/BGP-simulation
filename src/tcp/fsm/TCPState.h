@@ -4,20 +4,20 @@
 
 #include <stack>
 
-#include "../../fsm/StateMachine.h"
 #include "../../logger/Logger.h"
+#include "../../tcp/fsm/TCPStateMachine.h"
 #include "../TCPConnection.h"
 #include "../TCPEvent.h"
 
 template <class Connection, class State, class Event>
-class StateMachine;
+class TCPStateMachine;
 class TCPConnection;
 class TCPState {
    public:
-    StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine;
-    std::string                                      NAME;
+    TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine;
+    std::string                                         NAME;
 
-    TCPState(StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+    TCPState(TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : stateMachine(stateMachine){};
     virtual ~TCPState() {}
 

@@ -8,7 +8,7 @@
 class TCPStateClosing : public TCPState {
    public:
     TCPStateClosing(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "CLOSING";
         L_DEBUG("State created: " + NAME);

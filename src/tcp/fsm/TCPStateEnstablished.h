@@ -9,7 +9,7 @@
 class TCPStateEnstablished : public TCPState {
    public:
     TCPStateEnstablished(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "ENSTABLISHED";
         L_DEBUG("State created: " + NAME);

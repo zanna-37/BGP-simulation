@@ -8,18 +8,18 @@
 #include "../fsm/StateMachine.h"
 #include "TCPEvent.h"
 #include "fsm/TCPStateClosed.h"
-// #include "fsm/TCPStateMachine.h"
+#include "fsm/TCPStateMachine.h"
 
 // OLD
 // class TCPStateMachine;  // forward declaration
 // class Device;           // forward declaration
 
 template <class Connection, class State, class Event>
-class StateMachine;
+class TCPStateMachine;
 class TCPState;
 class TCPConnection {
    public:
-    StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine = nullptr;
+    TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine = nullptr;
 
     Device*           owner = nullptr;
     pcpp::IPv4Address srcAddr;

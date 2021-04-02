@@ -8,7 +8,7 @@
 class TCPStateSYNReceived : public TCPState {
    public:
     TCPStateSYNReceived(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "SYN-RECEIVED";
         L_DEBUG("State created: " + NAME);

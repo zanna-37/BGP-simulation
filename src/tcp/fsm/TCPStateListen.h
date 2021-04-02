@@ -8,7 +8,7 @@
 class TCPStateListen : public TCPState {
    public:
     TCPStateListen(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "LISTEN";
         L_DEBUG("State created: " + NAME);

@@ -3,8 +3,7 @@
 #include <string>
 
 #include "../logger/Logger.h"
-enum class TCPEvent : int {
-    __SHUTDOWN                  = 0,
+enum TCPEvent {
     PassiveOpen                 = 1,
     ActiveOpen_SendSYN          = 2,
     ReceiveClientSYN_SendSYNACK = 3,

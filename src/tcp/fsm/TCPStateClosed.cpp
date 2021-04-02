@@ -1,7 +1,7 @@
 #include "TCPStateClosed.h"
 
 TCPStateClosed::TCPStateClosed(
-    StateMachine<TCPConnection, TCPState, TCPEvent> *stateMachine)
+    TCPStateMachine<TCPConnection, TCPState, TCPEvent> *stateMachine)
     : TCPState(stateMachine) {
     NAME = "CLOSED";
     L_DEBUG("State created: " + NAME);

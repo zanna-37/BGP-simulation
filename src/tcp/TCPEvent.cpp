@@ -2,9 +2,6 @@
 
 std::string getEventName(TCPEvent event) {
     switch (event) {
-        case TCPEvent::__SHUTDOWN:
-            return "[" + std::to_string((int)TCPEvent::__SHUTDOWN) +
-                   "-TCP_SHUTDOWN]";
         case TCPEvent::PassiveOpen:
             return "[" + std::to_string((int)TCPEvent::PassiveOpen) +
                    "-PassiveOpen]";
@@ -41,7 +38,7 @@ std::string getEventName(TCPEvent event) {
                    "-TimerExpiration]";
 
         default:
-            L_ERROR("THIS SHOULD NEVER HAPPEN");
-            break;
+            L_ERROR("THIS SHOULD NEVER HAPPEN: unknown TCP Event");
+            return "[" + std::to_string((int)event) + "-Unknown]";
     }
 }

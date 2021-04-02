@@ -45,12 +45,12 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
         ${SRC_BGP}/BGPConnection.cpp
-        ${SRC_BGP}/Event.cpp
+        ${SRC_BGP}/BGPEvent.cpp
         ${SRC_BGP_FSM}/BGPStateActive.cpp
         ${SRC_BGP_FSM}/BGPStateConnect.cpp
         ${SRC_BGP_FSM}/BGPStateEnstablished.cpp
         ${SRC_BGP_FSM}/BGPStateIdle.cpp
-        # ${SRC_BGP_FSM}/BGPStateMachine.cpp
+        ${SRC_BGP_FSM}/BGPStateMachine.cpp
         ${SRC_BGP_FSM}/BGPStateOpenConfirm.cpp
         ${SRC_BGP_FSM}/BGPStateOpenSent.cpp
         ${SRC_UTILS}/Timer.cpp
@@ -63,7 +63,7 @@ set(SOURCE_FILES
         ${SRC_TCP_FSM}/TCPStateClosing.cpp
         ${SRC_TCP_FSM}/TCPStateEnstablished.cpp
         ${SRC_TCP_FSM}/TCPStateListen.cpp
-        # ${SRC_TCP_FSM}/TCPStateMachine.cpp
+        ${SRC_TCP_FSM}/TCPStateMachine.cpp
         ${SRC_TCP_FSM}/TCPStateSYNReceived.cpp
         ${SRC_TCP_FSM}/TCPStateSYNSent.cpp
         ${SRC_TCP_FSM}/TCPStateCloseWait.cpp
@@ -71,7 +71,7 @@ set(SOURCE_FILES
         ${SRC_TCP_FSM}/TCPStateFINWait2.cpp
         ${SRC_TCP_FSM}/TCPStateLastACK.cpp
         ${SRC_TCP_FSM}/TCPStateTimeWait.cpp
-        ${SRC_FSM}/StateMachine.cpp
+        # ${SRC_FSM}/StateMachine.cpp
         
 
 )

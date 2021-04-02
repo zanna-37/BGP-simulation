@@ -9,7 +9,8 @@
 #include <iostream>
 #include <mutex>
 
-#include "../bgp/Event.h"
+#include "../bgp/BGPConnection.h"
+#include "../bgp/BGPEvent.h"
 #include "../bgp/fsm/BGPStateMachine.h"
 #include "../logger/Logger.h"
 
@@ -46,15 +47,19 @@ enum TimerState {
     CANCELLED
 };
 
-class BGPStateMachine;  // forward declaration
+template <class Connection, class State, class Event>
+class BGPStateMachine;
+class BGPConnection;
+class BGPState;
+// forward declaration
 class Timer {
    private:
-    const std::string         NAME;
-    std::thread*              timerThread = nullptr;
-    BGPStateMachine*          stateMachine;
-    Event                     eventToSendUponExpire;
-    std::chrono::seconds      totalDuration;
-    std::chrono::milliseconds duration;
+    const std::string                                   NAME;
+    std::thread*                                        timerThread = nullptr;
+    BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine;
+    BGPEvent                                            eventToSendUponExpire;
+    std::chrono::seconds                                totalDuration;
+    std::chrono::milliseconds                           duration;
 
     std::mutex       mutex;
     std::timed_mutex sleepMutex;
@@ -71,9 +76,9 @@ class Timer {
      * @param totalDuration the initial total duration of the timer. Usually it
      * is set to the default value that can be found inside the state machine
      */
-    Timer(std::string          name,
-          BGPStateMachine*     stateMachine,
-          Event                eventToSendUponExpire,
+    Timer(std::string                                         name,
+          BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine,
+          BGPEvent             eventToSendUponExpire,
           std::chrono::seconds totalDuration);
     ~Timer();
 

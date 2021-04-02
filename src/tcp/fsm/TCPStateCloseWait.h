@@ -8,7 +8,7 @@
 class TCPStateCloseWait : public TCPState {
    public:
     TCPStateCloseWait(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "CLOSE_WAIT";
         L_DEBUG("State created: " + NAME);

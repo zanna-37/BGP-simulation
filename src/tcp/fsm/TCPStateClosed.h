@@ -9,7 +9,7 @@
 class TCPStateClosed : public TCPState {
    public:
     TCPStateClosed(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine);
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine);
 
     ~TCPStateClosed(){};
 

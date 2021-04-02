@@ -7,10 +7,11 @@
 #include <queue>
 #include <thread>
 
+#include "../../fsm/StateMachine.h"
 #include "../../logger/Logger.h"
 #include "../../utils/Timer.h"
 #include "../BGPConnection.h"
-#include "../Event.h"
+#include "../BGPEvent.h"
 #include "BGPState.h"
 
 using namespace std::chrono_literals;
@@ -19,19 +20,11 @@ class BGPState;       // forward declaration
 class BGPConnection;  // forward declaration
 class Timer;          // forward declaration
 
-class BGPStateMachine : public StateMachine<BGPConnection, BGPState, Event> {
+template <class Connection, class State, class Event>
+class BGPStateMachine : public StateMachine<Connection, State, Event> {
    private:
-    BGPConnection* connection;
-    BGPState*      previousState = nullptr;  // TODO check if we really need it
-
-    std::thread*            eventHandler = nullptr;
-    std::mutex              eventQueue_mutex;
-    std::condition_variable eventQueue_ready;
-    queue<Event>            eventQueue;
-
     // Mandatory session attributes
-    BGPState* currentState        = nullptr;
-    int       connectRetryCounter = 0;
+    int connectRetryCounter = 0;
 #ifdef DEBUG_GUARD
     std::chrono::seconds connectRetryTime = 3s;
     std::chrono::seconds holdTime         = 4s;
@@ -58,7 +51,7 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, Event> {
     //  13) TrackTcpState
 
    public:
-    BGPStateMachine(BGPConnection* connection);
+    BGPStateMachine(Connection* connection);
 
     ~BGPStateMachine();
 
@@ -69,22 +62,6 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, Event> {
 
     // Optional session attributes
     Timer* delayOpenTimer = nullptr;
-
-    /**
-     * Enqueue the event in the Finite state Machine event queue. It is called
-     * from BGPConnection::enqueue event
-     * @warning this method should be called by the BGPConnection. Use
-     * BGPConnection::enqueueEvent instead
-     * @param event the event triggered
-     */
-    void enqueueEvent(Event event);
-
-    /**
-     * Change the current state of the Finite State Machine
-     * @param newState the newly created state that becomes the new current
-     * state of the Finite State Machine
-     */
-    void changeState(BGPState* newState);
 
     /**
      * Increment the connectRetryCounter by one
@@ -163,30 +140,6 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, Event> {
         sendNOTIFICATIONwithoutOPEN = value;
     }
 
-    /**
-     * Get the previousState of the Finite State Machine. Used for recreating
-     * the flow of the FSM
-     * @return the previousState value
-     */
-    BGPState* getPreviousState() const { return previousState; }
-    /**
-     * Set the previousState
-     * @param value the value of previousState
-     */
-    void setPreviousState(BGPState* value) { previousState = value; }
-
-    /**
-     * Get the currentState of the Finite State Machine. Used for recreating the
-     * flow of the FSM
-     * @return the currentState value
-     */
-    BGPState* getCurrentState() const { return currentState; }
-
-    /**
-     * Set the currentState
-     * @param value the value of currentState
-     */
-    void setCurrentState(BGPState* value) { currentState = value; }
 
     /**
      * Get the connectRetryTime default value. Used by connectRetryTimer

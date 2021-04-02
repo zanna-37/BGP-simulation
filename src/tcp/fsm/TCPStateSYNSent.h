@@ -9,7 +9,7 @@
 class TCPStateSYNSent : public TCPState {
    public:
     TCPStateSYNSent(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "SYN-SENT";
         L_DEBUG("State created: " + NAME);

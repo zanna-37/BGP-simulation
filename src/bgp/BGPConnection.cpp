@@ -1,9 +1,12 @@
 #include "BGPConnection.h"
 
 
-BGPConnection::BGPConnection() { stateMachine = new BGPStateMachine(this); }
+BGPConnection::BGPConnection(Device* owner) : owner(owner) {
+    stateMachine = new BGPStateMachine<BGPConnection, BGPState, BGPEvent>(this);
+    stateMachine->start();
+}
 BGPConnection::~BGPConnection() { delete stateMachine; }
 
-void BGPConnection::enqueueEvent(Event event) {
+void BGPConnection::enqueueEvent(BGPEvent event) {
     stateMachine->enqueueEvent(event);
 }

@@ -2,17 +2,18 @@
 #define BGPSTATE_H
 
 #include "../../logger/Logger.h"
-#include "../Event.h"
-// #include "BGPStateMachine.h"
-#include "../../fsm/StateMachine.h"
+#include "../BGPConnection.h"
+#include "../BGPEvent.h"
+#include "BGPStateMachine.h"
 template <class Connection, class State, class Event>
-class StateMachine;  // forward declaration
+class BGPStateMachine;  // forward declaration
+class BGPConnection;    // forward declaration
 
 class BGPState {
    public:
-    StateMachine<BGPConnection, BGPState, Event>* stateMachine;
-    string                                        NAME;
-    BGPState(StateMachine<BGPConnection, BGPState, Event>* stateMachine)
+    BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine;
+    string                                              NAME;
+    BGPState(BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine)
         : stateMachine(stateMachine){};
     virtual ~BGPState() {}
 
@@ -24,7 +25,7 @@ class BGPState {
      * @param event the event triggered.
      * @return boolean indicating if the event was handled correctly
      */
-    virtual bool onEvent(Event) = 0;
+    virtual bool onEvent(BGPEvent) = 0;
 };
 
 #endif

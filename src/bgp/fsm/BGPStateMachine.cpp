@@ -1,127 +1,84 @@
 #include "BGPStateMachine.h"
 
-BGPStateMachine ::BGPStateMachine(BGPConnection* connection)
-    : connection(connection) {
+template <class Connection, class State, class Event>
+BGPStateMachine<Connection, State, Event>::BGPStateMachine(
+    Connection* connection)
+    : StateMachine<Connection, State, Event>(connection) {
     initializeTimers();
-    currentState = new BGPStateIdle(this);
-
-
-    eventHandler = new std::thread([&]() {
-        bool running = true;
-        while (running) {
-            unique_lock<std::mutex> eventQueue_uniqueLock(eventQueue_mutex);
-
-            while (eventQueue.empty()) {
-                eventQueue_ready.wait(eventQueue_uniqueLock);
-                if (eventQueue.empty()) {
-                    L_DEBUG("Spurious wakeup");
-                }
-            }
-
-            Event event = eventQueue.front();
-            eventQueue.pop();
-            eventQueue_uniqueLock.unlock();
-
-            if (event == __INTERNAL_SHUTDOWN) {
-                running = false;
-            } else {
-                L_DEBUG("Passing event " + getEventName(event) +
-                        " to the current state (" + currentState->NAME + ")");
-                BGPState* hanglingState_forlogs =
-                    currentState;  // only used in the logs
-                bool result = currentState && currentState->onEvent(event);
-                L_DEBUG("Event " + getEventName(event) +
-                        (result ? " handled" : " NOT handled") + " by " +
-                        hanglingState_forlogs->NAME);
-            }
-        }
-        L_DEBUG("Turning off eventHandler");
-    });
-
-    L_DEBUG("State Machine Created. Initial state: " + currentState->NAME);
+    this->currentState = new BGPStateIdle(this);
+    L_DEBUG("State Machine Created. Initial state: " +
+            this->currentState->NAME);
 }
-BGPStateMachine ::~BGPStateMachine() {
-    enqueueEvent(__INTERNAL_SHUTDOWN);
-    eventHandler->join();
-    delete eventHandler;
-
-    delete currentState;
-    delete previousState;
-
+template <class Connection, class State, class Event>
+BGPStateMachine<Connection, State, Event>::~BGPStateMachine() {
+    // ~StateMachine<Connection, State, Event>();
     // delete timers
     delete connectRetryTimer;
     delete keepAliveTimer;
     delete holdTimer;
     delete delayOpenTimer;
 }
-
-void BGPStateMachine ::enqueueEvent(Event event) {
-    unique_lock<std::mutex> eventQueue_uniqueLock(eventQueue_mutex);
-    L_DEBUG("Enqueueing event " + getEventName(event));
-    eventQueue.push(event);
-    eventQueue_ready.notify_one();
-    eventQueue_uniqueLock.unlock();
-}
-
-void BGPStateMachine ::changeState(BGPState* newState) {
-    assert(this_thread::get_id() == eventHandler->get_id());
-
-    assert(newState);
-    L_VERBOSE("State change: " + currentState->NAME + " -> " + newState->NAME);
-
-    delete previousState;
-
-    previousState = currentState;
-    currentState = newState;
-}
-
-void BGPStateMachine ::incrementConnectRetryCounter() {
+template <class Connection, class State, class Event>
+void BGPStateMachine<Connection, State, Event>::incrementConnectRetryCounter() {
     connectRetryCounter += 1;
     L_DEBUG("connectRetryCounter incremented. Current value: " +
             to_string(connectRetryCounter));
 }
 
-void BGPStateMachine ::resetConnectRetryTimer() {
+template <class Connection, class State, class Event>
+void BGPStateMachine<Connection, State, Event>::resetConnectRetryTimer() {
     if (connectRetryTimer != nullptr) {
         connectRetryTimer->stop();
         delete connectRetryTimer;
     }
 
-    connectRetryTimer = new Timer(
-        "ConnectRetryTimer", this, ConnectRetryTimer_Expires, connectRetryTime);
+    connectRetryTimer = new Timer("ConnectRetryTimer",
+                                  this,
+                                  BGPEvent::ConnectRetryTimer_Expires,
+                                  connectRetryTime);
 }
 
-void BGPStateMachine ::resetHoldTimer() {
+template <class Connection, class State, class Event>
+void BGPStateMachine<Connection, State, Event>::resetHoldTimer() {
     if (holdTimer != nullptr) {
         holdTimer->stop();
         delete holdTimer;
     }
 
-    holdTimer = new Timer("HoldTimer", this, HoldTimer_Expires, holdTime);
+    holdTimer =
+        new Timer("HoldTimer", this, BGPEvent::HoldTimer_Expires, holdTime);
 }
 
-void BGPStateMachine ::resetKeepAliveTimer() {
+template <class Connection, class State, class Event>
+void BGPStateMachine<Connection, State, Event>::resetKeepAliveTimer() {
     if (keepAliveTimer != nullptr) {
         keepAliveTimer->stop();
         delete keepAliveTimer;
     }
 
-    keepAliveTimer = new Timer(
-        "KeepAliveTimer", this, KeepaliveTimer_Expires, keepaliveTime);
+    keepAliveTimer = new Timer("KeepAliveTimer",
+                               this,
+                               BGPEvent::KeepaliveTimer_Expires,
+                               keepaliveTime);
 }
 
-void BGPStateMachine ::resetDelayOpenTimer() {
+template <class Connection, class State, class Event>
+void BGPStateMachine<Connection, State, Event>::resetDelayOpenTimer() {
     if (delayOpenTimer != nullptr) {
         delayOpenTimer->stop();
         delete delayOpenTimer;
     }
-    delayOpenTimer = new Timer(
-        "DelayOpenTimer", this, DelayOpenTimer_Expires, delayOpenTime);
+    delayOpenTimer = new Timer("DelayOpenTimer",
+                               this,
+                               BGPEvent::DelayOpenTimer_Expires,
+                               delayOpenTime);
 }
 
-void BGPStateMachine ::initializeTimers() {
+template <class Connection, class State, class Event>
+void BGPStateMachine<Connection, State, Event>::initializeTimers() {
     resetConnectRetryTimer();
     resetHoldTimer();
     resetKeepAliveTimer();
     resetDelayOpenTimer();
 }
+template class BGPStateMachine<BGPConnection, BGPState, BGPEvent>;

@@ -10,7 +10,7 @@ class BGPStateEnstablished : public BGPState {
    public:
     // Constructor
     BGPStateEnstablished(
-        StateMachine<BGPConnection, BGPState, Event>* stateMachine)
+        BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine)
         : BGPState(stateMachine) {
         NAME = "ENSTABLISHED";
         L_DEBUG("State created: " + NAME);
@@ -19,7 +19,7 @@ class BGPStateEnstablished : public BGPState {
     // Deconstructor
     ~BGPStateEnstablished();
 
-    bool onEvent(Event event);
+    bool onEvent(BGPEvent event);
 };
 
 #endif

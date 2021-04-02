@@ -11,7 +11,7 @@ class BGPStateOpenConfirm : public BGPState {
    public:
     // Constructor
     BGPStateOpenConfirm(
-        StateMachine<BGPConnection, BGPState, Event>* stateMachine)
+        BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine)
         : BGPState(stateMachine) {
         NAME = "OPEN_CONFIRM";
         L_DEBUG("State created: " + NAME);
@@ -20,7 +20,7 @@ class BGPStateOpenConfirm : public BGPState {
     // Deconstructor
     ~BGPStateOpenConfirm();
 
-    bool onEvent(Event event);
+    bool onEvent(BGPEvent event);
 };
 
 #endif

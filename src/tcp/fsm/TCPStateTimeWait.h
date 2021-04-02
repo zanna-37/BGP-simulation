@@ -8,7 +8,7 @@
 class TCPStateTimeWait : public TCPState {
    public:
     TCPStateTimeWait(
-        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
         : TCPState(stateMachine) {
         NAME = "TIME-WAIT";
         L_DEBUG("State created: " + NAME);
