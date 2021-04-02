@@ -2,36 +2,43 @@
 
 std::string getEventName(TCPEvent event) {
     switch (event) {
-        case __TCP_SHUTDOWN:
-            return "[" + std::to_string(__TCP_SHUTDOWN) + "-TCP_SHUTDOWN]";
-        case PassiveOpen:
-            return "[" + std::to_string(PassiveOpen) + "-PassiveOpen]";
-        case ActiveOpen_SendSYN:
-            return "[" + std::to_string(ActiveOpen_SendSYN) +
+        case TCPEvent::__SHUTDOWN:
+            return "[" + std::to_string((int)TCPEvent::__SHUTDOWN) +
+                   "-TCP_SHUTDOWN]";
+        case TCPEvent::PassiveOpen:
+            return "[" + std::to_string((int)TCPEvent::PassiveOpen) +
+                   "-PassiveOpen]";
+        case TCPEvent::ActiveOpen_SendSYN:
+            return "[" + std::to_string((int)TCPEvent::ActiveOpen_SendSYN) +
                    "-ActiveOpen_SendSYN]";
-        case ReceiveClientSYN_SendSYNACK:
-            return "[" + std::to_string(ReceiveClientSYN_SendSYNACK) +
+        case TCPEvent::ReceiveClientSYN_SendSYNACK:
+            return "[" +
+                   std::to_string((int)TCPEvent::ReceiveClientSYN_SendSYNACK) +
                    "-ReceiveClientSYN_SendSYNACK]";
-        case ReceiveSYN_SendACK:
-            return "[" + std::to_string(ReceiveSYN_SendACK) +
+        case TCPEvent::ReceiveSYN_SendACK:
+            return "[" + std::to_string((int)TCPEvent::ReceiveSYN_SendACK) +
                    "-ReceiveSYN_SendACK]";
-        case ReceiveSYNACKSendACK:
-            return "[" + std::to_string(ReceiveSYNACKSendACK) +
+        case TCPEvent::ReceiveSYNACKSendACK:
+            return "[" + std::to_string((int)TCPEvent::ReceiveSYNACKSendACK) +
                    "-ReceiveSYNACKSendACK]";
-        case ReceiveACK:
-            return "[" + std::to_string(ReceiveACK) + "-ReceiveACK]";
-        case CloseSendFIN:
-            return "[" + std::to_string(CloseSendFIN) + "-CloseSendFIN]";
-        case ReceiveFIN:
-            return "[" + std::to_string(ReceiveFIN) + "-ReceiveFIN]";
-        case ReceiveACKforFIN:
-            return "[" + std::to_string(ReceiveACKforFIN) +
+        case TCPEvent::ReceiveACK:
+            return "[" + std::to_string((int)TCPEvent::ReceiveACK) +
+                   "-ReceiveACK]";
+        case TCPEvent::CloseSendFIN:
+            return "[" + std::to_string((int)TCPEvent::CloseSendFIN) +
+                   "-CloseSendFIN]";
+        case TCPEvent::ReceiveFIN:
+            return "[" + std::to_string((int)TCPEvent::ReceiveFIN) +
+                   "-ReceiveFIN]";
+        case TCPEvent::ReceiveACKforFIN:
+            return "[" + std::to_string((int)TCPEvent::ReceiveACKforFIN) +
                    "-ReceiveACKforFIN]";
-        case ReceiveFINSendACK:
-            return "[" + std::to_string(ReceiveFINSendACK) +
+        case TCPEvent::ReceiveFINSendACK:
+            return "[" + std::to_string((int)TCPEvent::ReceiveFINSendACK) +
                    "-ReceiveFINSendACK]";
-        case TimerExpiration:
-            return "[" + std::to_string(TimerExpiration) + "-TimerExpiration]";
+        case TCPEvent::TimerExpiration:
+            return "[" + std::to_string((int)TCPEvent::TimerExpiration) +
+                   "-TimerExpiration]";
 
         default:
             L_ERROR("THIS SHOULD NEVER HAPPEN");

@@ -3,11 +3,13 @@
 
 #include "../TCPConnection.h"
 #include "TCPState.h"
-#include "TCPStateMachine.h"
+// #include "TCPStateMachine.h"
 #include "TCPStateTimeWait.h"
 class TCPStateClosing : public TCPState {
    public:
-    TCPStateClosing(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
+    TCPStateClosing(
+        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        : TCPState(stateMachine) {
         NAME = "CLOSING";
         L_DEBUG("State created: " + NAME);
     }

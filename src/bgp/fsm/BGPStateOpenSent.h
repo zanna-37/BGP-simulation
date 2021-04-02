@@ -9,7 +9,8 @@ class BGPStateOpenSent : public BGPState {
    private:
    public:
     // Constructor
-    BGPStateOpenSent(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
+    BGPStateOpenSent(StateMachine<BGPConnection, BGPState, Event>* stateMachine)
+        : BGPState(stateMachine) {
         NAME = "OPEN_SENT";
         L_DEBUG("State created: " + NAME);
     };

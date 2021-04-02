@@ -4,10 +4,12 @@
 #include "../TCPConnection.h"
 #include "TCPState.h"
 #include "TCPStateClosed.h"
-#include "TCPStateMachine.h"
+// #include "TCPStateMachine.h"
 class TCPStateLastACK : public TCPState {
    public:
-    TCPStateLastACK(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
+    TCPStateLastACK(
+        StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        : TCPState(stateMachine) {
         NAME = "LAST-ACK";
         L_DEBUG("State created: " + NAME);
     }

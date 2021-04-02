@@ -1,10 +1,8 @@
-#include "TCPStateMachine.h"
+#include "StateMachine.h"
 
-TCPStateMachine::TCPStateMachine(TCPConnection* connection)
+template <class Connection, class State, class Event>
+StateMachine<Connection, State, Event>::StateMachine(Connection* connection)
     : connection(connection) {
-    // currentState = new TCPStateClosed(this);
-
-
     eventHandler = new std::thread([&]() {
         bool running = true;
 
@@ -19,11 +17,11 @@ TCPStateMachine::TCPStateMachine(TCPConnection* connection)
                 }
             }
 
-            TCPEvent event = eventQueue.front();
+            Event event = eventQueue.front();
             eventQueue.pop();
             eventQueue_uniqueLock.unlock();
 
-            if (event == __SHUTDOWN) {
+            if (event == Event::__SHUTDOWN) {
                 running = false;
             } else {
                 L_DEBUG("Passing event " + getEventName(event) +
@@ -40,24 +38,25 @@ TCPStateMachine::TCPStateMachine(TCPConnection* connection)
     });
 }
 
-
-TCPStateMachine::~TCPStateMachine() {
-    enqueueEvent(__SHUTDOWN);
+template <class Connection, class State, class Event>
+StateMachine<Connection, State, Event>::~StateMachine() {
+    enqueueEvent(TCPEvent::__SHUTDOWN);
     eventHandler->join();
     delete eventHandler;
-    delete previousState;
     delete currentState;
+    delete previousState;
 }
 
-
-void TCPStateMachine::enqueueEvent(TCPEvent event) {
+template <class Connection, class State, class Event>
+void StateMachine<Connection, State, Event>::enqueueEvent(Event event) {
     std::unique_lock<std::mutex> eventQueue_uniqueLock(eventQueue_mutex);
     eventQueue.push(event);
     eventQueue_ready.notify_one();
     eventQueue_uniqueLock.unlock();
 }
 
-void TCPStateMachine::changeState(TCPState* newState) {
+template <class Connection, class State, class Event>
+void StateMachine<Connection, State, Event>::changeState(State* newState) {
     assert(newState);
 
     delete previousState;
@@ -67,4 +66,7 @@ void TCPStateMachine::changeState(TCPState* newState) {
     currentState = newState;
 }
 
-TCPState* TCPStateMachine::getCurrentState() const { return currentState; }
+template <class Connection, class State, class Event>
+State* StateMachine<Connection, State, Event>::getCurrentState() const {
+    return currentState;
+}

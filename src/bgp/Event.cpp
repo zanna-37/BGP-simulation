@@ -2,9 +2,8 @@
 
 std::string getEventName(Event event) {
     switch (event) {
-        case __INTERNAL_SHUTDOWN:
-            return "[" + std::to_string(__INTERNAL_SHUTDOWN) +
-                   "-INTERNAL SHUTDOWN]";
+        case __SHUTDOWN:
+            return "[" + std::to_string(__SHUTDOWN) + "-INTERNAL SHUTDOWN]";
         case ManualStart:
             return "[" + std::to_string(ManualStart) + "-Manual start]";
         case ManualStop:

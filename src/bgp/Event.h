@@ -5,7 +5,7 @@
 #include <string>
 
 enum Event {
-    __INTERNAL_SHUTDOWN,
+    __SHUTDOWN,
     ManualStart,
     ManualStop,
     AutomaticStart,

@@ -160,7 +160,8 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
             listenConnection->dstAddr = ipLayer->getSrcIPv4Address();
             listenConnection->dstPort = tcpLayer->getDstPort();
             addTCPConnection(listenConnection);
-            listenConnection->enqueueEvent(ReceiveClientSYN_SendSYNACK);
+            listenConnection->enqueueEvent(
+                TCPEvent::ReceiveClientSYN_SendSYNACK);
 
             // create new listening connection (allocate TCB)
             listenConnection          = new TCPConnection(this);
@@ -193,7 +194,7 @@ void Device::listen() {
     // Initialize passive Open Listen for TCP
     listenConnection          = new TCPConnection(this);
     listenConnection->srcPort = listenConnection->BGPPort;
-    listenConnection->enqueueEvent(PassiveOpen);
+    listenConnection->enqueueEvent(TCPEvent::PassiveOpen);
 }
 void Device::connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
     TCPConnection *connection = new TCPConnection(this);
@@ -205,7 +206,7 @@ void Device::connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
 
     //
     tcpConnections[tcpConnectionHash(*dstAddr, dstPort)] = connection;
-    connection->enqueueEvent(ActiveOpen_SendSYN);
+    connection->enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
     // sendPacket(layers);
 }
 

@@ -4,13 +4,14 @@
 
 #include "../BGPConnection.h"
 #include "BGPState.h"
-#include "BGPStateMachine.h"
+// #include "BGPStateMachine.h"
 
 class BGPStateOpenConfirm : public BGPState {
    private:
    public:
     // Constructor
-    BGPStateOpenConfirm(BGPStateMachine* stateMachine)
+    BGPStateOpenConfirm(
+        StateMachine<BGPConnection, BGPState, Event>* stateMachine)
         : BGPState(stateMachine) {
         NAME = "OPEN_CONFIRM";
         L_DEBUG("State created: " + NAME);

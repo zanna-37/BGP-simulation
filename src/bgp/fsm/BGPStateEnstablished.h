@@ -3,13 +3,14 @@
 
 #include "../BGPConnection.h"
 #include "BGPState.h"
-#include "BGPStateMachine.h"
+// #include "BGPStateMachine.h"
 
 class BGPStateEnstablished : public BGPState {
    private:
    public:
     // Constructor
-    BGPStateEnstablished(BGPStateMachine* stateMachine)
+    BGPStateEnstablished(
+        StateMachine<BGPConnection, BGPState, Event>* stateMachine)
         : BGPState(stateMachine) {
         NAME = "ENSTABLISHED";
         L_DEBUG("State created: " + NAME);

@@ -3,7 +3,8 @@
 // #include "../entities/Device.h"
 
 TCPConnection ::TCPConnection(Device* owner) : owner(owner) {
-    stateMachine = new TCPStateMachine(this);
+    stateMachine = new StateMachine<TCPConnection, TCPState, TCPEvent>(this);
+    stateMachine->changeState(new TCPStateClosed(stateMachine));
 }
 
 TCPConnection::~TCPConnection() { delete stateMachine; }

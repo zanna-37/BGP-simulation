@@ -4,17 +4,21 @@
 
 #include <stack>
 
+#include "../../fsm/StateMachine.h"
 #include "../../logger/Logger.h"
+#include "../TCPConnection.h"
 #include "../TCPEvent.h"
-#include "TCPStateMachine.h"
 
-class TCPStateMachine;  // forward declaration
+template <class Connection, class State, class Event>
+class StateMachine;
+class TCPConnection;
 class TCPState {
    public:
-    TCPStateMachine* stateMachine;
-    std::string      NAME;
+    StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine;
+    std::string                                      NAME;
 
-    TCPState(TCPStateMachine* stateMachine) : stateMachine(stateMachine){};
+    TCPState(StateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+        : stateMachine(stateMachine){};
     virtual ~TCPState() {}
 
     virtual bool onEvent(TCPEvent) = 0;

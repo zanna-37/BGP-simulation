@@ -19,7 +19,7 @@ class BGPState;       // forward declaration
 class BGPConnection;  // forward declaration
 class Timer;          // forward declaration
 
-class BGPStateMachine {
+class BGPStateMachine : public StateMachine<BGPConnection, BGPState, Event> {
    private:
     BGPConnection* connection;
     BGPState*      previousState = nullptr;  // TODO check if we really need it
