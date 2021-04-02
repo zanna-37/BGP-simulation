@@ -14,12 +14,12 @@
 // class TCPStateMachine;  // forward declaration
 // class Device;           // forward declaration
 
-template <class Connection, class State, class Event>
+// template <class Connection, class State, class Event>
 class TCPStateMachine;
 class TCPState;
 class TCPConnection {
    public:
-    TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine = nullptr;
+    TCPStateMachine* stateMachine = nullptr;
 
     Device*           owner = nullptr;
     pcpp::IPv4Address srcAddr;

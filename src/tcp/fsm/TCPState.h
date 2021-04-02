@@ -9,16 +9,15 @@
 #include "../TCPConnection.h"
 #include "../TCPEvent.h"
 
-template <class Connection, class State, class Event>
+
 class TCPStateMachine;
 class TCPConnection;
 class TCPState {
    public:
-    TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine;
-    std::string                                         NAME;
+    TCPStateMachine* stateMachine;
+    std::string      NAME;
 
-    TCPState(TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
-        : stateMachine(stateMachine){};
+    TCPState(TCPStateMachine* stateMachine) : stateMachine(stateMachine){};
     virtual ~TCPState() {}
 
     virtual bool onEvent(TCPEvent) = 0;

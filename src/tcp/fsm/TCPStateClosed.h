@@ -8,8 +8,7 @@
 #include "TCPStateSYNSent.h"
 class TCPStateClosed : public TCPState {
    public:
-    TCPStateClosed(
-        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine);
+    TCPStateClosed(TCPStateMachine* stateMachine);
 
     ~TCPStateClosed(){};
 

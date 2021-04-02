@@ -8,8 +8,7 @@
 // #include "TCPStateMachine.h"
 class TCPStateEnstablished : public TCPState {
    public:
-    TCPStateEnstablished(
-        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
+    TCPStateEnstablished(TCPStateMachine* stateMachine)
         : TCPState(stateMachine) {
         NAME = "ENSTABLISHED";
         L_DEBUG("State created: " + NAME);

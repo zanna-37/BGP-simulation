@@ -8,9 +8,7 @@
 #include "TCPStateSYNReceived.h"
 class TCPStateSYNSent : public TCPState {
    public:
-    TCPStateSYNSent(
-        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
-        : TCPState(stateMachine) {
+    TCPStateSYNSent(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "SYN-SENT";
         L_DEBUG("State created: " + NAME);
     }

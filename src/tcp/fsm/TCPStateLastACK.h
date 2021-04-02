@@ -7,9 +7,7 @@
 // #include "TCPStateMachine.h"
 class TCPStateLastACK : public TCPState {
    public:
-    TCPStateLastACK(
-        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
-        : TCPState(stateMachine) {
+    TCPStateLastACK(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "LAST-ACK";
         L_DEBUG("State created: " + NAME);
     }

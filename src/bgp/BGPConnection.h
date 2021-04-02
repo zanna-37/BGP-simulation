@@ -4,6 +4,7 @@
 
 #include <cassert>
 
+#include "../entities/Device.h"
 #include "BGPEvent.h"
 #include "fsm/BGPStateIdle.h"
 #include "fsm/BGPStateMachine.h"

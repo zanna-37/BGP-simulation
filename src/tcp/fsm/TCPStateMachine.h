@@ -6,21 +6,23 @@
 #include <queue>
 #include <thread>
 
-#include "../../entities/Device.h"
+// #include "../../entities/Device.h"
 #include "../../fsm/StateMachine.h"
 #include "../../logger/Logger.h"
 #include "../TCPConnection.h"
 #include "../TCPEvent.h"
+#include "../fsm/TCPState.h"
 #include "../fsm/TCPStateClosed.h"
 
 class TCPState;       // forward declaration
 class TCPConnection;  // forward declaration
-template <typename Connection, typename State, typename Event>
-class TCPStateMachine : public StateMachine<Connection, State, Event> {
+// template <typename Connection = TCPConnection,
+//           typename State      = TCPState,
+//           typename Event      = TCPEvent>
+class TCPStateMachine : public StateMachine<TCPConnection, TCPState, TCPEvent> {
    public:
-    TCPStateMachine(Connection* connection)
-        : StateMachine<Connection, State, Event>(connection) {
-        this->currentState = new TCPStateClosed(this);
+    TCPStateMachine(TCPConnection* connection) : StateMachine(connection) {
+        // this->currentState = new TCPStateClosed(this);
     }
 };
 #endif

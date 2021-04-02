@@ -6,7 +6,7 @@
 #include <queue>
 #include <thread>
 
-#include "../entities/Device.h"
+// #include "../entities/Device.h"
 #include "../logger/Logger.h"
 template <typename Connection, typename State, typename Event>
 class StateMachine {
@@ -84,8 +84,13 @@ class StateMachine {
 
         delete previousState;
         previousState = currentState;
-        L_VERBOSE("State change: " + currentState->NAME + " -> " +
-                  newState->NAME);
+        if (currentState == nullptr) {
+            L_VERBOSE("Initial state: " + newState->NAME);
+        } else {
+            L_VERBOSE("State change: " + currentState->NAME + " -> " +
+                      newState->NAME);
+        }
+
 
         currentState = newState;
     }

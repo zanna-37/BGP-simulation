@@ -7,9 +7,7 @@
 // #include "TCPStateMachine.h"
 class TCPStateTimeWait : public TCPState {
    public:
-    TCPStateTimeWait(
-        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
-        : TCPState(stateMachine) {
+    TCPStateTimeWait(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "TIME-WAIT";
         L_DEBUG("State created: " + NAME);
     }

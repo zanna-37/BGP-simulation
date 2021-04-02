@@ -7,9 +7,7 @@
 #include "TCPStateSYNReceived.h"
 class TCPStateListen : public TCPState {
    public:
-    TCPStateListen(
-        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
-        : TCPState(stateMachine) {
+    TCPStateListen(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "LISTEN";
         L_DEBUG("State created: " + NAME);
     }

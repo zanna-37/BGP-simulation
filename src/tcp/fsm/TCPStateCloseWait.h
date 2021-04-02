@@ -7,9 +7,7 @@
 // #include "TCPStateMachine.h"
 class TCPStateCloseWait : public TCPState {
    public:
-    TCPStateCloseWait(
-        TCPStateMachine<TCPConnection, TCPState, TCPEvent>* stateMachine)
-        : TCPState(stateMachine) {
+    TCPStateCloseWait(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
         NAME = "CLOSE_WAIT";
         L_DEBUG("State created: " + NAME);
     }
