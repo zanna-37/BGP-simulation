@@ -11,11 +11,13 @@ void ApiEndpoint::init(size_t thr, vector<Device *> *devicesMain) {
 }
 
 void ApiEndpoint::start() {
+    L_VERBOSE("Server","START");
     httpEndpoint->setHandler(router.handler());
     httpEndpoint->serve();
 }
 
 void ApiEndpoint::setupRoutes() {
+    L_DEBUG("Server","Setting up routes");
     using namespace Rest;
 
     Routes::Get(router, "/", Routes::bind(&ApiEndpoint::index, this));
@@ -89,6 +91,8 @@ void ApiEndpoint::initDoc() {
             doc["endpoints"].PushBack(ob, allocator);
         }
     }
+
+    L_DEBUG("Server","Network object created");
 }
 
 void ApiEndpoint::index(const Rest::Request &, Http::ResponseWriter response) {
