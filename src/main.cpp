@@ -6,6 +6,7 @@
 #include <SystemUtils.h>
 #include <UdpLayer.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <iostream>
 #include <stack>
@@ -24,6 +25,37 @@
 
 
 using namespace std;
+
+// Variable for sig interrupt (Ctrl+C)
+volatile sig_atomic_t stop;
+
+/**
+ * @brief Startup of the server
+ *
+ * @param devices Vector of the Devices parsed for the configuration of the
+ * program
+ */
+void start_server(vector<Device *> *devices) {
+    Pistache::Port    port(9080);
+    int               thr = 2;
+    Pistache::Address addr(Ipv4::any(), port);
+
+    // Start rest server
+    cout << "Cores = " << hardware_concurrency() << endl;
+    cout << "Using " << thr << " threads" << endl;
+
+    ApiEndpoint stats(addr);
+
+    stats.init(thr, devices);
+    stats.start();
+}
+
+/**
+ * @brief https://stackoverflow.com/questions/26965508/infinite-while-loop-and-control-c
+ *
+ * @param signum
+ */
+void inthand(int signum) { stop = 1; }
 
 int main(int argc, char *argv[]) {
     srand(time(NULL) + getpid());
@@ -101,21 +133,22 @@ int main(int argc, char *argv[]) {
     vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
 
-    // TODO logic here
+    thread *serverThread = new std::thread([&]() {
+        start_server(devices);
+    });
 
-        // Define address port and and threads for the rest server
-    Pistache::Port port(9080);
-    int thr = 2;
-    Pistache::Address addr(Ipv4::any(), port);
+    signal(SIGINT, inthand);
 
-    //Start rest server
-    cout << "Cores = " << hardware_concurrency() << endl;
-    cout << "Using " << thr << " threads" << endl;
+    while (!stop) {
+        // TODO logic here
+    }
 
-    ApiEndpoint stats(addr);
+    // Once the Ctrl+C is lounched all the threads stop (on my machine)
 
-    stats.init(thr);
-    stats.start();
+    serverThread->join();
+    delete serverThread;
+    serverThread = nullptr;
+
 
     // Debug trial
     for (auto device : *devices) {
