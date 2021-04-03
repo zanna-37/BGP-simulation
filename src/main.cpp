@@ -5,6 +5,7 @@
 #include <Packet.h>
 #include <SystemUtils.h>
 #include <UdpLayer.h>
+#include <signal.h>
 #include <unistd.h>
 
 #include <iostream>
@@ -23,6 +24,38 @@
 #include "server/Server.h"
 
 
+// Variable for sig interrupt (Ctrl+C)
+volatile sig_atomic_t stop;
+
+/**
+ * @brief Startup of the server
+ *
+ * @param devices Vector of the Devices parsed for the configuration of the
+ * program
+ */
+void start_server(vector<Device *> *devices) {
+    Pistache::Port    port(9080);
+    int               thr = 2;
+    Pistache::Address addr(Ipv4::any(), port);
+
+    // Start rest server
+    cout << "Cores = " << hardware_concurrency() << endl;
+    cout << "Using " << thr << " threads" << endl;
+
+    ApiEndpoint stats(addr);
+
+    stats.init(thr, devices);
+    stats.start();
+}
+
+/**
+ * @brief
+ * https://stackoverflow.com/questions/26965508/infinite-while-loop-and-control-c
+ *
+ * @param signum
+ */
+void inthand(int signum) { stop = 1; }
+
 int main(int argc, char *argv[]) {
     // Seed the random generator
     srand(time(nullptr) + getpid());
@@ -34,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     // TODO REMOVE ME, just examples
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
-                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
+                                    pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
     pcpp::IPv4Layer newIPLayer(pcpp::IPv4Address(std::string("192.168.1.1")),
                                pcpp::IPv4Address(std::string("10.0.0.1")));
     newIPLayer.getIPv4Header()->ipId       = pcpp::hostToNet16(2000);
@@ -101,19 +134,21 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
-        // Define address port and and threads for the rest server
-        Pistache::Port port(9080);
-        int thr = 2;
-        Pistache::Address addr(Ipv4::any(), port);
+        thread *serverThread =
+            new std::thread([&]() { start_server(devices); });
 
-        //Start rest server
-        cout << "Cores = " << hardware_concurrency() << endl;
-        cout << "Using " << thr << " threads" << endl;
+        signal(SIGINT, inthand);
 
-        ApiEndpoint stats(addr);
+        while (!stop) {
+            // TODO logic here
+        }
 
-        stats.init(thr);
-        stats.start();
+        // Once the Ctrl+C is pressed all the threads stop (on my machine)
+
+        serverThread->join();
+        delete serverThread;
+        serverThread = nullptr;
+
 
         for (auto device : *devices) {
             /* TODO REMOVE ME, just an example
