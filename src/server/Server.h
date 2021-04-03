@@ -4,11 +4,15 @@
 #include <pistache/endpoint.h>
 #include <pistache/http.h>
 #include <pistache/router.h>
+#include <string.h>
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+#include "../entities/EndPoint.h"
+#include "../entities/Router.h"
+#include "../logger/Logger.h"
 
 using namespace std;
 using namespace Pistache;
@@ -24,13 +28,16 @@ class ApiEndpoint {
      *
      * @param thr Number of threads
      */
-    void init(size_t thr);
+    void init(size_t thr, vector<Device *> *devicesMain);
 
     /**
      * @brief Start servign the APIs
      *
      */
     void start();
+
+    vector<Device *> *devices = nullptr;
+    Document doc;
 
    private:
     /**
@@ -67,9 +74,16 @@ class ApiEndpoint {
      */
     void index(const Rest::Request&, Http::ResponseWriter response);
 
+    /**
+     * @brief Initialize the document/Object with all the data information about the Network
+     * 
+     */
+    void initDoc();
+
     using Lock  = std::mutex;
     using Guard = std::lock_guard<Lock>;
     Lock metricsLock;
+    
 
     std::shared_ptr<Http::Endpoint> httpEndpoint;
     Rest::Router                    router;
