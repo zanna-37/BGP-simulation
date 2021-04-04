@@ -51,28 +51,28 @@ class ApiEndpoint {
      *
      * @param response Handler used to send back the reply
      */
-    void getNetwork(const Rest::Request&, Http::ResponseWriter response);
+    void getNetwork(const Rest::Request& request, Http::ResponseWriter response);
 
-    void getNodes(const Rest::Request&, Http::ResponseWriter response);
+    void getNodes(const Rest::Request& request, Http::ResponseWriter response);
 
-    void getLinks(const Rest::Request&, Http::ResponseWriter response);
+    void getLinks(const Rest::Request& request, Http::ResponseWriter response);
 
-    void setLink(const Rest::Request&, Http::ResponseWriter response);
+    void setLink(const Rest::Request& request, Http::ResponseWriter response);
 
-    void removeLink(const Rest::Request&, Http::ResponseWriter response);
+    void removeLink(const Rest::Request& request, Http::ResponseWriter response);
 
-    void removeNode(const Rest::Request&, Http::ResponseWriter response);
+    void removeNode(const Rest::Request& request, Http::ResponseWriter response);
 
-    void getPackets(const Rest::Request&, Http::ResponseWriter response);
+    void getPackets(const Rest::Request& request, Http::ResponseWriter response);
 
-    void setReady(const Rest::Request&, Http::ResponseWriter response);
+    void setReady(const Rest::Request& request, Http::ResponseWriter response);
 
     /**
      * @brief General reply with JSON
      *
      * @param response Handler used to send back the reply
      */
-    void index(const Rest::Request&, Http::ResponseWriter response);
+    void index(const Rest::Request& request, Http::ResponseWriter response);
 
     /**
      * @brief Initialize the document/Object with all the data information about the Network

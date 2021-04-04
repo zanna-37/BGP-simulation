@@ -47,47 +47,100 @@ void ApiEndpoint::initDoc() {
         Value asNumber;
         Value networkCards(kArrayType);
 
-        id.SetString(device->ID.c_str(),
-                    device->ID.length(),
-                    allocator);
-            ob.AddMember("ID", id, allocator);
+        id.SetString(device->ID.c_str(), device->ID.length(), allocator);
+        ob.AddMember("ID", id, allocator);
 
-            gateway.SetString(device->defaultGateway.toString().c_str(), device->defaultGateway.toString().length(), allocator);
-            ob.AddMember("defaultGateway", gateway, allocator);
+        gateway.SetString(device->defaultGateway.toString().c_str(),
+                          device->defaultGateway.toString().length(),
+                          allocator);
+        ob.AddMember("defaultGateway", gateway, allocator);
 
-            
 
-            for (auto net : *device->networkCards){
-                Value netCard(kObjectType);
-                Value interface;
-                Value IP;
-                Value netmask;
+        for (auto net : *device->networkCards) {
+            L_DEBUG("Server", "Handling device " + net->owner->ID);
+            L_DEBUG("Server", "NET interface : " + net->netInterface);
 
-                interface.SetString(net->netInterface.c_str(), net->netInterface.length(), allocator);
-                IP.SetString(net->IP.toString().c_str(), net->IP.toString().length(), allocator);
-                netmask.SetString(net->netmask.toString().c_str(), net->netmask.toString().length(), allocator);
+            Value netCard(kObjectType);
+            Value interface;
+            Value IP;
+            Value netmask;
 
-                netCard.AddMember("interface", interface, allocator);
-                netCard.AddMember("IP", IP, allocator);
-                netCard.AddMember("netmask", netmask, allocator);
-                networkCards.PushBack(netCard, allocator);
+            interface.SetString(net->netInterface.c_str(),
+                                net->netInterface.length(),
+                                allocator);
+            IP.SetString(net->IP.toString().c_str(),
+                         net->IP.toString().length(),
+                         allocator);
+            netmask.SetString(net->netmask.toString().c_str(),
+                              net->netmask.toString().length(),
+                              allocator);
 
-                Value link(kObjectType);
+            netCard.AddMember("interface", interface, allocator);
+            netCard.AddMember("IP", IP, allocator);
+            netCard.AddMember("netmask", netmask, allocator);
+            networkCards.PushBack(netCard, allocator);
 
+            Value link(kObjectType), link_reverse(kObjectType);
+            Value dev1, dev2, interface1, interface2, con_status;
+
+            dev1.SetString(
+                net->owner->ID.c_str(), net->owner->ID.length(), allocator);
+            interface1.SetString(net->netInterface.c_str(),
+                                 net->netInterface.length(),
+                                 allocator);
+            con_status.SetString(
+                to_string(net->link->connection_status).c_str(),
+                to_string(net->link->connection_status).length(),
+                allocator);
+
+            NetworkCard *net_dev2 = net->link->getPeerNetworkCardOrNull(net);
+
+            dev2.SetString(net_dev2->owner->ID.c_str(),
+                           net_dev2->owner->ID.length(),
+                           allocator);
+            interface2.SetString(net_dev2->netInterface.c_str(),
+                                 net_dev2->netInterface.length(),
+                                 allocator);
+
+            link.AddMember("from", dev1, allocator);
+            link.AddMember("to", dev2, allocator);
+            link.AddMember("from_interface", interface1, allocator);
+            link.AddMember("to_interface", interface2, allocator);
+            link.AddMember("con_status", con_status, allocator);
+
+            link_reverse.AddMember("from", dev2, allocator);
+            link_reverse.AddMember("to", dev1, allocator);
+            link_reverse.AddMember("from_interface", interface2, allocator);
+            link_reverse.AddMember("to_interface", interface1, allocator);
+            link_reverse.AddMember("con_status", con_status, allocator);
+
+            if (doc["links"].Empty()) {
+                doc["links"].PushBack(link, allocator);
+                L_DEBUG("Server", "Pushed back empty links");
+            } else {
+                for (auto &l : doc["links"].GetArray()) {
+                    if (!(l == link || l == link_reverse ||
+                          link.IsNull())) {  // The null check is done to the
+                                             // move() of Rapidjason
+                        doc["links"].PushBack(link, allocator);
+                    L_DEBUG("Server", "Pushed back non existing link");
+                    }
+                }
             }
+        }
 
         if (auto *x = dynamic_cast<Router *>(device)) {
-            asNumber.SetString(x->AS_number.c_str(), x->AS_number.length(), allocator);
+            asNumber.SetString(
+                x->AS_number.c_str(), x->AS_number.length(), allocator);
             ob.AddMember("asNumber", asNumber, allocator);
 
             ob.AddMember("networkCards", networkCards, allocator);
 
             doc["routers"].PushBack(ob, allocator);
-            
-        } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
 
+        } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
             ob.AddMember("networkCards", networkCards, allocator);
-            
+
             doc["endpoints"].PushBack(ob, allocator);
         }
     }
@@ -95,11 +148,10 @@ void ApiEndpoint::initDoc() {
     L_DEBUG("Server","Network object created");
 }
 
-void ApiEndpoint::index(const Rest::Request &, Http::ResponseWriter response) {
+void ApiEndpoint::index(const Rest::Request & request, Http::ResponseWriter response) {
     StringBuffer               buf;
     PrettyWriter<StringBuffer> writer(buf);
-    /*     doc.Accept(writer);
-     */
+
 
     writer.StartObject();
 
@@ -212,7 +264,7 @@ void ApiEndpoint::index(const Rest::Request &, Http::ResponseWriter response) {
 }
 
 
-void ApiEndpoint::getNetwork(const Rest::Request &,
+void ApiEndpoint::getNetwork(const Rest::Request & request,
                              Http::ResponseWriter response) {
     StringBuffer               buf;
     PrettyWriter<StringBuffer> writer(buf);
@@ -224,23 +276,23 @@ void ApiEndpoint::getNetwork(const Rest::Request &,
     response.send(Http::Code::Ok, buf.GetString());
 }
 
-void ApiEndpoint::getNodes(const Rest::Request &,
+void ApiEndpoint::getNodes(const Rest::Request & request,
                            Http::ResponseWriter response) {}
 
-void ApiEndpoint::getLinks(const Rest::Request &,
+void ApiEndpoint::getLinks(const Rest::Request & request,
                            Http::ResponseWriter response) {}
 
-void ApiEndpoint::setLink(const Rest::Request &,
+void ApiEndpoint::setLink(const Rest::Request & request,
                           Http::ResponseWriter response) {}
 
-void ApiEndpoint::removeLink(const Rest::Request &,
+void ApiEndpoint::removeLink(const Rest::Request & request,
+                             Http::ResponseWriter response) {
+
+void ApiEndpoint::removeNode(const Rest::Request & request,
                              Http::ResponseWriter response) {}
 
-void ApiEndpoint::removeNode(const Rest::Request &,
+void ApiEndpoint::getPackets(const Rest::Request & request,
                              Http::ResponseWriter response) {}
 
-void ApiEndpoint::getPackets(const Rest::Request &,
-                             Http::ResponseWriter response) {}
-
-void ApiEndpoint::setReady(const Rest::Request &,
+void ApiEndpoint::setReady(const Rest::Request & request,
                            Http::ResponseWriter response) {}
