@@ -88,10 +88,9 @@ void ApiEndpoint::initDoc() {
             interface1.SetString(net->netInterface.c_str(),
                                  net->netInterface.length(),
                                  allocator);
-            con_status.SetString(
-                to_string(net->link->connection_status).c_str(),
-                to_string(net->link->connection_status).length(),
-                allocator);
+            con_status.SetString(net->link->getConnecionStatusString().c_str(),
+                                 net->link->getConnecionStatusString().length(),
+                                 allocator);
 
             NetworkCard *net_dev2 = net->link->getPeerNetworkCardOrNull(net);
 

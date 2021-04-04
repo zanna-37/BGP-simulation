@@ -57,6 +57,13 @@ class Link {
     void sendPacketThroughWire(std::pair<const uint8_t *, int> data,
                                NetworkCard *destination) const;
 
+    /**
+     * @brief Get the Connecion Status String object
+     *
+     * @return string
+     */
+    string getConnecionStatusString();
+
    private:
     /**
      * Convenient pair that stores the references to the connected devices. No

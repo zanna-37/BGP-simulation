@@ -59,3 +59,20 @@ std::string Link::getLogLinkName(NetworkCard *destination) const {
 
     return output;
 }
+
+string Link::getConnecionStatusString() {
+    switch (connection_status) {
+        case ACTIVE:
+            return "active";
+            break;
+
+        case FAILED:
+            return "failed";
+            break;
+
+        default:
+            L_ERROR("Link", "UNKNOWN connection status"); //TODO put link name
+            return "UNKNOWN";
+            break;
+    }
+}
