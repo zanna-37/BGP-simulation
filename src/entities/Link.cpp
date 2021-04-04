@@ -83,3 +83,20 @@ pcpp::Packet *Link::deserialize(uint8_t *rawData, int rawDataLen) {
 
     return packet;
 }
+
+string Link::getConnecionStatusString() {
+    switch (connection_status) {
+        case ACTIVE:
+            return "active";
+            break;
+
+        case FAILED:
+            return "failed";
+            break;
+
+        default:
+            L_ERROR("Link", "UNKNOWN connection status"); //TODO put link name
+            return "UNKNOWN";
+            break;
+    }
+}

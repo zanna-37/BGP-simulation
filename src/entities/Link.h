@@ -76,6 +76,13 @@ class Link {
      */
     pcpp::Packet *deserialize(uint8_t *rawData, int rawDataLen);
 
+    /**
+     * @brief Get the Connecion Status String object
+     *
+     * @return string
+     */
+    string getConnecionStatusString();
+
    private:
     /**
      * Convenient pair that stores the references to the connected devices. No
