@@ -143,6 +143,8 @@ int main(int argc, char *argv[]) {
         // TODO logic here
     }
 
+    L_INFO("Server", "SIGINT received, while loop exited");
+
     // Once the Ctrl+C is lounched all the threads stop (on my machine)
 
     serverThread->join();
