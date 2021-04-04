@@ -23,6 +23,8 @@ void ApiEndpoint::setupRoutes() {
     Routes::Get(router, "/", Routes::bind(&ApiEndpoint::index, this));
     Routes::Get(
         router, "/getNetwork", Routes::bind(&ApiEndpoint::getNetwork, this));
+    Routes::Post(
+        router, "/brakeLink", Routes::bind(&ApiEndpoint::brakeLink, this));
 }
 
 void ApiEndpoint::initDoc() {
@@ -80,49 +82,65 @@ void ApiEndpoint::initDoc() {
             netCard.AddMember("netmask", netmask, allocator);
             networkCards.PushBack(netCard, allocator);
 
-            Value link(kObjectType), link_reverse(kObjectType);
-            Value dev1, dev2, interface1, interface2, con_status;
+            if (!(net->link == nullptr)) {
+                Value link(kObjectType), link_reverse(kObjectType);
+                Value dev1, dev2, interface1, interface2, con_status;
 
-            dev1.SetString(
-                net->owner->ID.c_str(), net->owner->ID.length(), allocator);
-            interface1.SetString(net->netInterface.c_str(),
-                                 net->netInterface.length(),
-                                 allocator);
-            con_status.SetString(net->link->getConnecionStatusString().c_str(),
-                                 net->link->getConnecionStatusString().length(),
-                                 allocator);
+                dev1.SetString(
+                    net->owner->ID.c_str(), net->owner->ID.length(), allocator);
+                interface1.SetString(net->netInterface.c_str(),
+                                     net->netInterface.length(),
+                                     allocator);
+                con_status.SetString(
+                    net->link->getConnecionStatusString().c_str(),
+                    net->link->getConnecionStatusString().length(),
+                    allocator);
 
-            NetworkCard *net_dev2 = net->link->getPeerNetworkCardOrNull(net);
+                NetworkCard *net_dev2 =
+                    net->link->getPeerNetworkCardOrNull(net);
 
-            dev2.SetString(net_dev2->owner->ID.c_str(),
-                           net_dev2->owner->ID.length(),
-                           allocator);
-            interface2.SetString(net_dev2->netInterface.c_str(),
-                                 net_dev2->netInterface.length(),
-                                 allocator);
+                dev2.SetString(net_dev2->owner->ID.c_str(),
+                               net_dev2->owner->ID.length(),
+                               allocator);
+                interface2.SetString(net_dev2->netInterface.c_str(),
+                                     net_dev2->netInterface.length(),
+                                     allocator);
 
-            link.AddMember("from", dev1, allocator);
-            link.AddMember("to", dev2, allocator);
-            link.AddMember("from_interface", interface1, allocator);
-            link.AddMember("to_interface", interface2, allocator);
-            link.AddMember("con_status", con_status, allocator);
+                // Link is using copies of the values, Link_reverse is consuming
+                // the values.
 
-            link_reverse.AddMember("from", dev2, allocator);
-            link_reverse.AddMember("to", dev1, allocator);
-            link_reverse.AddMember("from_interface", interface2, allocator);
-            link_reverse.AddMember("to_interface", interface1, allocator);
-            link_reverse.AddMember("con_status", con_status, allocator);
+                link.AddMember("from", Value(dev1, allocator), allocator);
+                link.AddMember("to", Value(dev2, allocator), allocator);
+                link.AddMember(
+                    "from_interface", Value(interface1, allocator), allocator);
+                link.AddMember(
+                    "to_interface", Value(interface2, allocator), allocator);
+                link.AddMember(
+                    "con_status", Value(con_status, allocator), allocator);
 
-            if (doc["links"].Empty()) {
-                doc["links"].PushBack(link, allocator);
+                link_reverse.AddMember("from", dev2, allocator);
+                link_reverse.AddMember("to", dev1, allocator);
+                link_reverse.AddMember("from_interface", interface2, allocator);
+                link_reverse.AddMember("to_interface", interface1, allocator);
+                link_reverse.AddMember("con_status", con_status, allocator);
+
+                if (doc["links"].Empty()) {
+                    doc["links"].PushBack(link, allocator);
                 L_DEBUG("Server", "Pushed back empty links");
-            } else {
-                for (auto &l : doc["links"].GetArray()) {
-                    if (!(l == link || l == link_reverse ||
-                          link.IsNull())) {  // The null check is done to the
-                                             // move() of Rapidjason
+                } else {
+                    bool exists = false;
+                    for (auto &l : doc["links"].GetArray()) {
+                        if (l == link || l == link_reverse) {
+                            L_DEBUG("Server", "Link :" + to_string(l == link));
+                            L_DEBUG("Server", "Reverse Link :" +
+                                    to_string(l == link_reverse));
+
+                            exists = true;
+                        }
+                    }
+                    if (!exists) {
                         doc["links"].PushBack(link, allocator);
-                    L_DEBUG("Server", "Pushed back non existing link");
+                        L_DEBUG("Server", "Pushed back non existing link");
                     }
                 }
             }
@@ -147,7 +165,8 @@ void ApiEndpoint::initDoc() {
     L_DEBUG("Server","Network object created");
 }
 
-void ApiEndpoint::index(const Rest::Request & request, Http::ResponseWriter response) {
+void ApiEndpoint::index(const Rest::Request &request,
+                        Http::ResponseWriter response) {
     StringBuffer               buf;
     PrettyWriter<StringBuffer> writer(buf);
 
@@ -263,7 +282,7 @@ void ApiEndpoint::index(const Rest::Request & request, Http::ResponseWriter resp
 }
 
 
-void ApiEndpoint::getNetwork(const Rest::Request & request,
+void ApiEndpoint::getNetwork(const Rest::Request &request,
                              Http::ResponseWriter response) {
     StringBuffer               buf;
     PrettyWriter<StringBuffer> writer(buf);
@@ -275,23 +294,140 @@ void ApiEndpoint::getNetwork(const Rest::Request & request,
     response.send(Http::Code::Ok, buf.GetString());
 }
 
-void ApiEndpoint::getNodes(const Rest::Request & request,
+void ApiEndpoint::getNodes(const Rest::Request &request,
                            Http::ResponseWriter response) {}
 
-void ApiEndpoint::getLinks(const Rest::Request & request,
+void ApiEndpoint::getLinks(const Rest::Request &request,
                            Http::ResponseWriter response) {}
 
-void ApiEndpoint::setLink(const Rest::Request & request,
+void ApiEndpoint::setLink(const Rest::Request &request,
                           Http::ResponseWriter response) {}
 
-void ApiEndpoint::removeLink(const Rest::Request & request,
+void ApiEndpoint::brakeLink(const Rest::Request &request,
                              Http::ResponseWriter response) {
+    StringBuffer               buf;
+    PrettyWriter<StringBuffer> writer(buf);
 
-void ApiEndpoint::removeNode(const Rest::Request & request,
+    auto body = request.body();
+
+    Document postDoc;
+
+    L_DEBUG("Server", body);
+
+    postDoc.Parse(body.c_str());
+
+    // Check if there are parsing errors or Typos into the Keys
+    if (!postDoc.HasParseError() && postDoc.HasMember("from") &&
+        postDoc.HasMember("to") && postDoc.HasMember("from_interface") &&
+        postDoc.HasMember("to_interface")) {
+        if (doc["links"].Empty()) {
+            L_DEBUG("Server", "There are no links in the network");
+
+            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+            response.send(Http::Code::Accepted,
+                          "There are no links into the network!");
+        } else {
+            // Search for the link and change the value
+            Value link(kObjectType), link_reverse(kObjectType);
+
+            // Link is using copies of the values, Link_reverse is consuming the
+            // values.
+
+            link.AddMember("from",
+                           Value(postDoc.FindMember("from")->value,
+                                 postDoc.GetAllocator()),
+                           postDoc.GetAllocator());
+            link.AddMember(
+                "to",
+                Value(postDoc.FindMember("to")->value, postDoc.GetAllocator()),
+                postDoc.GetAllocator());
+            link.AddMember("from_interface",
+                           Value(postDoc.FindMember("from_interface")->value,
+                                 postDoc.GetAllocator()),
+                           postDoc.GetAllocator());
+            link.AddMember("to_interface",
+                           Value(postDoc.FindMember("to_interface")->value,
+                                 postDoc.GetAllocator()),
+                           postDoc.GetAllocator());
+            link.AddMember("con_status", "active", postDoc.GetAllocator());
+
+            link_reverse.AddMember("from",
+                                   postDoc.FindMember("to")->value,
+                                   postDoc.GetAllocator());
+            link_reverse.AddMember("to",
+                                   postDoc.FindMember("from")->value,
+                                   postDoc.GetAllocator());
+            link_reverse.AddMember("from_interface",
+                                   postDoc.FindMember("to_interface")->value,
+                                   postDoc.GetAllocator());
+            link_reverse.AddMember("to_interface",
+                                   postDoc.FindMember("from_interface")->value,
+                                   postDoc.GetAllocator());
+            link_reverse.AddMember(
+                "con_status", "active", postDoc.GetAllocator());
+
+            for (auto &l : doc["links"].GetArray()) {
+                if ((l == link || l == link_reverse)) {
+                    Value::MemberIterator it = l.FindMember("con_status");
+                    it->value.SetString("failed", postDoc.GetAllocator());
+                    L_DEBUG("Server", "Value in the the RapidJSON doc changed");
+
+                    for (auto dev : *devices) {
+                        if (dev->ID.compare(link["from"].GetString())) {
+                            for (auto net : *dev->networkCards) {
+                                if (net->netInterface.compare(
+                                        link["from_interface"].GetString())) {
+                                    net->link->connection_status =
+                                        FAILED;  // TODO Use setter when it will
+                                                 // be ready on the class.
+                                    L_INFO("Server", "Link disconnetcted. Device: " +
+                                           dev->ID +
+                                           " Interface: " + net->netInterface);
+                                    L_DEBUG("Server", "Link status: " +
+                                            net->link->connection_status);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        if (postDoc.HasParseError()) {
+            L_WARNING("Server", "Parsing Error(offset " +
+                      to_string((unsigned)postDoc.GetErrorOffset()) +
+                      "): " + to_string((postDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"from\" : "
+                      "\"device_x\""
+                      "\n\t\"to\" : \"device_y\""
+                      "\n\t\"from_interface\" : \"int_dev_x\""
+                      "\n\t\"to_interface\" : \"int_dev_y\""
+                      "\n}");
+    }
+
+
+    // TODO Modify default reply
+    // postDoc.Accept(writer);
+
+
+    response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
+    response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+    response.send(Http::Code::Ok, "Link removed Successfully!");
+}
+
+void ApiEndpoint::removeNode(const Rest::Request &request,
                              Http::ResponseWriter response) {}
 
-void ApiEndpoint::getPackets(const Rest::Request & request,
+void ApiEndpoint::getPackets(const Rest::Request &request,
                              Http::ResponseWriter response) {}
 
-void ApiEndpoint::setReady(const Rest::Request & request,
+void ApiEndpoint::setReady(const Rest::Request &request,
                            Http::ResponseWriter response) {}

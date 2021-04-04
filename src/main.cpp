@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     // TODO REMOVE ME, just examples
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
-                                    pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
+                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
     pcpp::IPv4Layer newIPLayer(pcpp::IPv4Address(std::string("192.168.1.1")),
                                pcpp::IPv4Address(std::string("10.0.0.1")));
     newIPLayer.getIPv4Header()->ipId       = pcpp::hostToNet16(2000);
@@ -142,6 +142,8 @@ int main(int argc, char *argv[]) {
         while (!stop) {
             // TODO logic here
         }
+
+        L_INFO("Server", "SIGINT received, while loop exited");
 
         // Once the Ctrl+C is pressed all the threads stop (on my machine)
 
