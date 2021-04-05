@@ -31,7 +31,7 @@ void ParserLink::parseAndAddBuiltLinks(const YAML::Node &links_yaml,
 
             } else if (property == "connection_status") {
                 connection_status =
-                    value.as<std::string>() == "active" ? active : failed;
+                    value.as<std::string>() == "active" ? ACTIVE : FAILED;
             } else {
                 throwInvalidKey(property, link_property_yaml.first);
             }

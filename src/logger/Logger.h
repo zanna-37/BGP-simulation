@@ -118,6 +118,7 @@ class Logger {
      * Log the \a message if the current \a level is lower or equal to \a
      * logLevel. The function will treat \code '\n' \endcode in a special manner
      * by printing an alignment padding after the newline.
+     * It is safe to call this method from multiple threads concurrently.
      *
      * @param logLevel The level with whom the message will be logged.
      * @param message The message to be logged.
@@ -126,8 +127,8 @@ class Logger {
 
    private:
     static shared_ptr<Logger> logger;
-    LogLevel                  targetLevel = LogLevel::INFO;
-    bool                      longPrefix  = false;
+    LogLevel                  targetLevel    = LogLevel::INFO;
+    bool                      longPrefix     = false;
     bool                      enableColor    = true;
     bool                      printTimestamp = true;
     std::mutex                mutex;

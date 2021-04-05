@@ -17,10 +17,32 @@
 // http://coliru.stacked-crooked.com/a/98fdcd78c99e948c
 
 enum TimerState {
+    /**
+     * The timer has been initialized but never started.
+     */
     UNINITIALIZED,
+
+    /**
+     * The timer is counting down waiting to expire. Ticking refers to the
+     * "tic-tac" that a timer does when counting down.
+     */
     TICKING,
+
+    /**
+     * The timer is expired without a cancellation, therefore it is executing
+     * the action that has been scheduled to be done after the expiration.
+     */
     EXECUTING_SCHEDULED_TASK,
+
+    /**
+     * The timer is expired and has completed the scheduled actions.
+     */
     COMPLETED,
+
+    /**
+     * The timer has been cancelled before expiration, therefore the actions
+     * will not be performed.
+     */
     CANCELLED
 };
 
@@ -56,28 +78,33 @@ class Timer {
     ~Timer();
 
     /**
-     * Start the timer thread setting the duration to the default value defined
-     * in the constructor
+     * Start the timer thread setting the duration to the value defined
+     * in the constructor.
+     * This can only be called once.
      */
     void start();
 
     /**
-     * Stop the timer and join the timer thread
+     * Stop the timer and join the timer thread.
+     * It is safe to call it multiple times and in every state.
      */
     void stop();
 
     /**
-     * Get the actual state of the timer
+     * Get the current state of the timer.
+     *
      * @return the timer state value
      */
     TimerState getState() const { return timerState; }
 
     /**
-     * return the remaining time after a pause.It differs from total duration
-     * because total duration is the initial default value of the timer,
-     *  while duration is uninitialized when the timer starts for the first
-     * time and it is used only if the user call Timer::pause (// TODO)
-     * @return the duration value
+     * Return the remaining time after a pause. It differs from \a totalDuration
+     * because \a totalDuration is the initial value of the timer,
+     * while \a duration is uninitialized when the timer starts for the first
+     * time and it is only used if the user calls \a Timer::pause (// TODO
+     * currently not implemented).
+     *
+     * @return The duration value.
      */
     std::chrono::milliseconds getDuration() const { return duration; }
 };

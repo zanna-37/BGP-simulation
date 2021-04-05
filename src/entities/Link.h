@@ -6,9 +6,23 @@
 
 using namespace std;
 
-enum Connection_status { active, failed };
+enum Connection_status {
+    /**
+     * The link is up and healthy. All the packets pass through it successfully.
+     */
+    ACTIVE,
+    /**
+     * The link is broken. No packet can pass though it.
+     */
+    FAILED
+};
 
 class NetworkCard;  // forward declaration
+
+/**
+ * This class abstracts the concept of a medium (e.g. a cable) that connects two
+ * devices.
+ */
 class Link {
    public:
     Connection_status connection_status;
@@ -27,23 +41,39 @@ class Link {
     NetworkCard *getPeerNetworkCardOrNull(NetworkCard *networkCard);
 
    private:
+    /**
+     * Convenient pair that stores the references to the connected devices. No
+     * order is assumed.
+     *
+     * @warning This must always reflect the state of the \a NetworkCards. It is
+     * kept in sync by the methods \a Link::connect(...) and \a
+     * Link::disconnect(...) which are in turn called from the \a NetworkCard
+     * class. For this reason this pair should be used as a convenient reference
+     * but the ground truth is always the state inside the \a NetworkCards.
+     */
     pair<NetworkCard *, NetworkCard *> device_source_networkCards;
 
     /**
      * Disassociate the specified networkCard.
+     * This reflects the changes performed in \a NeworkCard::disconnect(...). In
+     * particular, when a network card disassociate from a link, the link will
+     * in turn remove its reference of the (now removed) network card.
      *
-     * @warning This should only be called from the \a NetworkCard class.
-     *
-     * @param networkCard The networkcard to disassociate.
+     * @warning This is an internal method and should only be called from the \a
+     * NetworkCard class. Use \a NeworkCard::disconnect(...) instead.
+     * @param networkCard The networkcard that has been disassociated.
      */
     void disconnect(NetworkCard *networkCard);
 
     /**
      * Associate the specified networkCard.
+     * This reflects the changes performed in \a NeworkCard::connect(...). In
+     * particular, when a network card associate with a link, the link stores an
+     * internal reference of the newly attached network card.
      *
-     * @warning This should only be called from the \a NetworkCard class.
-     *
-     * @param networkCard The networkcard to associate.
+     * @warning This is an internal method and should only be called from the \a
+     * NetworkCard class.  Use \a NeworkCard::connect(...) instead.
+     * @param networkCard The networkcard that has been associated.
      */
     void connect(NetworkCard *networkCard);
 

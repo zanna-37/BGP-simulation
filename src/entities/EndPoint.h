@@ -9,11 +9,14 @@
 
 using namespace std;
 
+/**
+ * An endpoint is a leaf node in a simulation. It can be a client or a server.
+ */
 class EndPoint : public virtual Device {
    public:
     EndPoint(string                 ID,
-           pcpp::IPv4Address      defaultGateway,
-           vector<NetworkCard *> *networkCards)
+             pcpp::IPv4Address      defaultGateway,
+             vector<NetworkCard *> *networkCards)
         : Device(std::move(ID), defaultGateway, networkCards) {}
 
     ~EndPoint() override = default;
