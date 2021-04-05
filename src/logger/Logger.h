@@ -3,6 +3,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <string>
 
 using namespace std;
@@ -129,6 +130,7 @@ class Logger {
     bool                      longPrefix  = false;
     bool                      enableColor    = true;
     bool                      printTimestamp = true;
+    std::mutex                mutex;
 
     string ESCAPE_CHAR           = "\033";
     string COLOR_FG_DEFAULT      = ESCAPE_CHAR + "[39m";
