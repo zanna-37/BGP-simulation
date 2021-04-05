@@ -1,16 +1,13 @@
 #ifndef TCPSTATECLOSING_H
 #define TCPSTATECLOSING_H
 
-#include "../TCPConnection.h"
+
 #include "TCPState.h"
-// #include "TCPStateMachine.h"
-#include "TCPStateTimeWait.h"
+#include "TCPStateMachine.h"
+
 class TCPStateClosing : public TCPState {
    public:
-    TCPStateClosing(TCPStateMachine* stateMachine) : TCPState(stateMachine) {
-        NAME = "CLOSING";
-        L_DEBUG("State created: " + NAME);
-    }
+    TCPStateClosing(TCPStateMachine* stateMachine);
     ~TCPStateClosing(){};
 
     bool onEvent(TCPEvent);

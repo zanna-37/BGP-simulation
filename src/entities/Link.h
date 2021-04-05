@@ -7,6 +7,8 @@
 
 #include "NetworkCard.h"
 
+// forward declarations
+#include "NetworkCard.fwd.h"
 
 using namespace std;
 
@@ -20,8 +22,6 @@ enum Connection_status {
      */
     FAILED
 };
-
-class NetworkCard;  // forward declaration
 
 /**
  * This class abstracts the concept of a medium (e.g. a cable) that connects two

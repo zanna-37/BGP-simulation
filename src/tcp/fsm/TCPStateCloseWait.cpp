@@ -1,5 +1,13 @@
 #include "TCPStateCloseWait.h"
 
+#include "../../logger/Logger.h"
+#include "TCPStateLastACK.h"
+
+TCPStateCloseWait::TCPStateCloseWait(TCPStateMachine* stateMachine)
+    : TCPState(stateMachine) {
+    NAME = "CLOSE_WAIT";
+    L_DEBUG("State created: " + NAME);
+}
 
 bool TCPStateCloseWait::onEvent(TCPEvent event) {
     bool handled = true;

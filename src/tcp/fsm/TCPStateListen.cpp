@@ -1,6 +1,13 @@
 #include "TCPStateListen.h"
 
+#include "../../logger/Logger.h"
+#include "TCPStateSYNReceived.h"
 
+TCPStateListen::TCPStateListen(TCPStateMachine* stateMachine)
+    : TCPState(stateMachine) {
+    NAME = "LISTEN";
+    L_DEBUG("State created: " + NAME);
+}
 bool TCPStateListen::onEvent(TCPEvent event) {
     bool handled = true;
     switch (event) {

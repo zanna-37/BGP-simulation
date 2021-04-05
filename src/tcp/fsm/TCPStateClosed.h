@@ -1,11 +1,10 @@
 #ifndef TCPSTATECLOSED_H
 #define TCPSTATECLOSED_H
 
-#include "../TCPConnection.h"
+
 #include "TCPState.h"
-#include "TCPStateListen.h"
-// #include "TCPStateMachine.h"
-#include "TCPStateSYNSent.h"
+#include "TCPStateMachine.h"
+
 class TCPStateClosed : public TCPState {
    public:
     TCPStateClosed(TCPStateMachine* stateMachine);

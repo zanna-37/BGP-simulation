@@ -5,18 +5,15 @@
 #include <TcpLayer.h>
 
 #include "../entities/Device.h"
-#include "../fsm/StateMachine.h"
 #include "TCPEvent.h"
-#include "fsm/TCPStateClosed.h"
+#include "fsm/TCPState.h"
 #include "fsm/TCPStateMachine.h"
 
-// OLD
-// class TCPStateMachine;  // forward declaration
-// class Device;           // forward declaration
+// forward declarations
+#include "../entities/Device.fwd.h"
+#include "fsm/TCPState.fwd.h"
+#include "fsm/TCPStateMachine.fwd.h"
 
-// template <class Connection, class State, class Event>
-class TCPStateMachine;
-class TCPState;
 class TCPConnection {
    public:
     TCPStateMachine* stateMachine = nullptr;

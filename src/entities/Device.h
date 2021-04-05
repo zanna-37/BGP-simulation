@@ -20,12 +20,22 @@
 #include "../tcp/TCPConnection.h"
 #include "NetworkCard.h"
 
+// forward declarations
+#include "../ip/RoutingTable.fwd.h"
+#include "../tcp/TCPConnection.fwd.h"
+#include "NetworkCard.fwd.h"
+
 using namespace std;
 
-class ReceivedPacketEvent;
+class ReceivedPacketEvent {
+   public:
+    NetworkCard *networkCard;
 
-class NetworkCard;  // forward declaration
-class TCPConnection;
+    enum Description { PACKET_ARRIVED };
+    Description description;
+    ReceivedPacketEvent(NetworkCard *networkCard, Description description);
+    ~ReceivedPacketEvent() {}
+};
 
 /**
  * This class abstracts the concept of a general network device
@@ -59,7 +69,7 @@ class Device {
      */
     vector<NetworkCard *> *networkCards;
     std::thread *          deviceThread = nullptr;
-    RoutingTable           routingTable;
+    RoutingTable *         routingTable = nullptr;
     bool                   running;
 
     std::mutex receivedPacketsEventQueue_mutex;  // mutex to lock the queue
@@ -114,16 +124,6 @@ class Device {
 
    private:
     std::size_t tcpConnectionHash(pcpp::IPv4Address dstAddr, uint16_t dstPort);
-};
-
-class ReceivedPacketEvent {
-   public:
-    NetworkCard *networkCard;
-
-    enum Description { PACKET_ARRIVED };
-    Description description;
-    ReceivedPacketEvent(NetworkCard *networkCard, Description description);
-    ~ReceivedPacketEvent() {}
 };
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H

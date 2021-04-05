@@ -8,19 +8,18 @@
 #include <thread>
 
 #include "../../fsm/StateMachine.h"
-#include "../../logger/Logger.h"
 #include "../../utils/Timer.h"
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "BGPState.h"
 
+// forward declarations
+#include "../../utils/Timer.fwd.h"
+#include "../BGPConnection.fwd.h"
+#include "BGPState.fwd.h"
+
 using namespace std::chrono_literals;
 
-class BGPState;       // forward declaration
-class BGPConnection;  // forward declaration
-class Timer;          // forward declaration
-
-// template <class Connection, class State, class Event>
 class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
    private:
     // Mandatory session attributes

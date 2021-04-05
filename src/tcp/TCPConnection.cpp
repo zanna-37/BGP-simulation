@@ -1,6 +1,6 @@
 #include "TCPConnection.h"
 
-// #include "../entities/Device.h"
+#include "fsm/TCPStateClosed.h"
 
 TCPConnection ::TCPConnection(Device* owner) : owner(owner) {
     this->stateMachine = new TCPStateMachine(this);

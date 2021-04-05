@@ -1,5 +1,8 @@
 #include "TCPEvent.h"
 
+#include "../logger/Logger.h"
+
+
 std::string getEventName(TCPEvent event) {
     switch (event) {
         case TCPEvent::PassiveOpen:

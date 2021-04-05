@@ -1,7 +1,9 @@
 #ifndef BGPSTATEOPENSENT_H
 #define BGPSTATEOPENSENT_H
 
+#include "../../logger/Logger.h"
 #include "../BGPConnection.h"
+#include "../BGPEvent.h"
 #include "BGPState.h"
 #include "BGPStateMachine.h"
 

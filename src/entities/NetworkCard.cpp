@@ -1,7 +1,6 @@
 #include "NetworkCard.h"
 
 #include "../logger/Logger.h"
-#include "Device.h"  // REFERENCE (forward declaration): https://pvigier.github.io/2018/02/09/dependency-graph.html
 
 NetworkCard::NetworkCard(string            netInterface,
                          pcpp::IPv4Address IP,

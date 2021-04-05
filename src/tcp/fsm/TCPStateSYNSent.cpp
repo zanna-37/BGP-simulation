@@ -1,5 +1,15 @@
 #include "TCPStateSYNSent.h"
 
+#include "../../logger/Logger.h"
+#include "TCPStateEnstablished.h"
+#include "TCPStateSYNReceived.h"
+
+
+TCPStateSYNSent::TCPStateSYNSent(TCPStateMachine* stateMachine)
+    : TCPState(stateMachine) {
+    NAME = "SYN-SENT";
+    L_DEBUG("State created: " + NAME);
+}
 
 bool TCPStateSYNSent::onEvent(TCPEvent event) {
     bool handled = true;

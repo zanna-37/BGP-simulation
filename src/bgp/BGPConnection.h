@@ -6,12 +6,13 @@
 
 #include "../entities/Device.h"
 #include "BGPEvent.h"
-#include "fsm/BGPStateIdle.h"
 #include "fsm/BGPStateMachine.h"
 
-class BGPStateMachine;  // forward declaration
-class BGPState;
-class Device;
+
+// forward declarations
+#include "../entities/Device.fwd.h"
+#include "fsm/BGPStateMachine.fwd.h"
+
 class BGPConnection {
    public:
    private:

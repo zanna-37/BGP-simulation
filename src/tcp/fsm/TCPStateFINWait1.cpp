@@ -1,6 +1,14 @@
 #include "TCPStateFINWait1.h"
 
+#include "../../logger/Logger.h"
+#include "TCPStateClosing.h"
+#include "TCPStateFINWait2.h"
 
+TCPStateFINWait1::TCPStateFINWait1(TCPStateMachine* stateMachine)
+    : TCPState(stateMachine) {
+    NAME = "FIN-WAIT-1";
+    L_DEBUG("State created: " + NAME);
+}
 bool TCPStateFINWait1::onEvent(TCPEvent event) {
     bool handled = true;
     switch (event) {

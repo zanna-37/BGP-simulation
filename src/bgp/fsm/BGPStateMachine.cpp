@@ -3,9 +3,6 @@
 BGPStateMachine::BGPStateMachine(BGPConnection* connection)
     : StateMachine(connection) {
     initializeTimers();
-    this->currentState = new BGPStateIdle(this);
-    L_DEBUG("State Machine Created. Initial state: " +
-            this->currentState->NAME);
 }
 BGPStateMachine::~BGPStateMachine() {
     // ~StateMachine();

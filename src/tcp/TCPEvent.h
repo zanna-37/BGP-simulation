@@ -2,7 +2,6 @@
 #define TCPEVENT_H
 #include <string>
 
-#include "../logger/Logger.h"
 enum TCPEvent {
     PassiveOpen                 = 1,
     ActiveOpen_SendSYN          = 2,

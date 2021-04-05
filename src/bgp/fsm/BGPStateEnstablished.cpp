@@ -1,5 +1,7 @@
 #include "BGPStateEnstablished.h"
 
+#include "BGPStateIdle.h"
+
 
 BGPStateEnstablished ::~BGPStateEnstablished() {}
 

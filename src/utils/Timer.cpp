@@ -1,5 +1,7 @@
 #include "Timer.h"
 
+#include "../logger/Logger.h"
+
 Timer ::Timer(std::string          name,
               BGPStateMachine*     stateMachine,
               BGPEvent             eventToSendUponExpire,

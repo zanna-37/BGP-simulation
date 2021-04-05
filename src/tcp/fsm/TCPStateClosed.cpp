@@ -1,5 +1,14 @@
 #include "TCPStateClosed.h"
 
+#include <IPLayer.h>
+#include <TcpLayer.h>
+
+#include <stack>
+
+#include "../../logger/Logger.h"
+#include "TCPStateListen.h"
+#include "TCPStateSYNSent.h"
+
 TCPStateClosed::TCPStateClosed(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {
     NAME = "CLOSED";

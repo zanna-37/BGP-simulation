@@ -1,9 +1,10 @@
 #ifndef BGPSTATEENSTABLISHED_H
 #define BGPSTATEENSTABLISHED_H
 
-#include "../BGPConnection.h"
+#include "../../logger/Logger.h"
+#include "../BGPEvent.h"
 #include "BGPState.h"
-// #include "BGPStateMachine.h"
+#include "BGPStateMachine.h"
 
 class BGPStateEnstablished : public BGPState {
    private:

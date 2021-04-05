@@ -12,7 +12,11 @@
 #include "../bgp/BGPConnection.h"
 #include "../bgp/BGPEvent.h"
 #include "../bgp/fsm/BGPStateMachine.h"
-#include "../logger/Logger.h"
+
+// forward declarations
+#include "../bgp/BGPConnection.fwd.h"
+#include "../bgp/fsm/BGPState.fwd.h"
+#include "../bgp/fsm/BGPStateMachine.fwd.h"
 
 
 // http://coliru.stacked-crooked.com/a/98fdcd78c99e948c
@@ -47,10 +51,6 @@ enum TimerState {
     CANCELLED
 };
 
-class BGPStateMachine;
-class BGPConnection;
-class BGPState;
-// forward declaration
 class Timer {
    private:
     const std::string         NAME;

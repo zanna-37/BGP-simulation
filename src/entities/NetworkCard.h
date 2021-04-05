@@ -12,13 +12,14 @@
 #include <string>
 
 #include "../utils/MacGenerator.h"
+#include "Device.h"
 #include "Link.h"
 
+// forward declarations
+#include "Device.fwd.h"
+#include "Link.fwd.h"
 using namespace std;
 
-
-class Link;    // forward declaration
-class Device;  // forward declaration
 
 /**
  * This abstracts the concept of a network card.

@@ -2,9 +2,6 @@
 
 #include "BGPStateActive.h"
 #include "BGPStateConnect.h"
-// #include "BGPStateOpenSent.h"
-// #include "BGPStateOpenconfirm.h"
-// #include "BGPStateEnstablished.h"
 
 
 BGPStateIdle ::~BGPStateIdle() {}

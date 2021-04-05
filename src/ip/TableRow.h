@@ -3,11 +3,11 @@
 
 #include <IPv4Layer.h>
 
-#include <iomanip>
-#include <iostream>
-
 #include "../entities/NetworkCard.h"
 #include "../logger/Logger.h"
+
+// forward declarations
+#include "../entities/NetworkCard.fwd.h"
 
 class TableRow {
    public:

@@ -1,5 +1,14 @@
 #include "TCPStateEnstablished.h"
 
+#include "../../logger/Logger.h"
+#include "TCPStateCloseWait.h"
+#include "TCPStateFINWait1.h"
+
+TCPStateEnstablished::TCPStateEnstablished(TCPStateMachine* stateMachine)
+    : TCPState(stateMachine) {
+    NAME = "ENSTABLISHED";
+    L_DEBUG("State created: " + NAME);
+}
 
 bool TCPStateEnstablished::onEvent(TCPEvent event) {
     bool handled = true;

@@ -2,16 +2,12 @@
 #define TCPSTATE_H
 
 
-#include <stack>
-
-#include "../../logger/Logger.h"
-#include "../../tcp/fsm/TCPStateMachine.h"
-#include "../TCPConnection.h"
 #include "../TCPEvent.h"
+#include "TCPStateMachine.h"
 
+// forward declarations
+#include "TCPStateMachine.fwd.h"
 
-class TCPStateMachine;
-class TCPConnection;
 class TCPState {
    public:
     TCPStateMachine* stateMachine;

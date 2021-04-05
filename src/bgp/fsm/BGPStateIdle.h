@@ -1,9 +1,9 @@
 #ifndef BGPSTATEIDLE_H
 #define BGPSTATEIDLE_H
 
-#include "../BGPConnection.h"
+#include "../BGPEvent.h"
 #include "BGPState.h"
-// #include "BGPStateMachine.h"
+#include "BGPStateMachine.h"
 
 class BGPStateIdle : public BGPState {
    private:

@@ -1,5 +1,13 @@
 #include "TCPStateLastACK.h"
 
+#include "../../logger/Logger.h"
+#include "TCPStateClosed.h"
+
+TCPStateLastACK::TCPStateLastACK(TCPStateMachine* stateMachine)
+    : TCPState(stateMachine) {
+    NAME = "LAST-ACK";
+    L_DEBUG("State created: " + NAME);
+}
 
 bool TCPStateLastACK::onEvent(TCPEvent event) {
     bool handled = true;

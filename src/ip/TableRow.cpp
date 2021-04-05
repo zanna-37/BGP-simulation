@@ -11,14 +11,6 @@ TableRow::TableRow(pcpp::IPv4Address networkIP,
       netInterface(netInterface),
       networkCard(networkCard) {}
 
-
-// TableRow TableRow::operator=(const TableRow& other) {
-//     return TableRow(other.networkIP,
-//                     other.netmask,
-//                     other.defaultGateway,
-//                     other.netInterface,
-//                     other.networkCard);
-// }
 int TableRow::toCIDR() {
     int cidr = 0;
 

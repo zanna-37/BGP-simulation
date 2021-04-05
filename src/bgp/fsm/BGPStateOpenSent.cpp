@@ -1,6 +1,7 @@
 #include "BGPStateOpenSent.h"
 
 #include "BGPStateActive.h"
+#include "BGPStateIdle.h"
 #include "BGPStateOpenConfirm.h"
 
 BGPStateOpenSent ::~BGPStateOpenSent() {}

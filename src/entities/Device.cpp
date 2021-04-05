@@ -1,5 +1,6 @@
 #include "Device.h"
 
+#include "../logger/Logger.h"
 
 Device::Device(string ID, pcpp::IPv4Address defaultGateway)
     : ID(std::move(ID)), defaultGateway(defaultGateway) {}
@@ -29,14 +30,12 @@ Device::~Device() {
     delete networkCards;
 
     delete listenConnection;
-    std::map<std::size_t, TCPConnection *>::iterator it;
-    // while (it != tcpConnections.end()) {
-    //     delete it->second;
-    // }
 
+    std::map<std::size_t, TCPConnection *>::iterator it;
     for (it = tcpConnections.begin(); it != tcpConnections.end(); ++it) {
         delete it->second;
     }
+    delete routingTable;
     delete deviceThread;
 }
 
@@ -46,31 +45,32 @@ void Device::addCards(vector<NetworkCard *> *networkCards) {
 
 
 void Device::start() {
+    routingTable = new RoutingTable();
     for (NetworkCard *networkCard : *networkCards) {
         pcpp::IPv4Address networkIP(
             (networkCard->IP.toInt() & networkCard->netmask.toInt()));
 
-        TableRow row(networkIP,
-                     networkCard->netmask,
-                     pcpp::IPv4Address::Zero,
-                     networkCard->netInterface,
-                     networkCard);
+        TableRow *row = new TableRow(networkIP,
+                                     networkCard->netmask,
+                                     pcpp::IPv4Address::Zero,
+                                     networkCard->netInterface,
+                                     networkCard);
 
-        routingTable.insertRow(row);
+        routingTable->insertRow(row);
 
         if (defaultGateway.isValid() &&
             defaultGateway.matchSubnet(networkIP, networkCard->netmask)) {
-            TableRow row(pcpp::IPv4Address::Zero,
-                         pcpp::IPv4Address::Zero,
-                         defaultGateway,
-                         networkCard->netInterface,
-                         networkCard);
+            TableRow *row = new TableRow(pcpp::IPv4Address::Zero,
+                                         pcpp::IPv4Address::Zero,
+                                         defaultGateway,
+                                         networkCard->netInterface,
+                                         networkCard);
 
-            routingTable.insertRow(row);
+            routingTable->insertRow(row);
         }
     }
 
-    routingTable.printTable();
+    routingTable->printTable();
 
     running      = true;
     deviceThread = new std::thread([&]() {
@@ -108,7 +108,7 @@ void Device::sendPacket(stack<pcpp::Layer *> *layers) {
     pcpp::IPv4Layer * ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
     pcpp::IPv4Address dstAddress = ipLayer->getDstIPv4Address();
 
-    NetworkCard *nextHopNetworkCard = routingTable.findNextHop(dstAddress);
+    NetworkCard *nextHopNetworkCard = routingTable->findNextHop(dstAddress);
     if (nextHopNetworkCard == nullptr) {
         L_ERROR("DESTINATION UNREACHABLE");
     } else {
@@ -127,7 +127,7 @@ void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
         L_DEBUG("processing message");
         processMessage(layers);
     } else {
-        NetworkCard *nextHopNetworkCard = routingTable.findNextHop(dstAddress);
+        NetworkCard *nextHopNetworkCard = routingTable->findNextHop(dstAddress);
         if (nextHopNetworkCard == nullptr) {
             L_ERROR("DESTINATION UNREACHABLE");
         } else {
@@ -199,15 +199,11 @@ void Device::listen() {
 void Device::connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
     TCPConnection *connection = new TCPConnection(this);
 
-    // connection->srcAddr = srcAddr;
-    // connection->srcPort = srcPort;
     connection->dstAddr = *dstAddr;
     connection->dstPort = dstPort;
 
-    //
     tcpConnections[tcpConnectionHash(*dstAddr, dstPort)] = connection;
     connection->enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
-    // sendPacket(layers);
 }
 
 TCPConnection *Device::getExistingConnectionOrNull(pcpp::IPv4Layer *ipLayer,
@@ -237,7 +233,8 @@ std::size_t Device::tcpConnectionHash(pcpp::IPv4Address dstAddr,
 
     return hash1 ^ hash2;
 }
-// ReceivedPacketEvent methods
+
+// ### ReceivedPacketEvent methods
 
 ReceivedPacketEvent::ReceivedPacketEvent(NetworkCard *networkCard,
                                          Description  description)

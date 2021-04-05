@@ -1,9 +1,8 @@
 #ifndef BGPSTATEACTIVE_H
 #define BGPSTATEACTIVE_H
 
-#include "../BGPConnection.h"
+#include "../../logger/Logger.h"
 #include "BGPState.h"
-// #include "BGPStateMachine.h"
 
 class BGPStateActive : public BGPState {
    private:

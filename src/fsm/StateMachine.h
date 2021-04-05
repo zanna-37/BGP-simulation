@@ -6,7 +6,6 @@
 #include <queue>
 #include <thread>
 
-// #include "../entities/Device.h"
 #include "../logger/Logger.h"
 template <typename Connection, typename State, typename Event>
 class StateMachine {

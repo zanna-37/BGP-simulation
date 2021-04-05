@@ -1,5 +1,14 @@
 #include "TCPStateClosing.h"
 
+#include "../../logger/Logger.h"
+#include "TCPStateTimeWait.h"
+
+TCPStateClosing::TCPStateClosing(TCPStateMachine* stateMachine)
+    : TCPState(stateMachine) {
+    NAME = "CLOSING";
+    L_DEBUG("State created: " + NAME);
+}
+
 bool TCPStateClosing::onEvent(TCPEvent event) {
     bool handled = true;
     switch (event) {

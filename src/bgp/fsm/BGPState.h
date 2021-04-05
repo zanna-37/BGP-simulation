@@ -1,13 +1,9 @@
 #ifndef BGPSTATE_H
 #define BGPSTATE_H
 
-#include "../../logger/Logger.h"
-#include "../BGPConnection.h"
 #include "../BGPEvent.h"
+#include "BGPStateMachine.fwd.h"
 #include "BGPStateMachine.h"
-
-class BGPStateMachine;  // forward declaration
-class BGPConnection;    // forward declaration
 
 class BGPState {
    public:
