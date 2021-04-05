@@ -158,7 +158,7 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
             listenConnection->processMessage(layers);
         } else {
             L_INFO("PORT closed or server not listening");
-            // send reset to the sender
+            // TODO send reset to the sender
         }
     }
 }
