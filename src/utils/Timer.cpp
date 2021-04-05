@@ -1,7 +1,7 @@
 #include "Timer.h"
 
-Timer ::Timer(std::string                                         name,
-              BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine,
+Timer ::Timer(std::string          name,
+              BGPStateMachine*     stateMachine,
               BGPEvent             eventToSendUponExpire,
               std::chrono::seconds totalDuration)
     : NAME(std::move(name)),

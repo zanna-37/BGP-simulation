@@ -20,8 +20,8 @@ class BGPState;       // forward declaration
 class BGPConnection;  // forward declaration
 class Timer;          // forward declaration
 
-template <class Connection, class State, class Event>
-class BGPStateMachine : public StateMachine<Connection, State, Event> {
+// template <class Connection, class State, class Event>
+class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
    private:
     // Mandatory session attributes
     int connectRetryCounter = 0;
@@ -51,7 +51,7 @@ class BGPStateMachine : public StateMachine<Connection, State, Event> {
     //  13) TrackTcpState
 
    public:
-    BGPStateMachine(Connection* connection);
+    BGPStateMachine(BGPConnection* connection);
 
     ~BGPStateMachine();
 

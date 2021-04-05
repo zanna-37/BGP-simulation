@@ -2,7 +2,7 @@
 
 
 BGPConnection::BGPConnection(Device* owner) : owner(owner) {
-    stateMachine = new BGPStateMachine<BGPConnection, BGPState, BGPEvent>(this);
+    stateMachine = new BGPStateMachine(this);
     stateMachine->start();
 }
 BGPConnection::~BGPConnection() { delete stateMachine; }

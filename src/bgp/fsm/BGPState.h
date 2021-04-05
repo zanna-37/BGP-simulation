@@ -5,16 +5,15 @@
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "BGPStateMachine.h"
-template <class Connection, class State, class Event>
+
 class BGPStateMachine;  // forward declaration
 class BGPConnection;    // forward declaration
 
 class BGPState {
    public:
-    BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine;
-    string                                              NAME;
-    BGPState(BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine)
-        : stateMachine(stateMachine){};
+    BGPStateMachine* stateMachine;
+    string           NAME;
+    BGPState(BGPStateMachine* stateMachine) : stateMachine(stateMachine){};
     virtual ~BGPState() {}
 
     /**

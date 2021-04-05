@@ -16,13 +16,8 @@
 
 class TCPState;       // forward declaration
 class TCPConnection;  // forward declaration
-// template <typename Connection = TCPConnection,
-//           typename State      = TCPState,
-//           typename Event      = TCPEvent>
 class TCPStateMachine : public StateMachine<TCPConnection, TCPState, TCPEvent> {
    public:
-    TCPStateMachine(TCPConnection* connection) : StateMachine(connection) {
-        // this->currentState = new TCPStateClosed(this);
-    }
+    TCPStateMachine(TCPConnection* connection) : StateMachine(connection) {}
 };
 #endif

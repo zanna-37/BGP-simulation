@@ -10,8 +10,7 @@ class BGPStateOpenConfirm : public BGPState {
    private:
    public:
     // Constructor
-    BGPStateOpenConfirm(
-        BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine)
+    BGPStateOpenConfirm(BGPStateMachine* stateMachine)
         : BGPState(stateMachine) {
         NAME = "OPEN_CONFIRM";
         L_DEBUG("State created: " + NAME);

@@ -1,32 +1,27 @@
 #include "BGPStateMachine.h"
 
-template <class Connection, class State, class Event>
-BGPStateMachine<Connection, State, Event>::BGPStateMachine(
-    Connection* connection)
-    : StateMachine<Connection, State, Event>(connection) {
+BGPStateMachine::BGPStateMachine(BGPConnection* connection)
+    : StateMachine(connection) {
     initializeTimers();
     this->currentState = new BGPStateIdle(this);
     L_DEBUG("State Machine Created. Initial state: " +
             this->currentState->NAME);
 }
-template <class Connection, class State, class Event>
-BGPStateMachine<Connection, State, Event>::~BGPStateMachine() {
-    // ~StateMachine<Connection, State, Event>();
+BGPStateMachine::~BGPStateMachine() {
+    // ~StateMachine();
     // delete timers
     delete connectRetryTimer;
     delete keepAliveTimer;
     delete holdTimer;
     delete delayOpenTimer;
 }
-template <class Connection, class State, class Event>
-void BGPStateMachine<Connection, State, Event>::incrementConnectRetryCounter() {
+void BGPStateMachine::incrementConnectRetryCounter() {
     connectRetryCounter += 1;
     L_DEBUG("connectRetryCounter incremented. Current value: " +
             to_string(connectRetryCounter));
 }
 
-template <class Connection, class State, class Event>
-void BGPStateMachine<Connection, State, Event>::resetConnectRetryTimer() {
+void BGPStateMachine::resetConnectRetryTimer() {
     if (connectRetryTimer != nullptr) {
         connectRetryTimer->stop();
         delete connectRetryTimer;
@@ -38,8 +33,7 @@ void BGPStateMachine<Connection, State, Event>::resetConnectRetryTimer() {
                                   connectRetryTime);
 }
 
-template <class Connection, class State, class Event>
-void BGPStateMachine<Connection, State, Event>::resetHoldTimer() {
+void BGPStateMachine::resetHoldTimer() {
     if (holdTimer != nullptr) {
         holdTimer->stop();
         delete holdTimer;
@@ -49,8 +43,7 @@ void BGPStateMachine<Connection, State, Event>::resetHoldTimer() {
         new Timer("HoldTimer", this, BGPEvent::HoldTimer_Expires, holdTime);
 }
 
-template <class Connection, class State, class Event>
-void BGPStateMachine<Connection, State, Event>::resetKeepAliveTimer() {
+void BGPStateMachine::resetKeepAliveTimer() {
     if (keepAliveTimer != nullptr) {
         keepAliveTimer->stop();
         delete keepAliveTimer;
@@ -62,8 +55,7 @@ void BGPStateMachine<Connection, State, Event>::resetKeepAliveTimer() {
                                keepaliveTime);
 }
 
-template <class Connection, class State, class Event>
-void BGPStateMachine<Connection, State, Event>::resetDelayOpenTimer() {
+void BGPStateMachine::resetDelayOpenTimer() {
     if (delayOpenTimer != nullptr) {
         delayOpenTimer->stop();
         delete delayOpenTimer;
@@ -74,11 +66,9 @@ void BGPStateMachine<Connection, State, Event>::resetDelayOpenTimer() {
                                delayOpenTime);
 }
 
-template <class Connection, class State, class Event>
-void BGPStateMachine<Connection, State, Event>::initializeTimers() {
+void BGPStateMachine::initializeTimers() {
     resetConnectRetryTimer();
     resetHoldTimer();
     resetKeepAliveTimer();
     resetDelayOpenTimer();
 }
-template class BGPStateMachine<BGPConnection, BGPState, BGPEvent>;

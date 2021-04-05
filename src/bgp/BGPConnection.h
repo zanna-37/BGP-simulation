@@ -9,14 +9,13 @@
 #include "fsm/BGPStateIdle.h"
 #include "fsm/BGPStateMachine.h"
 
-template <class Connection, class State, class Event>
 class BGPStateMachine;  // forward declaration
 class BGPState;
 class Device;
 class BGPConnection {
    public:
    private:
-    BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine = nullptr;
+    BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
 
    public:

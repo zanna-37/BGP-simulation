@@ -9,8 +9,7 @@ class BGPStateEnstablished : public BGPState {
    private:
    public:
     // Constructor
-    BGPStateEnstablished(
-        BGPStateMachine<BGPConnection, BGPState, BGPEvent>* stateMachine)
+    BGPStateEnstablished(BGPStateMachine* stateMachine)
         : BGPState(stateMachine) {
         NAME = "ENSTABLISHED";
         L_DEBUG("State created: " + NAME);
