@@ -7,7 +7,7 @@
 
 class BGPLayer : public pcpp::Layer {
    public:
-    struct BgpCommonHeader {
+    struct BGPCommonHeader {
         uint8_t  marker[16];
         uint16_t length;
         uint8_t  type;
@@ -33,7 +33,7 @@ class BGPLayer : public pcpp::Layer {
      */
     void parseNextLayer() override {}
 
-    BgpCommonHeader* getCommonHeader() const;
+    BGPCommonHeader* getCommonHeader() const;
 
     size_t getHeaderLen() const override;
 
@@ -49,7 +49,7 @@ class BGPLayer : public pcpp::Layer {
 
    protected:
     // protected c'tors, this class cannot be instanciated by users
-    BGPLayer() = default;
+    BGPLayer() { m_Protocol = pcpp::GenericPayload; }
 
     BGPLayer(uint8_t*      data,
              size_t        dataLen,
@@ -59,7 +59,8 @@ class BGPLayer : public pcpp::Layer {
         m_Protocol = pcpp::GenericPayload;
     }
 
-    virtual std::string toStringInternal() const = 0;
+    virtual std::string toStringInternal() const               = 0;
+    virtual void        computeCalculateFieldsInternal() const = 0;
 };
 
 

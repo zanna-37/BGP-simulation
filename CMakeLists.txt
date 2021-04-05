@@ -58,6 +58,7 @@ set(SOURCE_FILES
         ${SRC_BGP_FSM}/BGPStateOpenConfirm.cpp
         ${SRC_BGP_FSM}/BGPStateOpenSent.cpp
         ${SRC_BGP_PACKETS}/BGPLayer.cpp
+        ${SRC_BGP_PACKETS}/BGPOpenLayer.cpp
         ${SRC_TCP}/TCPConnection.cpp
         ${SRC_TCP}/TCPEvent.cpp
         ${SRC_TCP}/TCPTimer.cpp
