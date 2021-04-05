@@ -4,6 +4,8 @@
 #include <IPv4Layer.h>
 #include <TcpLayer.h>
 
+#include <stack>
+
 #include "../entities/Device.h"
 #include "TCPEvent.h"
 #include "fsm/TCPState.h"
@@ -29,7 +31,10 @@ class TCPConnection {
     TCPConnection(Device* owner);
     ~TCPConnection();
 
-    void enqueueEvent(TCPEvent);
+    void    enqueueEvent(TCPEvent);
+    uint8_t parseTCPFlags(pcpp::tcphdr* tcpHeader);
+    void    processMessage(std::stack<pcpp::Layer*>* layers);
+
 
     TCPState* getCurrentState();
 };

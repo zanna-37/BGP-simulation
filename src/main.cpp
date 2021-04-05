@@ -81,10 +81,10 @@ int main(int argc, char *argv[]) {
     this_thread::sleep_for(5s);
     delete testAddress;
 
-    BGPConnection connection(devices->at(0));
-    connection.enqueueEvent(AutomaticStart);
-    this_thread::sleep_for(10s);
-    connection.enqueueEvent(ManualStop);
+    // BGPConnection connection(devices->at(0));
+    // connection.enqueueEvent(AutomaticStart);
+    // this_thread::sleep_for(10s);
+    // connection.enqueueEvent(ManualStop);
 
     L_DEBUG("DELETING OBJECTS");
     for (auto device : *devices) {

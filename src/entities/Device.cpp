@@ -142,7 +142,7 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
     pcpp::IPv4Layer *ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
     layers->pop();
     pcpp::TcpLayer *tcpLayer = dynamic_cast<pcpp::TcpLayer *>(layers->top());
-    layers->pop();
+    layers->push(ipLayer);
 
     TCPConnection *existingConnection =
         getExistingConnectionOrNull(ipLayer, tcpLayer);
@@ -150,28 +150,12 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
         // processTCP flags
 
         L_DEBUG("existing connection");
+        existingConnection->processMessage(layers);
     } else {
         if (listenConnection != nullptr &&
-            listenConnection->srcPort == tcpLayer->getDstPort() &&
-            tcpLayer->getTcpHeader()->synFlag) {
-            L_DEBUG("SYN Arrived");
-            listenConnection->srcAddr = ipLayer->getDstIPv4Address();
-            listenConnection->srcPort = tcpLayer->getDstPort();
-            listenConnection->dstAddr = ipLayer->getSrcIPv4Address();
-            listenConnection->dstPort = tcpLayer->getDstPort();
-            addTCPConnection(listenConnection);
-            listenConnection->enqueueEvent(
-                TCPEvent::ReceiveClientSYN_SendSYNACK);
-
-            // create new listening connection (allocate TCB)
-            listenConnection          = new TCPConnection(this);
-            listenConnection->srcPort = listenConnection->BGPPort;
-
-            // FIXME
-            delete ipLayer;
-            delete tcpLayer;
-            delete layers;
-
+            listenConnection->srcPort == tcpLayer->getDstPort()) {
+            L_DEBUG("Handling new TCP Connection");
+            listenConnection->processMessage(layers);
         } else {
             L_INFO("PORT closed or server not listening");
             // send reset to the sender
