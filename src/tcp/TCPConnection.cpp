@@ -1,13 +1,8 @@
 #include "TCPConnection.h"
 
+#include "TCPFlag.h"
 #include "fsm/TCPStateClosed.h"
 
-#define SYN    2
-#define SYNACK 18
-#define ACK    16
-#define FIN    1
-#define FINACK 17
-#define RST    4
 
 TCPConnection ::TCPConnection(Device* owner) : owner(owner) {
     this->stateMachine = new TCPStateMachine(this);
@@ -46,13 +41,13 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
         // create new listening connection (allocate TCB)
         owner->listenConnection          = new TCPConnection(owner);
         owner->listenConnection->srcPort = this->srcPort;
-    } else if (flags == SYNACK) {
+    } else if (flags == SYN + ACK) {
         enqueueEvent(TCPEvent::ReceiveSYNACKSendACK);
     } else if (flags == ACK) {
         enqueueEvent(TCPEvent::ReceiveACK);
     } else if (flags == FIN) {
         enqueueEvent(TCPEvent::ReceiveFINSendACK);
-    } else if (flags == FINACK) {
+    } else if (flags == FIN + ACK) {
         enqueueEvent(TCPEvent::ReceiveACKforFIN);
     } else {
         L_ERROR("TCP flag combination not handled");
