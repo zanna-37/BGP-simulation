@@ -11,10 +11,37 @@ using namespace std;
 
 
 class NetworkCard;  // forward declaration
+
+/**
+ * This class abstracts the concept of a general network device
+ * \verbatim
+ *                                +----------+
+ *                         + -----| Endpoint |
+ *  +------------+         |      +----------+
+ *  |   Device   | --------+
+ *  | (abstract) |         |
+ *  +------------+         |      +----------+
+ *                         + -----|  Router  |
+ *                                +----------+
+ * \endverbatim
+ */
 class Device {
    public:
-    string                 ID;
-    pcpp::IPv4Address      defaultGateway;
+    /**
+     * Internal reference that uniquely identifies a component in the
+     * simulation.
+     */
+    string ID;
+
+    /**
+     * The default gateway of a device. It can be unset, it that case its
+     * value is \a pcpp::IPv4Address::Zero.
+     */
+    pcpp::IPv4Address defaultGateway;
+
+    /**
+     * A list of all the network interfaces of a device.
+     */
     vector<NetworkCard *> *networkCards;
 
     Device(string                 ID,

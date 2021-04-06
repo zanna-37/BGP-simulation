@@ -8,8 +8,14 @@
 
 using namespace std;
 
+/**
+ * A router is an internal node in a simulation which can handle packet routing.
+ */
 class Router : public virtual Device {
    public:
+    /**
+     * The Autonomous System number this router belongs to.
+     */
     string AS_number;
     // TODO: announced_prefixes
     // TODO: local_preferences

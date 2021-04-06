@@ -1,0 +1,23 @@
+name: Read-the-docs CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./docs
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: build docker image
+      run: docker build -t igang/docs-builder -f Dockerfile-docs .
+      working-directory: ${{env.working-directory}}
+    - name: make html
+      run: docker run --rm -v "$(pwd):/docs" --name build_docs_env igang/docs-builder make html
+      working-directory: ${{env.working-directory}}

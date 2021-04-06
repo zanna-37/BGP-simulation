@@ -134,6 +134,8 @@ void Logger::log(LogLevel logLevel, string message) {
             }
         }
 
+        mutex.lock();
         cout << output << endl;
+        mutex.unlock();
     }
 }
