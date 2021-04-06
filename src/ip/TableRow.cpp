@@ -1,10 +1,10 @@
 #include "TableRow.h"
 
-TableRow::TableRow(pcpp::IPv4Address networkIP,
-                   pcpp::IPv4Address netmask,
-                   pcpp::IPv4Address defaultGateway,
-                   std::string       netInterface,
-                   NetworkCard*      networkCard)
+TableRow::TableRow(pcpp::IPv4Address* networkIP,
+                   pcpp::IPv4Address* netmask,
+                   pcpp::IPv4Address* defaultGateway,
+                   std::string        netInterface,
+                   NetworkCard*       networkCard)
     : networkIP(networkIP),
       netmask(netmask),
       defaultGateway(defaultGateway),
@@ -14,7 +14,7 @@ TableRow::TableRow(pcpp::IPv4Address networkIP,
 int TableRow::toCIDR() {
     int cidr = 0;
 
-    const uint8_t* netmask_bytes = netmask.toBytes();
+    const uint8_t* netmask_bytes = netmask->toBytes();
 
     for (int i = 0; i < 4; i++) {
         switch (netmask_bytes[i]) {

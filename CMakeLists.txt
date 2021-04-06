@@ -54,7 +54,6 @@ set(SOURCE_FILES
         ${SRC_BGP_FSM}/BGPStateOpenConfirm.cpp
         ${SRC_BGP_FSM}/BGPStateOpenSent.cpp
         ${SRC_UTILS}/Timer.cpp
-        ${SRC_IP}/RoutingTable.cpp
         ${SRC_IP}/TableRow.cpp
         ${SRC_UTILS}/MacGenerator.cpp
         ${SRC_TCP}/TCPConnection.cpp
@@ -71,7 +70,6 @@ set(SOURCE_FILES
         ${SRC_TCP_FSM}/TCPStateFINWait2.cpp
         ${SRC_TCP_FSM}/TCPStateLastACK.cpp
         ${SRC_TCP_FSM}/TCPStateTimeWait.cpp
-        # ${SRC_FSM}/StateMachine.cpp
         
 
 )

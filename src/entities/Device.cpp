@@ -1,5 +1,8 @@
 #include "Device.h"
 
+#include <iomanip>
+#include <iostream>
+
 #include "../logger/Logger.h"
 
 Device::Device(string ID, pcpp::IPv4Address defaultGateway)
@@ -24,6 +27,12 @@ Device::~Device() {
     receivedPacketsEventQueue_wakeup.notify_one();
     packetsEventQueue_uniqueLock.unlock();
     deviceThread->join();
+    delete deviceThread;
+
+    for (TableRow *row : *routingTable) {
+        delete row;
+    }
+    delete routingTable;
     for (NetworkCard *networkCard : *networkCards) {
         delete networkCard;
     }
@@ -35,8 +44,6 @@ Device::~Device() {
     for (it = tcpConnections.begin(); it != tcpConnections.end(); ++it) {
         delete it->second;
     }
-    delete routingTable;
-    delete deviceThread;
 }
 
 void Device::addCards(vector<NetworkCard *> *networkCards) {
@@ -45,32 +52,34 @@ void Device::addCards(vector<NetworkCard *> *networkCards) {
 
 
 void Device::start() {
-    routingTable = new RoutingTable();
+    routingTable = new std::vector<TableRow *>();
     for (NetworkCard *networkCard : *networkCards) {
-        pcpp::IPv4Address networkIP(
+        pcpp::IPv4Address *networkIP = new pcpp::IPv4Address(
             (networkCard->IP.toInt() & networkCard->netmask.toInt()));
 
-        TableRow *row = new TableRow(networkIP,
-                                     networkCard->netmask,
-                                     pcpp::IPv4Address::Zero,
-                                     networkCard->netInterface,
-                                     networkCard);
+        TableRow *row =
+            new TableRow(networkIP,
+                         &(networkCard->netmask),
+                         new pcpp::IPv4Address(pcpp::IPv4Address::Zero),
+                         networkCard->netInterface,
+                         networkCard);
 
-        routingTable->insertRow(row);
+        routingTable->push_back(row);
 
         if (defaultGateway.isValid() &&
-            defaultGateway.matchSubnet(networkIP, networkCard->netmask)) {
-            TableRow *row = new TableRow(pcpp::IPv4Address::Zero,
-                                         pcpp::IPv4Address::Zero,
-                                         defaultGateway,
-                                         networkCard->netInterface,
-                                         networkCard);
+            defaultGateway.matchSubnet(*networkIP, networkCard->netmask)) {
+            TableRow *row =
+                new TableRow(new pcpp::IPv4Address(pcpp::IPv4Address::Zero),
+                             new pcpp::IPv4Address(pcpp::IPv4Address::Zero),
+                             &defaultGateway,
+                             networkCard->netInterface,
+                             networkCard);
 
-            routingTable->insertRow(row);
+            routingTable->push_back(row);
         }
     }
 
-    routingTable->printTable();
+    printTable();
 
     running      = true;
     deviceThread = new std::thread([&]() {
@@ -108,7 +117,7 @@ void Device::sendPacket(stack<pcpp::Layer *> *layers) {
     pcpp::IPv4Layer * ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
     pcpp::IPv4Address dstAddress = ipLayer->getDstIPv4Address();
 
-    NetworkCard *nextHopNetworkCard = routingTable->findNextHop(dstAddress);
+    NetworkCard *nextHopNetworkCard = findNextHop(&dstAddress);
     if (nextHopNetworkCard == nullptr) {
         L_ERROR("DESTINATION UNREACHABLE");
     } else {
@@ -127,7 +136,7 @@ void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
         L_DEBUG("processing message");
         processMessage(layers);
     } else {
-        NetworkCard *nextHopNetworkCard = routingTable->findNextHop(dstAddress);
+        NetworkCard *nextHopNetworkCard = findNextHop(&dstAddress);
         if (nextHopNetworkCard == nullptr) {
             L_ERROR("DESTINATION UNREACHABLE");
         } else {
@@ -183,17 +192,17 @@ void Device::listen() {
 void Device::connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
     TCPConnection *connection = new TCPConnection(this);
 
-    connection->dstAddr = *dstAddr;
-    connection->dstPort = dstPort;
-
-    tcpConnections[tcpConnectionHash(*dstAddr, dstPort)] = connection;
+    connection->dstAddr  = *dstAddr;
+    connection->dstPort  = dstPort;
+    size_t hash          = tcpConnectionHash(dstAddr->toString(), dstPort);
+    tcpConnections[hash] = connection;
     connection->enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
 }
 
 TCPConnection *Device::getExistingConnectionOrNull(pcpp::IPv4Layer *ipLayer,
                                                    pcpp::TcpLayer * tcpLayer) {
     auto search = tcpConnections.find(tcpConnectionHash(
-        ipLayer->getDstIPv4Address(), tcpLayer->getDstPort()));
+        ipLayer->getSrcIPv4Address().toString(), tcpLayer->getSrcPort()));
 
     if (search != tcpConnections.end()) {
         return search->second;
@@ -203,19 +212,54 @@ TCPConnection *Device::getExistingConnectionOrNull(pcpp::IPv4Layer *ipLayer,
 }
 
 void Device::addTCPConnection(TCPConnection *connection) {
-    tcpConnections[tcpConnectionHash(connection->dstAddr,
+    tcpConnections[tcpConnectionHash(connection->dstAddr.toString(),
                                      connection->dstPort)] = connection;
 }
 
 
-std::size_t Device::tcpConnectionHash(pcpp::IPv4Address dstAddr,
-                                      uint16_t          dstPort) {
+std::size_t Device::tcpConnectionHash(std::string dstAddr, uint16_t dstPort) {
     size_t returnHash;
 
-    size_t hash1 = std::hash<std::string>{}(dstAddr.toString());
+    size_t hash1 = std::hash<std::string>{}(dstAddr);
     size_t hash2 = std::hash<std::string>{}(to_string(dstPort));
 
     return hash1 ^ hash2;
+}
+
+NetworkCard *Device::findNextHop(pcpp::IPv4Address *dstAddress) {
+    int          longestMatch = -1;
+    NetworkCard *result       = nullptr;
+    for (TableRow *row : *routingTable) {
+        if (dstAddress->matchSubnet(*(row->networkIP), *(row->netmask)) &&
+            row->toCIDR() > longestMatch) {
+            longestMatch = row->toCIDR();
+            result       = row->networkCard;
+        }
+    }
+
+    return result;
+}
+
+void Device::printElement(std::string t) {
+    const char separator = ' ';
+    const int  width     = 16;
+    std::cout << left << setw(width) << setfill(separator) << t;
+}
+
+void Device::printTable() {
+    printElement("Destination");
+    printElement("Gateway");
+    printElement("Genmask");
+    printElement("Iface");
+    std::cout << std::endl;
+    for (TableRow *row : *routingTable) {
+        printElement(row->networkIP->toString());
+        printElement(row->defaultGateway->toString());
+        printElement(row->netmask->toString());
+        printElement(row->netInterface);
+        cout << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 // ### ReceivedPacketEvent methods

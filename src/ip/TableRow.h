@@ -11,17 +11,25 @@
 
 class TableRow {
    public:
-    pcpp::IPv4Address networkIP;
-    pcpp::IPv4Address defaultGateway;
-    pcpp::IPv4Address netmask;
-    std::string       netInterface;
-    NetworkCard*      networkCard = nullptr;
-    TableRow(pcpp::IPv4Address networkIP,
-             pcpp::IPv4Address netmask,
-             pcpp::IPv4Address defaultGateway,
-             std::string       netInterface,
-             NetworkCard*      networkCard);
-    ~TableRow(){};
+    pcpp::IPv4Address* networkIP      = nullptr;
+    pcpp::IPv4Address* defaultGateway = nullptr;
+    pcpp::IPv4Address* netmask        = nullptr;
+    std::string        netInterface;
+    NetworkCard*       networkCard = nullptr;
+    TableRow(pcpp::IPv4Address* networkIP,
+             pcpp::IPv4Address* netmask,
+             pcpp::IPv4Address* defaultGateway,
+             std::string        netInterface,
+             NetworkCard*       networkCard);
+    ~TableRow() {
+        delete networkIP;
+        if (!defaultGateway->isValid()) {
+            delete defaultGateway;
+        }
+        if (!netmask->isValid()) {
+            delete netmask;
+        }
+    };
 
     // TableRow operator=(const TableRow& other);
 

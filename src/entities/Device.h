@@ -15,13 +15,12 @@
 #include <utility>
 #include <vector>
 
-#include "../ip/RoutingTable.h"
 #include "../ip/TableRow.h"
 #include "../tcp/TCPConnection.h"
 #include "NetworkCard.h"
 
 // forward declarations
-#include "../ip/RoutingTable.fwd.h"
+#include "../ip/TableRow.fwd.h"
 #include "../tcp/TCPConnection.fwd.h"
 #include "NetworkCard.fwd.h"
 
@@ -67,10 +66,11 @@ class Device {
     /**
      * A list of all the network interfaces of a device.
      */
-    vector<NetworkCard *> *networkCards;
-    std::thread *          deviceThread = nullptr;
-    RoutingTable *         routingTable = nullptr;
-    bool                   running;
+    vector<NetworkCard *> *  networkCards = nullptr;
+    std::thread *            deviceThread = nullptr;
+    std::thread *            deviceThread = nullptr;
+    std::vector<TableRow *> *routingTable = nullptr;
+    bool                     running;
 
     std::mutex receivedPacketsEventQueue_mutex;  // mutex to lock the queue
     std::condition_variable
@@ -122,8 +122,12 @@ class Device {
 
     void addTCPConnection(TCPConnection *connection);
 
+    NetworkCard *findNextHop(pcpp::IPv4Address *dstAddress);
+    void         printTable();
+
    private:
-    std::size_t tcpConnectionHash(pcpp::IPv4Address dstAddr, uint16_t dstPort);
+    void        printElement(std::string t);
+    std::size_t tcpConnectionHash(std::string dstAddr, uint16_t dstPort);
 };
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H
