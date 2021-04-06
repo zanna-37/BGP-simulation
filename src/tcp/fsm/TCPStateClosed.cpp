@@ -1,15 +1,13 @@
 #include "TCPStateClosed.h"
 
-#include <IPLayer.h>
-#include <TcpLayer.h>
-
 #include <stack>
 
 #include "../../logger/Logger.h"
+#include "../TCPFlag.h"
 #include "TCPStateListen.h"
 #include "TCPStateSYNSent.h"
 
-TCPStateClosed::TCPStateClosed(TCPStateMachine *stateMachine)
+TCPStateClosed::TCPStateClosed(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
     NAME = "CLOSED";
     L_DEBUG("State created: " + NAME);
@@ -19,10 +17,9 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
     bool handled = true;
 
     // FIXME create Random open port
-    uint16_t              srcPort  = 12345;
-    pcpp::TcpLayer *      tcpLayer = nullptr;
-    pcpp::IPv4Layer *     ipLayer  = nullptr;
-    stack<pcpp::Layer *> *layers   = nullptr;
+    uint16_t srcPort = 12345;
+
+    std::stack<pcpp::Layer*>* layers = nullptr;
 
     switch (event) {
         case TCPEvent::PassiveOpen:
@@ -38,15 +35,11 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
             // A client begins connection setup by sending a SYN message, and
             // also sets up a TCB for this connection. It then transitions to
             // the SYN-SENT state.
-            layers = new stack<pcpp::Layer *>();
-            tcpLayer =
-                new pcpp::TcpLayer(srcPort, stateMachine->connection->dstPort);
-            ipLayer                           = new pcpp::IPv4Layer();
-            tcpLayer->getTcpHeader()->synFlag = 1;
-            ipLayer->setDstIPv4Address(stateMachine->connection->dstAddr);
-            layers->push(tcpLayer);
-            layers->push(ipLayer);
-            stateMachine->connection->owner->sendPacket(layers);
+
+            layers =
+                craftTCPLayer(srcPort, stateMachine->connection->dstPort, SYN);
+            stateMachine->connection->owner->sendPacket(
+                layers, stateMachine->connection->dstAddr.toString());
             stateMachine->changeState(new TCPStateSYNSent(stateMachine));
             break;
         default:

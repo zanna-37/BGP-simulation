@@ -113,17 +113,22 @@ void Device::start() {
     });
 }
 
-void Device::sendPacket(stack<pcpp::Layer *> *layers) {
-    pcpp::IPv4Layer * ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
-    pcpp::IPv4Address dstAddress = ipLayer->getDstIPv4Address();
+void Device::sendPacket(stack<pcpp::Layer *> *layers, std::string dstAddr_str) {
+    pcpp::IPv4Layer *ipLayer = new pcpp::IPv4Layer();
+    ipLayer->setDstIPv4Address(pcpp::IPv4Address(dstAddr_str));
+    pcpp::IPv4Address dstAddr = ipLayer->getDstIPv4Address();
 
-    NetworkCard *nextHopNetworkCard = findNextHop(&dstAddress);
+    NetworkCard *nextHopNetworkCard = findNextHop(&dstAddr);
     if (nextHopNetworkCard == nullptr) {
         L_ERROR("DESTINATION UNREACHABLE");
+        // FIXME
+        delete ipLayer;
+
     } else {
         L_DEBUG("Sending packet from " + ID + " using " +
                 nextHopNetworkCard->netInterface);
         ipLayer->setSrcIPv4Address(nextHopNetworkCard->IP);
+        layers->push(ipLayer);
         nextHopNetworkCard->sendPacket(layers);
     }
 }

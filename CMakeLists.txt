@@ -58,6 +58,7 @@ set(SOURCE_FILES
         ${SRC_UTILS}/MacGenerator.cpp
         ${SRC_TCP}/TCPConnection.cpp
         ${SRC_TCP}/TCPEvent.cpp
+        ${SRC_TCP_FSM}/TCPState.cpp
         ${SRC_TCP_FSM}/TCPStateClosed.cpp
         ${SRC_TCP_FSM}/TCPStateClosing.cpp
         ${SRC_TCP_FSM}/TCPStateEnstablished.cpp

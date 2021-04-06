@@ -108,7 +108,7 @@ class Device {
     virtual void forwardMessage(stack<pcpp::Layer *> *layers,
                                 NetworkCard *         networkCard) = 0;
 
-    void sendPacket(stack<pcpp::Layer *> *layers);
+    void sendPacket(stack<pcpp::Layer *> *layers, std::string dstAddr);
 
     void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
 
