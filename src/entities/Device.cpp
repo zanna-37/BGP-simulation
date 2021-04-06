@@ -197,8 +197,12 @@ void Device::listen() {
 void Device::connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
     TCPConnection *connection = new TCPConnection(this);
 
-    connection->dstAddr  = *dstAddr;
-    connection->dstPort  = dstPort;
+    connection->dstAddr = *dstAddr;
+    connection->dstPort = dstPort;
+
+    // FIXME
+    uint16_t randomPort  = 12345;
+    connection->srcPort  = randomPort;
     size_t hash          = tcpConnectionHash(dstAddr->toString(), dstPort);
     tcpConnections[hash] = connection;
     connection->enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
