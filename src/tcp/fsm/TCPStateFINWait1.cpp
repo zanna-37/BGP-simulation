@@ -1,6 +1,9 @@
 #include "TCPStateFINWait1.h"
 
+#include <stack>
+
 #include "../../logger/Logger.h"
+#include "../TCPFlag.h"
 #include "TCPStateClosing.h"
 #include "TCPStateFINWait2.h"
 
@@ -10,6 +13,9 @@ TCPStateFINWait1::TCPStateFINWait1(TCPStateMachine* stateMachine)
     L_DEBUG("State created: " + NAME);
 }
 bool TCPStateFINWait1::onEvent(TCPEvent event) {
+    std::stack<pcpp::Layer*>* layers   = nullptr;
+    pcpp::TcpLayer*           tcpLayer = nullptr;
+
     bool handled = true;
     switch (event) {
         case TCPEvent::ReceiveACKforFIN:
@@ -22,6 +28,13 @@ bool TCPStateFINWait1::onEvent(TCPEvent event) {
             // The device does not receive an ACK for its own FIN, but receives
             // a FIN from the other device. It acknowledges it, and moves to the
             // CLOSING state.
+            layers   = new std::stack<pcpp::Layer*>();
+            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+                                     stateMachine->connection->dstPort,
+                                     FIN + ACK);
+            layers->push(tcpLayer);
+            stateMachine->connection->owner->sendPacket(
+                layers, stateMachine->connection->dstAddr.toString());
             stateMachine->changeState(new TCPStateClosing(stateMachine));
 
             break;
