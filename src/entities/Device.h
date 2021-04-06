@@ -68,7 +68,6 @@ class Device {
      */
     vector<NetworkCard *> *  networkCards = nullptr;
     std::thread *            deviceThread = nullptr;
-    std::thread *            deviceThread = nullptr;
     std::vector<TableRow *> *routingTable = nullptr;
     bool                     running;
 

@@ -42,7 +42,7 @@ void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
 }
 
 void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
-    if (link->connection_status == active) {
+    if (link->connection_status == ACTIVE) {
         L_DEBUG("Sending packet using " + netInterface + " through link");
         NetworkCard*    destination = link->getPeerNetworkCardOrNull(this);
         pcpp::EthLayer* ethLayer    = new pcpp::EthLayer(mac, destination->mac);
