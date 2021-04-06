@@ -1,11 +1,11 @@
 #include "TCPState.h"
 
 #include "../TCPFlag.h"
-std::stack<pcpp::Layer *> *TCPState::craftTCPLayer(uint16_t srcPort,
-                                                   uint16_t dstPort,
-                                                   int      flags) {
-    pcpp::TcpLayer *      tcpLayer = new pcpp::TcpLayer(srcPort, dstPort);
-    stack<pcpp::Layer *> *layers   = new stack<pcpp::Layer *>();
+pcpp::TcpLayer* TCPState::craftTCPLayer(uint16_t srcPort,
+                                        uint16_t dstPort,
+                                        int      flags) {
+    pcpp::TcpLayer* tcpLayer = new pcpp::TcpLayer(srcPort, dstPort);
+
 
     switch (flags) {
         case SYN:
@@ -32,6 +32,5 @@ std::stack<pcpp::Layer *> *TCPState::craftTCPLayer(uint16_t srcPort,
             break;
     }
 
-    layers->push(tcpLayer);
-    return layers;
+    return tcpLayer;
 }

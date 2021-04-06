@@ -23,8 +23,8 @@ class TCPState {
 
     virtual bool onEvent(TCPEvent) = 0;
 
-    std::stack<pcpp::Layer*>* craftTCPLayer(uint16_t srcPort,
-                                            uint16_t dstPort,
-                                            int      flags);
+    pcpp::TcpLayer* craftTCPLayer(uint16_t srcPort,
+                                  uint16_t dstPort,
+                                  int      flags);
 };
 #endif

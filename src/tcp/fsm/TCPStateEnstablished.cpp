@@ -17,7 +17,8 @@ TCPStateEnstablished::TCPStateEnstablished(TCPStateMachine *stateMachine)
 }
 
 bool TCPStateEnstablished::onEvent(TCPEvent event) {
-    stack<pcpp::Layer *> *layers = nullptr;
+    stack<pcpp::Layer *> *layers   = nullptr;
+    pcpp::TcpLayer *      tcpLayer = nullptr;
 
     bool handled = true;
 
@@ -26,10 +27,11 @@ bool TCPStateEnstablished::onEvent(TCPEvent event) {
             // A device can close the connection by sending a message with the
             // FIN (finish) bit sent and transition to the FIN-WAIT-1 state.
 
-            layers = craftTCPLayer(stateMachine->connection->srcPort,
-                                   stateMachine->connection->dstPort,
-                                   FIN);
-
+            layers   = new std::stack<pcpp::Layer *>();
+            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+                                     stateMachine->connection->dstPort,
+                                     FIN);
+            layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr.toString());
             stateMachine->changeState(new TCPStateFINWait1(stateMachine));
@@ -39,9 +41,11 @@ bool TCPStateEnstablished::onEvent(TCPEvent event) {
             // asking that the connection be closed. It will acknowledge this
             // message and transition to the CLOSE-WAIT state
 
-            layers = craftTCPLayer(stateMachine->connection->srcPort,
-                                   stateMachine->connection->dstPort,
-                                   FIN + ACK);
+            layers   = new std::stack<pcpp::Layer *>();
+            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+                                     stateMachine->connection->dstPort,
+                                     FIN + ACK);
+            layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr.toString());
             stateMachine->changeState(new TCPStateCloseWait(stateMachine));

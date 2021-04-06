@@ -19,7 +19,8 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
     // FIXME create Random open port
     uint16_t srcPort = 12345;
 
-    std::stack<pcpp::Layer*>* layers = nullptr;
+    std::stack<pcpp::Layer*>* layers   = nullptr;
+    pcpp::TcpLayer*           tcpLayer = nullptr;
 
     switch (event) {
         case TCPEvent::PassiveOpen:
@@ -36,8 +37,10 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
             // also sets up a TCB for this connection. It then transitions to
             // the SYN-SENT state.
 
-            layers =
+            layers = new std::stack<pcpp::Layer*>();
+            tcpLayer =
                 craftTCPLayer(srcPort, stateMachine->connection->dstPort, SYN);
+            layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr.toString());
             stateMachine->changeState(new TCPStateSYNSent(stateMachine));

@@ -37,6 +37,10 @@ void Link::sendPacket(pcpp::Packet *packet, NetworkCard *destination) {
     pair<const uint8_t *, int> data = serialize(packet);
     delete packet;
     if (connection_status == Connection_status::active) {
+        L_DEBUG("Sending packet through link: " +
+                getPeerNetworkCardOrNull(destination)->owner->ID + ":" +
+                getPeerNetworkCardOrNull(destination)->netInterface + " -> " +
+                destination->owner->ID + ":" + destination->netInterface);
         receivePacket(data, destination);
     } else {
         L_ERROR("PHYSICAL LINK BROKEN: " +

@@ -67,8 +67,9 @@ void NetworkCard::receivePacket(pcpp::Packet* receivedPacket) {
 }
 
 void NetworkCard::handleNextPacket() {
-    pcpp::Packet*        receivedPacket = receivedPacketsQueue.front();
-    stack<pcpp::Layer*>* layers         = new stack<pcpp::Layer*>();
+    pcpp::Packet* receivedPacket = receivedPacketsQueue.front();
+    receivedPacketsQueue.pop();
+    stack<pcpp::Layer*>* layers = new stack<pcpp::Layer*>();
 
     pcpp::Layer* currentLayer = receivedPacket->getLastLayer();
     while (currentLayer != nullptr) {
@@ -76,7 +77,6 @@ void NetworkCard::handleNextPacket() {
         layers->push(receivedPacket->detachLayer(protocol));
         currentLayer = receivedPacket->getLastLayer();
     }
-
 
     delete receivedPacket;
 
