@@ -1,6 +1,9 @@
 #include "TCPStateSYNSent.h"
 
+#include <stack>
+
 #include "../../logger/Logger.h"
+#include "../TCPFlag.h"
 #include "TCPStateEnstablished.h"
 #include "TCPStateSYNReceived.h"
 
@@ -12,6 +15,9 @@ TCPStateSYNSent::TCPStateSYNSent(TCPStateMachine* stateMachine)
 }
 
 bool TCPStateSYNSent::onEvent(TCPEvent event) {
+    std::stack<pcpp::Layer*>* layers   = nullptr;
+    pcpp::TcpLayer*           tcpLayer = nullptr;
+
     bool handled = true;
     switch (event) {
         case TCPEvent::ReceiveSYN_SendACK:
@@ -19,6 +25,14 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
             // the other device but not an ACK for its own SYN, it acknowledges
             // the SYN it receives and then transitions to SYN-RECEIVED to wait
             // for the acknowledgment to its SYN.
+            layers   = new std::stack<pcpp::Layer*>();
+            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+                                     stateMachine->connection->dstPort,
+                                     ACK);
+            layers->push(tcpLayer);
+            stateMachine->connection->owner->sendPacket(
+                layers, stateMachine->connection->dstAddr.toString());
+
             stateMachine->changeState(new TCPStateSYNReceived(stateMachine));
 
 
@@ -28,6 +42,15 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
             // to its SYN and also a SYN from the other device, it acknowledges
             // the SYN received and then moves straight to the ESTABLISHED
             // state.
+
+            layers   = new std::stack<pcpp::Layer*>();
+            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+                                     stateMachine->connection->dstPort,
+                                     ACK);
+            layers->push(tcpLayer);
+            stateMachine->connection->owner->sendPacket(
+                layers, stateMachine->connection->dstAddr.toString());
+
             stateMachine->changeState(new TCPStateEnstablished(stateMachine));
 
             break;
