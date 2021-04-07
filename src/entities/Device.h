@@ -172,14 +172,6 @@ class Device {
      */
     void sendPacket(stack<pcpp::Layer *> *layers, std::string dstAddr);
 
-    /**
-     * Receive a packet from one of its network cards. It checks if the message
-     * if for this router or it must forward (or drop) it
-     * @warning it should be called by the network card
-     * @param layers the std::stack simulating the packet.
-     * @param origin the network card that received the packet
-     */
-    void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
 
     /**
      * Enqueue an receivedPacket event. It is used to handle different network
@@ -270,6 +262,17 @@ class Device {
      * @return the hash
      */
     std::size_t tcpConnectionHash(std::string dstAddr, uint16_t dstPort);
+
+    /**
+     * Receive a packet from one of its network cards. It checks if the message
+     * if for this router or it must forward (or drop) it
+     * @warning it should be called by the network card
+     * @param layers the std::stack simulating the packet.
+     * @param origin the network card that received the packet
+     */
+    void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
+
+    friend class NetworkCard;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H

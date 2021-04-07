@@ -22,10 +22,10 @@ NetworkCard *Device::getNetworkCardByInterfaceOrNull(
 Device::~Device() {
     running = false;
 
-    unique_lock<std::mutex> packetsEventQueue_uniqueLock(
+    unique_lock<std::mutex> receivedPacketsEventQueue_uniqueLock(
         receivedPacketsEventQueue_mutex);
     receivedPacketsEventQueue_wakeup.notify_one();
-    packetsEventQueue_uniqueLock.unlock();
+    receivedPacketsEventQueue_uniqueLock.unlock();
     deviceThread->join();
     delete deviceThread;
 
@@ -82,11 +82,11 @@ void Device::start() {
     running      = true;
     deviceThread = new std::thread([&]() {
         while (running) {
-            unique_lock<std::mutex> packetsEventQueue_uniqueLock(
+            unique_lock<std::mutex> receivedPacketsEventQueue_uniqueLock(
                 receivedPacketsEventQueue_mutex);
             while (receivedPacketsEventQueue.empty() && running) {
                 receivedPacketsEventQueue_wakeup.wait(
-                    packetsEventQueue_uniqueLock);
+                    receivedPacketsEventQueue_uniqueLock);
 
                 if (receivedPacketsEventQueue.empty() && running) {
                     L_DEBUG("Spurious Wakeup");
@@ -106,7 +106,7 @@ void Device::start() {
             } else {
                 L_VERBOSE("Shutting down:" + ID);
             }
-            packetsEventQueue_uniqueLock.unlock();
+            receivedPacketsEventQueue_uniqueLock.unlock();
         }
     });
 }
@@ -159,33 +159,32 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
     TCPConnection *existingConnection = getExistingConnectionOrNull(
         ipLayer->getSrcIPv4Address().toString(), tcpLayer->getSrcPort());
     if (existingConnection != nullptr) {
-        // processTCP flags
-
         L_DEBUG("existing connection");
         existingConnection->processMessage(layers);
     } else {
         if (listenConnection != nullptr &&
             listenConnection->srcPort == tcpLayer->getDstPort()) {
             L_DEBUG("Handling new TCP Connection");
+            // TODO not clear that we are creating a new connection with
+            // listenConnection
             listenConnection->processMessage(layers);
         } else {
             L_INFO("PORT closed or server not listening");
             resetConnection(ipLayer->getSrcIPv4Address().toString(),
                             tcpLayer->getSrcPort());
-            // TODO send reset to the sender
         }
     }
 }
 
 void Device::enqueueEvent(ReceivedPacketEvent *event) {
     L_DEBUG("Enqueueing event in " + ID + " event queue");
-    unique_lock<std::mutex> packetsEventQueue_uniqueLock(
+    unique_lock<std::mutex> receivedPacketsEventQueue_uniqueLock(
         receivedPacketsEventQueue_mutex);
 
     receivedPacketsEventQueue.push(event);
     receivedPacketsEventQueue_wakeup.notify_one();
 
-    packetsEventQueue_uniqueLock.unlock();
+    receivedPacketsEventQueue_uniqueLock.unlock();
 }
 
 void Device::listen() {
@@ -236,11 +235,13 @@ TCPConnection *Device::getExistingConnectionOrNull(std::string address,
     auto search = tcpConnections.find(tcpConnectionHash(address, port));
 
     if (search != tcpConnections.end()) {
+        // The connection exists inside the hashmap but it was already closed
+        // before, so we delete it and we create a new one
         if (search->second->stateMachine->getCurrentState()->NAME == "CLOSED") {
             TCPConnection *to_remove = search->second;
             removeTCPConnection(search->second);
             delete to_remove;
-
+            return nullptr;
         } else {
             return search->second;
         }
@@ -248,7 +249,9 @@ TCPConnection *Device::getExistingConnectionOrNull(std::string address,
 
     return nullptr;
 }
-
+// TODO modify the hash so that we are sure we will not have a collision
+// TODO be sure that addTCPConnection(...) do not overwrite another existing
+// connection with the same address and port
 void Device::addTCPConnection(TCPConnection *connection) {
     tcpConnections[tcpConnectionHash(connection->dstAddr->toString(),
                                      connection->dstPort)] = connection;

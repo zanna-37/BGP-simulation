@@ -59,7 +59,7 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
         enqueueEvent(TCPEvent::ReceiveRST);
     } else {
         L_ERROR("TCP flag combination not handled");
-    }  // TODO handle RST flag
+    }
 
 
     delete ipLayer;
