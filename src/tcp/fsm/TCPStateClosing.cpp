@@ -15,7 +15,7 @@ bool TCPStateClosing::onEvent(TCPEvent event) {
         case TCPEvent::ReceiveACKforFIN:
             // The device receives an acknowledgment for its close request. It
             // transitions to the TIME-WAIT state.
-
+            stateMachine->timeWaitTimer->start();
             stateMachine->changeState(new TCPStateTimeWait(stateMachine));
             break;
 
