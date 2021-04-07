@@ -226,7 +226,12 @@ TCPConnection *Device::getExistingConnectionOrNull(std::string address,
     auto search = tcpConnections.find(tcpConnectionHash(address, port));
 
     if (search != tcpConnections.end()) {
-        return search->second;
+        if (search->second->stateMachine->getCurrentState()->NAME == "CLOSED") {
+            removeTCPConnection(search->second);
+            delete search->second;
+        } else {
+            return search->second;
+        }
     }
 
     return nullptr;

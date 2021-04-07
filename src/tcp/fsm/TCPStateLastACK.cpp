@@ -18,8 +18,8 @@ bool TCPStateLastACK::onEvent(TCPEvent event) {
             // other device's FIN and acknowledged it, so we go straight to the
             // CLOSED state.
             stateMachine->changeState(new TCPStateClosed(stateMachine));
-            stateMachine->connection->owner->removeTCPConnection(
-                stateMachine->connection);
+            // stateMachine->connection->owner->removeTCPConnection(
+            //     stateMachine->connection);
 
             break;
 

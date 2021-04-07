@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
     this_thread::sleep_for(5s);
     devices->at(2)->closeConnection(testAddress, 179);
     this_thread::sleep_for(2s);
+    delete testAddress;
     testAddress = new pcpp::IPv4Address("90.36.25.123");
     devices->at(0)->closeConnection(testAddress, 12345);
     this_thread::sleep_for(5s);
