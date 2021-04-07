@@ -27,9 +27,6 @@ std::string getEventName(TCPEvent event) {
         case TCPEvent::CloseSendFIN:
             return "[" + std::to_string((int)TCPEvent::CloseSendFIN) +
                    "-CloseSendFIN]";
-        case TCPEvent::ReceiveFIN:
-            return "[" + std::to_string((int)TCPEvent::ReceiveFIN) +
-                   "-ReceiveFIN]";
         case TCPEvent::ReceiveACKforFIN:
             return "[" + std::to_string((int)TCPEvent::ReceiveACKforFIN) +
                    "-ReceiveACKforFIN]";

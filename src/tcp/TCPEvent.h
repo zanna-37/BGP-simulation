@@ -10,10 +10,9 @@ enum TCPEvent {
     ReceiveSYNACKSendACK        = 5,
     ReceiveACK                  = 6,
     CloseSendFIN                = 7,
-    ReceiveFIN                  = 8,
-    ReceiveACKforFIN            = 9,
-    ReceiveFINSendACK           = 10,
-    TimerExpiration             = 11
+    ReceiveACKforFIN            = 8,
+    ReceiveFINSendACK           = 9,
+    TimerExpiration             = 10
 
 
 };

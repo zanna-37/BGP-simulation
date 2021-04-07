@@ -158,8 +158,8 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
     pcpp::TcpLayer *tcpLayer = dynamic_cast<pcpp::TcpLayer *>(layers->top());
     layers->push(ipLayer);
 
-    TCPConnection *existingConnection =
-        getExistingConnectionOrNull(ipLayer, tcpLayer);
+    TCPConnection *existingConnection = getExistingConnectionOrNull(
+        ipLayer->getSrcIPv4Address().toString(), tcpLayer->getSrcPort());
     if (existingConnection != nullptr) {
         // processTCP flags
 
@@ -201,17 +201,29 @@ void Device::connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
     connection->dstPort = dstPort;
 
     // FIXME
-    uint16_t randomPort  = 12345;
-    connection->srcPort  = randomPort;
-    size_t hash          = tcpConnectionHash(dstAddr->toString(), dstPort);
-    tcpConnections[hash] = connection;
+    uint16_t randomPort = 12345;
+    connection->srcPort = randomPort;
+    addTCPConnection(connection);
+    // size_t hash          = tcpConnectionHash(dstAddr->toString(), dstPort);
+    // tcpConnections[hash] = connection;
     connection->enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
 }
 
-TCPConnection *Device::getExistingConnectionOrNull(pcpp::IPv4Layer *ipLayer,
-                                                   pcpp::TcpLayer * tcpLayer) {
-    auto search = tcpConnections.find(tcpConnectionHash(
-        ipLayer->getSrcIPv4Address().toString(), tcpLayer->getSrcPort()));
+void Device::closeConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
+    TCPConnection *existingConnection =
+        getExistingConnectionOrNull(dstAddr->toString(), dstPort);
+
+    if (existingConnection == nullptr) {
+        L_ERROR("Device " + ID +
+                " is trying to close an non existing connection");
+    } else {
+        existingConnection->enqueueEvent(TCPEvent::CloseSendFIN);
+    }
+}
+
+TCPConnection *Device::getExistingConnectionOrNull(std::string address,
+                                                   uint16_t    port) {
+    auto search = tcpConnections.find(tcpConnectionHash(address, port));
 
     if (search != tcpConnections.end()) {
         return search->second;
@@ -223,6 +235,11 @@ TCPConnection *Device::getExistingConnectionOrNull(pcpp::IPv4Layer *ipLayer,
 void Device::addTCPConnection(TCPConnection *connection) {
     tcpConnections[tcpConnectionHash(connection->dstAddr.toString(),
                                      connection->dstPort)] = connection;
+}
+
+void Device::removeTCPConnection(TCPConnection *connection) {
+    tcpConnections.erase(
+        tcpConnectionHash(connection->dstAddr.toString(), connection->dstPort));
 }
 
 

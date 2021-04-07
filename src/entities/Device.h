@@ -115,11 +115,13 @@ class Device {
 
     void listen();
     void connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort);
+    void closeConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort);
 
-    TCPConnection *getExistingConnectionOrNull(pcpp::IPv4Layer *ipLayer,
-                                               pcpp::TcpLayer * tcpLayer);
+    TCPConnection *getExistingConnectionOrNull(std::string address,
+                                               uint16_t    port);
 
     void addTCPConnection(TCPConnection *connection);
+    void removeTCPConnection(TCPConnection *connection);
 
     NetworkCard *findNextHop(pcpp::IPv4Address *dstAddress);
     void         printTable();

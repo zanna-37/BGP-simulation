@@ -36,7 +36,7 @@ bool TCPStateEnstablished::onEvent(TCPEvent event) {
                 layers, stateMachine->connection->dstAddr.toString());
             stateMachine->changeState(new TCPStateFINWait1(stateMachine));
             break;
-        case TCPEvent::ReceiveFIN:
+        case TCPEvent::ReceiveFINSendACK:
             // A device may receive a FIN message from its connection partner
             // asking that the connection be closed. It will acknowledge this
             // message and transition to the CLOSE-WAIT state

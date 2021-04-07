@@ -79,6 +79,11 @@ int main(int argc, char *argv[]) {
     // devices->at(0)->sendPacket(&layers,
     // devices->at(0)->networkCards->front());
     this_thread::sleep_for(5s);
+    devices->at(2)->closeConnection(testAddress, 179);
+    this_thread::sleep_for(2s);
+    testAddress = new pcpp::IPv4Address("90.36.25.123");
+    devices->at(0)->closeConnection(testAddress, 12345);
+    this_thread::sleep_for(5s);
     delete testAddress;
 
     // BGPConnection connection(devices->at(0));
