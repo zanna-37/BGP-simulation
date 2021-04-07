@@ -19,6 +19,12 @@ class EndPoint : public virtual Device {
 
     ~EndPoint() override = default;
 
+    /**
+     * The endpoint drops a packet that does not have to process
+     * @param layers the std::stack simulating the packet
+     * @param networkCard the network card to forward. It should be null for the
+     * enpoint case
+     */
     void forwardMessage(stack<pcpp::Layer *> *layers,
                         NetworkCard *         networkCard) override;
 };

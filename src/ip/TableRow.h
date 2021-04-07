@@ -30,9 +30,10 @@ class TableRow {
             delete netmask;
         }
     };
-
-    // TableRow operator=(const TableRow& other);
-
+    /**
+     * Transform the netmask in CIDR format
+     * @return CIDR value of the netmask
+     */
     int toCIDR();
 };
 

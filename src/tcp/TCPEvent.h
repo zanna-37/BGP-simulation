@@ -2,6 +2,10 @@
 #define TCPEVENT_H
 #include <string>
 
+/**
+ * A list og the possible event that are handled by the TCPStateMachine,
+ * according to RFC 793
+ */
 enum TCPEvent {
     PassiveOpen                 = 1,
     ActiveOpen_SendSYN          = 2,
@@ -18,6 +22,10 @@ enum TCPEvent {
 
 
 };
-
+/**
+ * Print the event name
+ * @param event the TCPEvent
+ * @return a string name of the event
+ */
 std::string getEventName(TCPEvent);
 #endif

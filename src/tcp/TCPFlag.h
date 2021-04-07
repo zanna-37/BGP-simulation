@@ -1,6 +1,10 @@
 #ifndef TCPFLAG_H
 #define TCPFLAG_H
 
+/**
+ * A list of the TCP flags implemented in this project, with the correct value
+ * to fill a \a uint8_t
+ */
 enum TCPFlag {
 
     FIN = 1,

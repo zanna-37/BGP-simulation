@@ -28,6 +28,12 @@ class Router : public virtual Device {
 
     ~Router() override = default;
 
+    /**
+     * It forward the message to the next hop, if the message is not of this
+     * device.
+     * @param layers the std::stack simulation of the packet
+     * @param networkCard the network card that will send the packet
+     */
     void forwardMessage(stack<pcpp::Layer *> *layers,
                         NetworkCard *         networkCard) override;
 };

@@ -175,6 +175,7 @@ class Device {
     /**
      * Receive a packet from one of its network cards. It checks if the message
      * if for this router or it must forward (or drop) it
+     * @warning it should be called by the network card
      * @param layers the std::stack simulating the packet.
      * @param origin the network card that received the packet
      */
@@ -218,17 +219,56 @@ class Device {
      */
     void resetConnection(std::string dstAddr, uint16_t dstPort);
 
+    /**
+     * Search for existing connections in tcpConnections hashmap. If no
+     * connection exists, or the connection is in state CLOSED, a \a nullptr is
+     * returned
+     * @param address the destination address of the connection
+     * @param port the destination port of the connection
+     * @return the existing TCPConnection or a \a nullptr
+     */
     TCPConnection *getExistingConnectionOrNull(std::string address,
                                                uint16_t    port);
 
+
+    /**
+     * Add a TCPConnection to the tcpConnections hashmap
+     * @param connection the TCPConnection to add
+     */
     void addTCPConnection(TCPConnection *connection);
+    /**
+     * Remove a TCP connection from the hashmap
+     * @param connection the TCPConnection to remove
+     */
     void removeTCPConnection(TCPConnection *connection);
 
+    /**
+     * Search for the network card that have to send the packet, based on the IP
+     * destination address. If no network card can handle the message, a \a
+     * nullptr is returned
+     * @param dstAddress the destnation address of the packet
+     */
     NetworkCard *findNextHop(pcpp::IPv4Address *dstAddress);
-    void         printTable();
+
+    /**
+     * Print the routing table, using <iomanip> library
+     */
+    void printTable();
 
    private:
-    void        printElement(std::string t);
+    /**
+     * private methd to print a single element in the routing table
+     * @param t the string to beautify print
+     */
+    void printElement(std::string t);
+
+    /**
+     * Compute the hash of the connection based on the destination IP address
+     * and the destination port
+     * @param dstAddr string of the IP address
+     * @param dstPort the destination port
+     * @return the hash
+     */
     std::size_t tcpConnectionHash(std::string dstAddr, uint16_t dstPort);
 };
 
