@@ -116,6 +116,7 @@ class Device {
     void listen();
     void connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort);
     void closeConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort);
+    void resetConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort);
 
     TCPConnection *getExistingConnectionOrNull(std::string address,
                                                uint16_t    port);

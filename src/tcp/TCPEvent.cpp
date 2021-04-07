@@ -36,6 +36,11 @@ std::string getEventName(TCPEvent event) {
         case TCPEvent::TimerExpiration:
             return "[" + std::to_string((int)TCPEvent::TimerExpiration) +
                    "-TimerExpiration]";
+        case TCPEvent::SendRST:
+            return "[" + std::to_string((int)TCPEvent::SendRST) + "-SendRST]";
+        case TCPEvent::ReceiveRST:
+            return "[" + std::to_string((int)TCPEvent::ReceiveRST) +
+                   "-ReceiveRST]";
 
         default:
             L_ERROR("THIS SHOULD NEVER HAPPEN: unknown TCP Event");

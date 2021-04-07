@@ -221,14 +221,28 @@ void Device::closeConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
     }
 }
 
+void Device::resetConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
+    TCPConnection *existingConnection =
+        getExistingConnectionOrNull(dstAddr->toString(), dstPort);
+
+    if (existingConnection == nullptr) {
+        L_ERROR("Device " + ID +
+                " is trying to close an non existing connection");
+    } else {
+        existingConnection->enqueueEvent(TCPEvent::SendRST);
+    }
+}
+
 TCPConnection *Device::getExistingConnectionOrNull(std::string address,
                                                    uint16_t    port) {
     auto search = tcpConnections.find(tcpConnectionHash(address, port));
 
     if (search != tcpConnections.end()) {
         if (search->second->stateMachine->getCurrentState()->NAME == "CLOSED") {
+            TCPConnection *to_remove = search->second;
             removeTCPConnection(search->second);
-            delete search->second;
+            delete to_remove;
+
         } else {
             return search->second;
         }

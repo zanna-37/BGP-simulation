@@ -4,6 +4,7 @@
 
 #include "../../logger/Logger.h"
 #include "../TCPFlag.h"
+#include "TCPStateClosed.h"
 #include "TCPStateTimeWait.h"
 
 TCPStateFINWait2::TCPStateFINWait2(TCPStateMachine* stateMachine)
@@ -31,6 +32,19 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
             stateMachine->timeWaitTimer->start();
             stateMachine->changeState(new TCPStateTimeWait(stateMachine));
 
+            break;
+        case TCPEvent::SendRST:
+            layers   = new std::stack<pcpp::Layer*>();
+            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+                                     stateMachine->connection->dstPort,
+                                     RST);
+            layers->push(tcpLayer);
+            stateMachine->connection->owner->sendPacket(
+                layers, stateMachine->connection->dstAddr.toString());
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
+            break;
+        case TCPEvent::ReceiveRST:
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 
         default:

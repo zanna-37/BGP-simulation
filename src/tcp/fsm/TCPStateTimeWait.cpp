@@ -18,6 +18,9 @@ bool TCPStateTimeWait::onEvent(TCPEvent event) {
             // stateMachine->connection->owner->removeTCPConnection(
             //     stateMachine->connection);
             break;
+        case TCPEvent::ReceiveRST:
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
+            break;
         default:
             handled = false;
             break;

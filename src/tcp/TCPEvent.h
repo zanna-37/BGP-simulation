@@ -12,7 +12,9 @@ enum TCPEvent {
     CloseSendFIN                = 7,
     ReceiveACKforFIN            = 8,
     ReceiveFINSendACK           = 9,
-    TimerExpiration             = 10
+    TimerExpiration             = 10,
+    SendRST                     = 11,
+    ReceiveRST                  = 12
 
 
 };

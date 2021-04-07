@@ -4,6 +4,7 @@
 
 #include "../../logger/Logger.h"
 #include "../TCPFlag.h"
+#include "TCPStateClosed.h"
 #include "TCPStateListen.h"
 #include "TCPStateSYNSent.h"
 
@@ -43,6 +44,19 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr.toString());
             stateMachine->changeState(new TCPStateSYNSent(stateMachine));
+            break;
+        case TCPEvent::SendRST:
+            layers   = new std::stack<pcpp::Layer*>();
+            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+                                     stateMachine->connection->dstPort,
+                                     RST);
+            layers->push(tcpLayer);
+            stateMachine->connection->owner->sendPacket(
+                layers, stateMachine->connection->dstAddr.toString());
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
+            break;
+        case TCPEvent::ReceiveRST:
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
         default:
             handled = false;

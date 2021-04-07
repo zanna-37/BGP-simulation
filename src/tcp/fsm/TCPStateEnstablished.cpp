@@ -8,6 +8,7 @@
 #include "../../logger/Logger.h"
 #include "../TCPFlag.h"
 #include "TCPStateCloseWait.h"
+#include "TCPStateClosed.h"
 #include "TCPStateFINWait1.h"
 
 TCPStateEnstablished::TCPStateEnstablished(TCPStateMachine *stateMachine)
@@ -50,6 +51,19 @@ bool TCPStateEnstablished::onEvent(TCPEvent event) {
                 layers, stateMachine->connection->dstAddr.toString());
             stateMachine->changeState(new TCPStateCloseWait(stateMachine));
 
+            break;
+        case TCPEvent::SendRST:
+            layers   = new std::stack<pcpp::Layer *>();
+            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+                                     stateMachine->connection->dstPort,
+                                     RST);
+            layers->push(tcpLayer);
+            stateMachine->connection->owner->sendPacket(
+                layers, stateMachine->connection->dstAddr.toString());
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
+            break;
+        case TCPEvent::ReceiveRST:
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 
         default:

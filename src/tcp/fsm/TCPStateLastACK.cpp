@@ -22,6 +22,9 @@ bool TCPStateLastACK::onEvent(TCPEvent event) {
             //     stateMachine->connection);
 
             break;
+        case TCPEvent::ReceiveRST:
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
+            break;
 
         default:
             handled = false;

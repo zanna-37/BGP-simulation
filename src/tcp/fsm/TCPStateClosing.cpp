@@ -1,6 +1,7 @@
 #include "TCPStateClosing.h"
 
 #include "../../logger/Logger.h"
+#include "TCPStateClosed.h"
 #include "TCPStateTimeWait.h"
 
 TCPStateClosing::TCPStateClosing(TCPStateMachine* stateMachine)
@@ -17,6 +18,9 @@ bool TCPStateClosing::onEvent(TCPEvent event) {
             // transitions to the TIME-WAIT state.
             stateMachine->timeWaitTimer->start();
             stateMachine->changeState(new TCPStateTimeWait(stateMachine));
+            break;
+        case TCPEvent::ReceiveRST:
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 
         default:

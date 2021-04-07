@@ -79,6 +79,8 @@ int main(int argc, char *argv[]) {
     // devices->at(0)->sendPacket(&layers,
     // devices->at(0)->networkCards->front());
     this_thread::sleep_for(5s);
+    devices->at(2)->resetConnection(testAddress, 179);
+    this_thread::sleep_for(5s);
     devices->at(2)->closeConnection(testAddress, 179);
     this_thread::sleep_for(2s);
     delete testAddress;
