@@ -14,8 +14,8 @@ std::string getEventName(BGPEvent event) {
                    "-Automatic start]";
         case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
             return "[" +
-                   std::to_string((
-                       int)BGPEvent::ManualStart_with_PassiveTcpEstablishment) +
+                   std::to_string(
+                       BGPEvent::ManualStart_with_PassiveTcpEstablishment) +
                    "-Manual start with Passive Tcp Establishment]";
         case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
             return "[" +
@@ -24,8 +24,8 @@ std::string getEventName(BGPEvent event) {
                    "-Automatic start with Passive Tcp Establishment]";
         case BGPEvent::AutomaticStart_with_DampPeerOscillations:
             return "[" +
-                   std::to_string((
-                       int)BGPEvent::AutomaticStart_with_DampPeerOscillations) +
+                   std::to_string(
+                       BGPEvent::AutomaticStart_with_DampPeerOscillations) +
                    "-Automatic start with Damp Peer Oscillations]";
         case BGPEvent::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
