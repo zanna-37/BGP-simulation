@@ -28,7 +28,7 @@ bool TCPStateListen::onEvent(TCPEvent event) {
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
-
+            delete layers;
             stateMachine->changeState(new TCPStateSYNReceived(stateMachine));
             break;
         case TCPEvent::SendRST:
@@ -39,6 +39,7 @@ bool TCPStateListen::onEvent(TCPEvent event) {
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
+            delete layers;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
         case TCPEvent::ReceiveRST:

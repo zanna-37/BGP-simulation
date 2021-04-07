@@ -52,9 +52,9 @@ void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
             packet->addLayer(layers->top(), true);
             layers->pop();
         }
-        delete layers;
         packet->computeCalculateFields();
         link->sendPacket(packet, destination);
+        delete packet;
     }
 }
 

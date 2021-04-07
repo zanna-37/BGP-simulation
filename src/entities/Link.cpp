@@ -35,7 +35,6 @@ NetworkCard *Link::getPeerNetworkCardOrNull(NetworkCard *networkCard) {
 void Link::sendPacket(pcpp::Packet *packet, NetworkCard *destination) {
     assert(destination);
     pair<const uint8_t *, int> data = serialize(packet);
-    delete packet;
     if (connection_status == Connection_status::ACTIVE) {
         L_DEBUG("Sending packet through link: " +
                 getPeerNetworkCardOrNull(destination)->owner->ID + ":" +

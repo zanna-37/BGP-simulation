@@ -35,6 +35,7 @@ bool TCPStateEnstablished::onEvent(TCPEvent event) {
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
+            delete layers;
             stateMachine->changeState(new TCPStateFINWait1(stateMachine));
             break;
         case TCPEvent::ReceiveFINSendACK:
@@ -49,6 +50,7 @@ bool TCPStateEnstablished::onEvent(TCPEvent event) {
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
+            delete layers;
             stateMachine->changeState(new TCPStateCloseWait(stateMachine));
 
             break;
@@ -60,6 +62,7 @@ bool TCPStateEnstablished::onEvent(TCPEvent event) {
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
+            delete layers;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
         case TCPEvent::ReceiveRST:

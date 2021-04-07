@@ -54,26 +54,24 @@ void Device::addCards(vector<NetworkCard *> *networkCards) {
 void Device::start() {
     routingTable = new std::vector<TableRow *>();
     for (NetworkCard *networkCard : *networkCards) {
-        pcpp::IPv4Address *networkIP = new pcpp::IPv4Address(
-            (networkCard->IP.toInt() & networkCard->netmask.toInt()));
+        pcpp::IPv4Address networkIP(networkCard->IP.toInt() &
+                                    networkCard->netmask.toInt());
 
-        TableRow *row =
-            new TableRow(networkIP,
-                         &(networkCard->netmask),
-                         new pcpp::IPv4Address(pcpp::IPv4Address::Zero),
-                         networkCard->netInterface,
-                         networkCard);
+        TableRow *row = new TableRow(networkIP,
+                                     pcpp::IPv4Address(networkCard->netmask),
+                                     pcpp::IPv4Address::Zero,
+                                     networkCard->netInterface,
+                                     networkCard);
 
         routingTable->push_back(row);
 
         if (defaultGateway.isValid() &&
-            defaultGateway.matchSubnet(*networkIP, networkCard->netmask)) {
-            TableRow *row =
-                new TableRow(new pcpp::IPv4Address(pcpp::IPv4Address::Zero),
-                             new pcpp::IPv4Address(pcpp::IPv4Address::Zero),
-                             &defaultGateway,
-                             networkCard->netInterface,
-                             networkCard);
+            defaultGateway.matchSubnet(networkIP, networkCard->netmask)) {
+            TableRow *row = new TableRow(pcpp::IPv4Address::Zero,
+                                         pcpp::IPv4Address::Zero,
+                                         pcpp::IPv4Address(defaultGateway),
+                                         networkCard->netInterface,
+                                         networkCard);
 
             routingTable->push_back(row);
         }
@@ -275,7 +273,7 @@ NetworkCard *Device::findNextHop(pcpp::IPv4Address *dstAddress) {
     int          longestMatch = -1;
     NetworkCard *result       = nullptr;
     for (TableRow *row : *routingTable) {
-        if (dstAddress->matchSubnet(*(row->networkIP), *(row->netmask)) &&
+        if (dstAddress->matchSubnet(row->networkIP, row->netmask) &&
             row->toCIDR() > longestMatch) {
             longestMatch = row->toCIDR();
             result       = row->networkCard;
@@ -298,9 +296,9 @@ void Device::printTable() {
     printElement("Iface");
     std::cout << std::endl;
     for (TableRow *row : *routingTable) {
-        printElement(row->networkIP->toString());
-        printElement(row->defaultGateway->toString());
-        printElement(row->netmask->toString());
+        printElement(row->networkIP.toString());
+        printElement(row->defaultGateway.toString());
+        printElement(row->netmask.toString());
         printElement(row->netInterface);
         cout << std::endl;
     }

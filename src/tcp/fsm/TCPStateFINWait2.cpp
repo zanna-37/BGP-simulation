@@ -30,6 +30,7 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
             stateMachine->timeWaitTimer->start();
+            delete layers;
             stateMachine->changeState(new TCPStateTimeWait(stateMachine));
 
             break;
@@ -41,6 +42,7 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
+            delete layers;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
         case TCPEvent::ReceiveRST:

@@ -44,6 +44,7 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
             stateMachine->changeState(new TCPStateSYNSent(stateMachine));
+            delete layers;
             break;
         case TCPEvent::SendRST:
             layers   = new std::stack<pcpp::Layer*>();
@@ -53,6 +54,7 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
+            delete layers;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
         case TCPEvent::ReceiveRST:
