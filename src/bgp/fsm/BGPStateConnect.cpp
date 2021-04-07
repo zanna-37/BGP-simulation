@@ -1,6 +1,6 @@
 #include "BGPStateConnect.h"
 
-#include "..//BGPTimer.h"
+#include "../BGPTimer.h"
 #include "BGPStateActive.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenConfirm.h"

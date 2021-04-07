@@ -37,7 +37,6 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
             }
         }
         Router *router = new Router(ID, AS_number, defaultGateway);
-        L_DEBUG("router creato");
 
         networkCards = ParserNetworkCard::parseAndBuildNetworkCards(
             networkCards_yaml, router);

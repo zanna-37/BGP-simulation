@@ -2,8 +2,10 @@
 #define BGPSTATE_H
 
 #include "../BGPEvent.h"
-#include "BGPStateMachine.fwd.h"
 #include "BGPStateMachine.h"
+
+// forward declarations
+#include "BGPStateMachine.fwd.h"
 
 class BGPState {
    public:

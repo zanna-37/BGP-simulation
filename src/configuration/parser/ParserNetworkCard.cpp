@@ -10,7 +10,7 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
         string            interface;
         pcpp::IPv4Address IP;
         pcpp::IPv4Address netmask;
-        pcpp::MacAddress  mac("00:00:00:00:00:00");
+        pcpp::MacAddress  mac(pcpp::MacAddress::Zero);
 
         for (const auto& detail_yaml : networkCard_yaml) {
             string     property = detail_yaml.first.as<std::string>();
