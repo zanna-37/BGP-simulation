@@ -4,7 +4,10 @@
 #include <map>
 #include <string>
 
-
+/**
+ * A list of event the BGP State Machine is able to handle (mandatory and
+ * optional)
+ */
 enum BGPEvent {
     ManualStart                                                          = 1,
     ManualStop                                                           = 2,

@@ -35,7 +35,7 @@ bool TCPStateFINWait1::onEvent(TCPEvent event) {
                                      FIN + ACK);
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr.toString());
+                layers, stateMachine->connection->dstAddr->toString());
             stateMachine->changeState(new TCPStateClosing(stateMachine));
 
             break;
@@ -46,7 +46,7 @@ bool TCPStateFINWait1::onEvent(TCPEvent event) {
                                      RST);
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr.toString());
+                layers, stateMachine->connection->dstAddr->toString());
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
         case TCPEvent::ReceiveRST:

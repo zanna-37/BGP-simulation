@@ -20,11 +20,11 @@ class TCPConnection {
    public:
     TCPStateMachine* stateMachine = nullptr;
 
-    Device*           owner = nullptr;
-    pcpp::IPv4Address srcAddr;
-    uint16_t          srcPort = 0;
-    pcpp::IPv4Address dstAddr;
-    uint16_t          dstPort = 0;
+    Device*            owner   = nullptr;
+    pcpp::IPv4Address* srcAddr = nullptr;
+    uint16_t           srcPort = 0;
+    pcpp::IPv4Address* dstAddr = nullptr;
+    uint16_t           dstPort = 0;
 
     uint16_t BGPPort = 179;
 

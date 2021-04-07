@@ -10,7 +10,11 @@ TCPConnection ::TCPConnection(Device* owner) : owner(owner) {
     this->stateMachine->start();
 }
 
-TCPConnection::~TCPConnection() { delete stateMachine; }
+TCPConnection::~TCPConnection() {
+    delete stateMachine;
+    delete srcAddr;
+    delete dstAddr;
+}
 
 void TCPConnection::enqueueEvent(TCPEvent event) {
     stateMachine->enqueueEvent(event);
@@ -30,9 +34,11 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
     pcpp::tcphdr* tcpHeader = tcpLayer->getTcpHeader();
     uint8_t       flags     = parseTCPFlags(tcpHeader);
     if (flags == SYN) {
-        srcAddr = ipLayer->getDstIPv4Address();
+        srcAddr =
+            new pcpp::IPv4Address(ipLayer->getDstIPv4Address().toString());
         srcPort = tcpLayer->getDstPort();
-        dstAddr = ipLayer->getSrcIPv4Address();
+        dstAddr =
+            new pcpp::IPv4Address(ipLayer->getSrcIPv4Address().toString());
         dstPort = tcpLayer->getSrcPort();
 
         owner->addTCPConnection(this);

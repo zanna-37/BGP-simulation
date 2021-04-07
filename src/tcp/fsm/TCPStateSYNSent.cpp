@@ -32,7 +32,7 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
                                      ACK);
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr.toString());
+                layers, stateMachine->connection->dstAddr->toString());
 
             stateMachine->changeState(new TCPStateSYNReceived(stateMachine));
 
@@ -50,7 +50,7 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
                                      ACK);
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr.toString());
+                layers, stateMachine->connection->dstAddr->toString());
 
             stateMachine->changeState(new TCPStateEnstablished(stateMachine));
 
@@ -62,7 +62,7 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
                                      RST);
             layers->push(tcpLayer);
             stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr.toString());
+                layers, stateMachine->connection->dstAddr->toString());
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
         case TCPEvent::ReceiveRST:

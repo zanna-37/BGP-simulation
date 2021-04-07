@@ -172,6 +172,8 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
             listenConnection->processMessage(layers);
         } else {
             L_INFO("PORT closed or server not listening");
+            resetConnection(ipLayer->getSrcIPv4Address().toString(),
+                            tcpLayer->getSrcPort());
             // TODO send reset to the sender
         }
     }
@@ -194,24 +196,22 @@ void Device::listen() {
     listenConnection->srcPort = listenConnection->BGPPort;
     listenConnection->enqueueEvent(TCPEvent::PassiveOpen);
 }
-void Device::connect(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
+void Device::connect(std::string dstAddr, uint16_t dstPort) {
     TCPConnection *connection = new TCPConnection(this);
 
-    connection->dstAddr = *dstAddr;
+    connection->dstAddr = new pcpp::IPv4Address(dstAddr);
     connection->dstPort = dstPort;
 
     // FIXME
     uint16_t randomPort = 12345;
     connection->srcPort = randomPort;
     addTCPConnection(connection);
-    // size_t hash          = tcpConnectionHash(dstAddr->toString(), dstPort);
-    // tcpConnections[hash] = connection;
     connection->enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
 }
 
-void Device::closeConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
+void Device::closeConnection(std::string dstAddr, uint16_t dstPort) {
     TCPConnection *existingConnection =
-        getExistingConnectionOrNull(dstAddr->toString(), dstPort);
+        getExistingConnectionOrNull(dstAddr, dstPort);
 
     if (existingConnection == nullptr) {
         L_ERROR("Device " + ID +
@@ -221,9 +221,9 @@ void Device::closeConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
     }
 }
 
-void Device::resetConnection(pcpp::IPv4Address *dstAddr, uint16_t dstPort) {
+void Device::resetConnection(std::string dstAddr, uint16_t dstPort) {
     TCPConnection *existingConnection =
-        getExistingConnectionOrNull(dstAddr->toString(), dstPort);
+        getExistingConnectionOrNull(dstAddr, dstPort);
 
     if (existingConnection == nullptr) {
         L_ERROR("Device " + ID +
@@ -252,13 +252,13 @@ TCPConnection *Device::getExistingConnectionOrNull(std::string address,
 }
 
 void Device::addTCPConnection(TCPConnection *connection) {
-    tcpConnections[tcpConnectionHash(connection->dstAddr.toString(),
+    tcpConnections[tcpConnectionHash(connection->dstAddr->toString(),
                                      connection->dstPort)] = connection;
 }
 
 void Device::removeTCPConnection(TCPConnection *connection) {
-    tcpConnections.erase(
-        tcpConnectionHash(connection->dstAddr.toString(), connection->dstPort));
+    tcpConnections.erase(tcpConnectionHash(connection->dstAddr->toString(),
+                                           connection->dstPort));
 }
 
 
