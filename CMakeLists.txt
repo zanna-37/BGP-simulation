@@ -46,6 +46,7 @@ set(SOURCE_FILES
         ${SRC_LOGGER}/Logger.cpp
         ${SRC_BGP}/BGPConnection.cpp
         ${SRC_BGP}/BGPEvent.cpp
+        ${SRC_BGP}/BGPTimer.cpp
         ${SRC_BGP_FSM}/BGPStateActive.cpp
         ${SRC_BGP_FSM}/BGPStateConnect.cpp
         ${SRC_BGP_FSM}/BGPStateEnstablished.cpp
@@ -53,11 +54,11 @@ set(SOURCE_FILES
         ${SRC_BGP_FSM}/BGPStateMachine.cpp
         ${SRC_BGP_FSM}/BGPStateOpenConfirm.cpp
         ${SRC_BGP_FSM}/BGPStateOpenSent.cpp
-        ${SRC_UTILS}/Timer.cpp
         ${SRC_IP}/TableRow.cpp
         ${SRC_UTILS}/MacGenerator.cpp
         ${SRC_TCP}/TCPConnection.cpp
         ${SRC_TCP}/TCPEvent.cpp
+        ${SRC_TCP}/TCPTimer.cpp
         ${SRC_TCP_FSM}/TCPState.cpp
         ${SRC_TCP_FSM}/TCPStateClosed.cpp
         ${SRC_TCP_FSM}/TCPStateClosing.cpp

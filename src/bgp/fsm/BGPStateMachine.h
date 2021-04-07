@@ -8,14 +8,14 @@
 #include <thread>
 
 #include "../../fsm/StateMachine.h"
-#include "../../utils/Timer.h"
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
+#include "../BGPTimer.h"
 #include "BGPState.h"
 
 // forward declarations
-#include "../../utils/Timer.fwd.h"
 #include "../BGPConnection.fwd.h"
+#include "../BGPTimer.fwd.h"
 #include "BGPState.fwd.h"
 
 using namespace std::chrono_literals;
@@ -55,12 +55,12 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     ~BGPStateMachine();
 
     // Mandatory session attributes
-    Timer* connectRetryTimer = nullptr;
-    Timer* holdTimer         = nullptr;
-    Timer* keepAliveTimer    = nullptr;
+    BGPTimer* connectRetryTimer = nullptr;
+    BGPTimer* holdTimer         = nullptr;
+    BGPTimer* keepAliveTimer    = nullptr;
 
     // Optional session attributes
-    Timer* delayOpenTimer = nullptr;
+    BGPTimer* delayOpenTimer = nullptr;
 
     /**
      * Increment the connectRetryCounter by one

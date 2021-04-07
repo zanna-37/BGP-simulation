@@ -1,6 +1,6 @@
 #include "BGPStateActive.h"
 
-#include "../../utils/Timer.h"
+#include "../BGPTimer.h"
 #include "BGPStateConnect.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenSent.h"
@@ -62,7 +62,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
 
             // - sets its hold timer to a large value ( A HoldTimer value of 4
             // minutes is also suggested for this state transition.), and
-            stateMachine->holdTimer = new Timer(
+            stateMachine->holdTimer = new BGPTimer(
                 "holdTimer", stateMachine, BGPEvent::HoldTimer_Expires, 240s);
             stateMachine->holdTimer->start();
 
@@ -106,10 +106,11 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
 
                 //   - sets its HoldTimer to a large value, and
                 stateMachine->resetHoldTimer();
-                stateMachine->holdTimer = new Timer("holdTimer",
-                                                    stateMachine,
-                                                    BGPEvent::HoldTimer_Expires,
-                                                    240s);
+                stateMachine->holdTimer =
+                    new BGPTimer("holdTimer",
+                                 stateMachine,
+                                 BGPEvent::HoldTimer_Expires,
+                                 240s);
                 stateMachine->holdTimer->start();
 
 

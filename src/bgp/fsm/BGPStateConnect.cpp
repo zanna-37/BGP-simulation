@@ -1,6 +1,6 @@
 #include "BGPStateConnect.h"
 
-#include "../../utils/Timer.h"
+#include "..//BGPTimer.h"
 #include "BGPStateActive.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenConfirm.h"
@@ -148,10 +148,11 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->keepAliveTimer->start();
 
                 //     - resets the HoldTimer to the negotiated value, // FIXME
-                stateMachine->holdTimer = new Timer("holdTimer",
-                                                    stateMachine,
-                                                    BGPEvent::HoldTimer_Expires,
-                                                    240s);
+                stateMachine->holdTimer =
+                    new BGPTimer("holdTimer",
+                                 stateMachine,
+                                 BGPEvent::HoldTimer_Expires,
+                                 240s);
                 // stateMachine->holdTimer->setRemainingTime(0ms);  // NOT_SURE
 
                 //   else, if the HoldTimer initial value is zero,

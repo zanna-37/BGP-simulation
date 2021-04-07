@@ -24,10 +24,10 @@ void BGPStateMachine::resetConnectRetryTimer() {
         delete connectRetryTimer;
     }
 
-    connectRetryTimer = new Timer("ConnectRetryTimer",
-                                  this,
-                                  BGPEvent::ConnectRetryTimer_Expires,
-                                  connectRetryTime);
+    connectRetryTimer = new BGPTimer("ConnectRetryTimer",
+                                     this,
+                                     BGPEvent::ConnectRetryTimer_Expires,
+                                     connectRetryTime);
 }
 
 void BGPStateMachine::resetHoldTimer() {
@@ -37,7 +37,7 @@ void BGPStateMachine::resetHoldTimer() {
     }
 
     holdTimer =
-        new Timer("HoldTimer", this, BGPEvent::HoldTimer_Expires, holdTime);
+        new BGPTimer("HoldTimer", this, BGPEvent::HoldTimer_Expires, holdTime);
 }
 
 void BGPStateMachine::resetKeepAliveTimer() {
@@ -46,10 +46,10 @@ void BGPStateMachine::resetKeepAliveTimer() {
         delete keepAliveTimer;
     }
 
-    keepAliveTimer = new Timer("KeepAliveTimer",
-                               this,
-                               BGPEvent::KeepaliveTimer_Expires,
-                               keepaliveTime);
+    keepAliveTimer = new BGPTimer("KeepAliveTimer",
+                                  this,
+                                  BGPEvent::KeepaliveTimer_Expires,
+                                  keepaliveTime);
 }
 
 void BGPStateMachine::resetDelayOpenTimer() {
@@ -57,10 +57,10 @@ void BGPStateMachine::resetDelayOpenTimer() {
         delayOpenTimer->stop();
         delete delayOpenTimer;
     }
-    delayOpenTimer = new Timer("DelayOpenTimer",
-                               this,
-                               BGPEvent::DelayOpenTimer_Expires,
-                               delayOpenTime);
+    delayOpenTimer = new BGPTimer("DelayOpenTimer",
+                                  this,
+                                  BGPEvent::DelayOpenTimer_Expires,
+                                  delayOpenTime);
 }
 
 void BGPStateMachine::initializeTimers() {
