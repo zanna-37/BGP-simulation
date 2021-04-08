@@ -13,7 +13,7 @@ class BGPStateOpenSent : public BGPState {
     // Constructor
     BGPStateOpenSent(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         NAME = "OPEN_SENT";
-        L_DEBUG("State created: " + NAME);
+        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
     };
 
     // Deconstructor

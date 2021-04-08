@@ -13,7 +13,7 @@ class BGPStateConnect : public BGPState {
     // Constructor
     BGPStateConnect(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         NAME = "CONNECT";
-        L_DEBUG("State created: " + NAME);
+        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
     };
 
     // Deconstructor

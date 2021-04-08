@@ -41,25 +41,27 @@ void addPadAfterEndline(std::string&       data,
     }
 }
 
-void Logger::log(LogLevel logLevel, string message) {
+
+void Logger::log(LogLevel logLevel, string owner, string message) {
     if (logLevel >= targetLevel) {
-        string output;
+        string             output;
+        std::ostringstream oss;
 
         if (enableColor) {
             switch (logLevel) {
                 case LogLevel::DEBUG:
                 case LogLevel::VERBOSE:
-                    output += COLOR_FG_LIGHT_GREY;
+                    oss << COLOR_FG_LIGHT_GREY;
                     break;
                 case LogLevel::SUCCESS:
-                    output += COLOR_FG_LIGHT_GREEN;
+                    oss << COLOR_FG_LIGHT_GREEN;
                     break;
                 case LogLevel::WARNING:
-                    output += COLOR_FG_LIGHT_YELLOW;
+                    oss << COLOR_FG_LIGHT_YELLOW;
                     break;
                 case LogLevel::ERROR:
                 case LogLevel::FATAL:
-                    output += COLOR_FG_LIGHT_RED;
+                    oss << COLOR_FG_LIGHT_RED;
                     break;
                 case LogLevel::INFO:
                     break;
@@ -68,12 +70,13 @@ void Logger::log(LogLevel logLevel, string message) {
 
         string padToAdd = printTimestamp ? padTimestamp : "";
         if (longPrefix) {
-            output += levelMapLong.at(logLevel);
+            oss << "[" << left << setw(7) << levelMapLong.at(logLevel) << "] ";
             padToAdd += padLong;
         } else {
-            output += levelMapShort.at(logLevel);
+            oss << "[" << levelMapShort.at(logLevel) << "] ";
             padToAdd += padShort;
         }
+        padToAdd += padOwner;
 
         addPadAfterEndline(message, "\n", padToAdd);
 
@@ -84,7 +87,7 @@ void Logger::log(LogLevel logLevel, string message) {
                 case LogLevel::SUCCESS:
                 case LogLevel::WARNING:
                 case LogLevel::ERROR:
-                    output += COLOR_FG_DEFAULT;
+                    oss << COLOR_FG_DEFAULT;
                     break;
                 case LogLevel::DEBUG:
                 case LogLevel::FATAL:
@@ -112,10 +115,11 @@ void Logger::log(LogLevel logLevel, string message) {
                /* << "." << std::setw(3) << us.count() */
                << "] ";
 
-            output += ss.str();
+            oss << ss.str();
         }
 
-        output += message;
+        oss << "[" << left << setw(6) << owner << "] ";
+        oss << message;
 
         if (enableColor) {
             // restore color
@@ -129,12 +133,13 @@ void Logger::log(LogLevel logLevel, string message) {
                     break;
                 case LogLevel::DEBUG:
                 case LogLevel::FATAL:
-                    output += COLOR_FG_DEFAULT;
+                    oss << COLOR_FG_DEFAULT;
                     break;
             }
         }
 
         mutex.lock();
+        output = oss.str();
         cout << output << endl;
         mutex.unlock();
     }

@@ -78,10 +78,11 @@ class Timer {
           duration(std::chrono::milliseconds::min()) {}
     ~Timer() {
         if (timerThread != nullptr) {
-            L_ERROR(
-                "Timer " + NAME +
-                " has not been stopped before deletion.\nCall stop() before "
-                "deleting the Timer.");
+            L_ERROR(stateMachine->connection->owner->ID,
+                    "Timer " + NAME +
+                        " has not been stopped before deletion.\nCall stop() "
+                        "before "
+                        "deleting the Timer.");
             stop();
         }
     }
@@ -95,7 +96,8 @@ class Timer {
         mutex.lock();
 
         if (timerState != UNINITIALIZED) {
-            L_ERROR("Illegal state: timer already started.");
+            L_ERROR(stateMachine->connection->owner->ID,
+                    "Illegal state: timer already started.");
         } else {
             timerState = TICKING;
             sleepMutex.lock();
@@ -107,36 +109,40 @@ class Timer {
 
                 if (duration.count() < 0) {
                     timeToSleep = totalDuration;
-                    L_DEBUG("START " + NAME + ": " +
-                            to_string(timeToSleep.count()) + "ms");
+                    L_DEBUG(stateMachine->connection->owner->ID,
+                            "START " + NAME + ": " +
+                                to_string(timeToSleep.count()) + "ms");
                 } else {
                     timeToSleep = duration;
-                    L_DEBUG("RESUME " + NAME + ": " +
-                            to_string(timeToSleep.count()) + "ms");
+                    L_DEBUG(stateMachine->connection->owner->ID,
+                            "RESUME " + NAME + ": " +
+                                to_string(timeToSleep.count()) + "ms");
                 }
 
                 sleepMutex.try_lock_for(timeToSleep);
 
                 mutex.lock();
                 if (timerState == TICKING) {
-                    L_DEBUG("TIMEOUT " + NAME + ": performing actions");
+                    L_DEBUG(stateMachine->connection->owner->ID,
+                            "TIMEOUT " + NAME + ": performing actions");
                     timerState = EXECUTING_SCHEDULED_TASK;
                     stateMachine->enqueueEvent(eventToSendUponExpire);
                     timerState = COMPLETED;
 
                 } else {
-                    L_DEBUG(NAME + ": " + "was stopped, skipping actions");
+                    L_DEBUG(stateMachine->connection->owner->ID,
+                            NAME + ": " + "was stopped, skipping actions");
                 }
 
                 auto end = std::chrono::steady_clock::now();
 
                 L_DEBUG(
+                    stateMachine->connection->owner->ID,
                     "END " + NAME + " after " +
-                    to_string(
-                        std::chrono::duration_cast<std::chrono::milliseconds>(
-                            end - start)
-                            .count()) +
-                    "ms");
+                        to_string(std::chrono::duration_cast<
+                                      std::chrono::milliseconds>(end - start)
+                                      .count()) +
+                        "ms");
                 mutex.unlock();
             });
         }
@@ -159,20 +165,24 @@ class Timer {
         mutex.lock();
         switch (timerState) {
             case UNINITIALIZED:
-                L_DEBUG("STOP " + NAME + ": state uninitialized");
+                L_DEBUG(stateMachine->connection->owner->ID,
+                        "STOP " + NAME + ": state uninitialized");
                 break;
             case TICKING:
                 timerState = CANCELLED;
                 sleepMutex.unlock();
-                L_DEBUG("STOP " + NAME + ": state ticking");
-                L_DEBUG("CANCEL " + NAME);
+                L_DEBUG(stateMachine->connection->owner->ID,
+                        "STOP " + NAME + ": state ticking");
+                L_DEBUG(stateMachine->connection->owner->ID, "CANCEL " + NAME);
                 break;
             case EXECUTING_SCHEDULED_TASK:
             case COMPLETED:
-                L_DEBUG("STOP " + NAME + ": state expired");
+                L_DEBUG(stateMachine->connection->owner->ID,
+                        "STOP " + NAME + ": state expired");
                 break;
             case CANCELLED:
-                L_DEBUG("STOP " + NAME + ": state already cancelled");
+                L_DEBUG(stateMachine->connection->owner->ID,
+                        "STOP " + NAME + ": state already cancelled");
                 break;
         }
         mutex.unlock();

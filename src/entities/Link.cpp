@@ -8,7 +8,7 @@ void Link::disconnect(NetworkCard *networkCard) {
     } else if (device_source_networkCards.second == networkCard) {
         device_source_networkCards.second = nullptr;
     } else {
-        L_ERROR("This link is not connected to the specified networkCard");
+        L_ERROR("Link", "Not connected to the specified networkCard");
     }
 }
 
@@ -18,7 +18,7 @@ void Link::connect(NetworkCard *networkCard) {
     } else if (device_source_networkCards.second == nullptr) {
         device_source_networkCards.second = networkCard;
     } else {
-        L_ERROR("This link is already fully connected");
+        L_ERROR("Link", "Already fully connected");
     }
 }
 
@@ -36,15 +36,18 @@ void Link::sendPacket(pcpp::Packet *packet, NetworkCard *destination) {
     assert(destination);
     pair<const uint8_t *, int> data = serialize(packet);
     if (connection_status == Connection_status::ACTIVE) {
-        L_DEBUG("Sending packet through link: " +
-                getPeerNetworkCardOrNull(destination)->owner->ID + ":" +
-                getPeerNetworkCardOrNull(destination)->netInterface + " -> " +
-                destination->owner->ID + ":" + destination->netInterface);
+        L_DEBUG(getPeerNetworkCardOrNull(destination)->owner->ID,
+                "Sending packet through link: " +
+                    getPeerNetworkCardOrNull(destination)->owner->ID + ":" +
+                    getPeerNetworkCardOrNull(destination)->netInterface +
+                    " -> " + destination->owner->ID + ":" +
+                    destination->netInterface);
         receivePacket(data, destination);
     } else {
-        L_ERROR("PHYSICAL LINK BROKEN: " +
-                getPeerNetworkCardOrNull(destination)->netInterface + " -> " +
-                destination->netInterface);
+        L_ERROR(getPeerNetworkCardOrNull(destination)->owner->ID,
+                "PHYSICAL LINK BROKEN: " +
+                    getPeerNetworkCardOrNull(destination)->netInterface +
+                    " -> " + destination->netInterface);
     }
 }
 

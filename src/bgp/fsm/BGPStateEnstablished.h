@@ -13,7 +13,7 @@ class BGPStateEnstablished : public BGPState {
     BGPStateEnstablished(BGPStateMachine* stateMachine)
         : BGPState(stateMachine) {
         NAME = "ENSTABLISHED";
-        L_DEBUG("State created: " + NAME);
+        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
     };
 
     // Deconstructor

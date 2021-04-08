@@ -40,7 +40,7 @@ std::string getEventName(TCPEvent event) {
             return "[" + std::to_string(TCPEvent::ReceiveRST) + "-ReceiveRST]";
 
         default:
-            L_ERROR("THIS SHOULD NEVER HAPPEN: unknown TCP Event");
+            L_ERROR("TCPEvent", "THIS SHOULD NEVER HAPPEN: unknown TCP Event");
             return "[" + std::to_string(event) + "-Unknown]";
     }
 }

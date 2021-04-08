@@ -11,7 +11,7 @@
 TCPStateFINWait1::TCPStateFINWait1(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
     NAME = "FIN-WAIT-1";
-    L_DEBUG("State created: " + NAME);
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
 }
 bool TCPStateFINWait1::onEvent(TCPEvent event) {
     std::stack<pcpp::Layer*>* layers   = nullptr;

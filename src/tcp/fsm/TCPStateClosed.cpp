@@ -11,7 +11,7 @@
 TCPStateClosed::TCPStateClosed(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
     NAME = "CLOSED";
-    L_DEBUG("State created: " + NAME);
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
 }
 
 bool TCPStateClosed::onEvent(TCPEvent event) {

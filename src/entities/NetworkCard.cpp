@@ -25,7 +25,8 @@ void NetworkCard::connect(const shared_ptr<Link>& linkToConnect) {
         linkToConnect->connect(this);
         link = linkToConnect;
     } else {
-        L_ERROR("(" + netInterface + ") This interface is already connected");
+        L_ERROR(owner->ID,
+                "(" + netInterface + ") This interface is already connected");
     }
 }
 
@@ -34,16 +35,20 @@ void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
         linkToDisconnect->disconnect(this);
         link = nullptr;
     } else if (link == nullptr) {
-        L_ERROR("(" + netInterface + ") This interface has no link connected");
+        L_ERROR(owner->ID,
+                "(" + netInterface + ") This interface has no link connected");
     } else {
-        L_ERROR("(" + netInterface +
+        L_ERROR(
+            owner->ID,
+            "(" + netInterface +
                 ") This interface is not connected with the link specified");
     }
 }
 
 void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
     if (link->connection_status == ACTIVE) {
-        L_DEBUG("Sending packet using " + netInterface + " through link");
+        L_DEBUG(owner->ID,
+                "Sending packet using " + netInterface + " through link");
         NetworkCard*    destination = link->getPeerNetworkCardOrNull(this);
         pcpp::EthLayer* ethLayer    = new pcpp::EthLayer(mac, destination->mac);
         layers->push(ethLayer);
@@ -59,7 +64,7 @@ void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
 }
 
 void NetworkCard::receivePacket(pcpp::Packet* receivedPacket) {
-    L_DEBUG("Enqueueing event in " + netInterface + " queue");
+    L_DEBUG(owner->ID, "Enqueueing event in " + netInterface + " queue");
     receivedPacketsQueue.push(receivedPacket);
     ReceivedPacketEvent* event = new ReceivedPacketEvent(
         this, ReceivedPacketEvent::Description::PACKET_ARRIVED);

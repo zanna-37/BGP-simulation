@@ -89,22 +89,23 @@ void Device::start() {
                     receivedPacketsEventQueue_uniqueLock);
 
                 if (receivedPacketsEventQueue.empty() && running) {
-                    L_DEBUG("Spurious Wakeup");
+                    L_DEBUG(ID, "Spurious Wakeup");
                 }
             }
 
             if (running) {
-                L_DEBUG("Queue not empty: handling event");
+                L_DEBUG(ID, "Queue not empty: handling event");
                 ReceivedPacketEvent *event = receivedPacketsEventQueue.front();
-                L_DEBUG("Packet arrived at " +
-                        event->networkCard->netInterface);
+                L_DEBUG(
+                    ID,
+                    "Packet arrived at " + event->networkCard->netInterface);
                 receivedPacketsEventQueue.pop();
 
                 event->networkCard->handleNextPacket();
 
                 delete event;
             } else {
-                L_VERBOSE("Shutting down:" + ID);
+                L_VERBOSE(ID, "Shutting down");
             }
             receivedPacketsEventQueue_uniqueLock.unlock();
         }
@@ -118,13 +119,12 @@ void Device::sendPacket(stack<pcpp::Layer *> *layers, std::string dstAddr_str) {
 
     NetworkCard *nextHopNetworkCard = findNextHop(&dstAddr);
     if (nextHopNetworkCard == nullptr) {
-        L_ERROR("DESTINATION UNREACHABLE");
+        L_ERROR(ID, "DESTINATION UNREACHABLE");
         // FIXME
         delete ipLayer;
 
     } else {
-        L_DEBUG("Sending packet from " + ID + " using " +
-                nextHopNetworkCard->netInterface);
+        L_DEBUG(ID, "Sending packet using " + nextHopNetworkCard->netInterface);
         ipLayer->setSrcIPv4Address(nextHopNetworkCard->IP);
         layers->push(ipLayer);
         nextHopNetworkCard->sendPacket(layers);
@@ -136,12 +136,12 @@ void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
     pcpp::IPv4Address dstAddress = ipLayer->getDstIPv4Address();
 
     if (dstAddress == origin->IP) {
-        L_DEBUG("processing message");
+        L_DEBUG(ID, "Processing message");
         processMessage(layers);
     } else {
         NetworkCard *nextHopNetworkCard = findNextHop(&dstAddress);
         if (nextHopNetworkCard == nullptr) {
-            L_ERROR("DESTINATION UNREACHABLE");
+            L_ERROR(ID, "DESTINATION UNREACHABLE");
         } else {
             forwardMessage(layers, nextHopNetworkCard);
         }
@@ -149,8 +149,6 @@ void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
 }
 
 void Device::processMessage(stack<pcpp::Layer *> *layers) {
-    L_DEBUG("RICEVUTO: " + ID);
-
     pcpp::IPv4Layer *ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
     layers->pop();
     pcpp::TcpLayer *tcpLayer = dynamic_cast<pcpp::TcpLayer *>(layers->top());
@@ -159,17 +157,17 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
     TCPConnection *existingConnection = getExistingConnectionOrNull(
         ipLayer->getSrcIPv4Address().toString(), tcpLayer->getSrcPort());
     if (existingConnection != nullptr) {
-        L_DEBUG("existing connection");
+        L_DEBUG(ID, "Existing connection");
         existingConnection->processMessage(layers);
     } else {
         if (listenConnection != nullptr &&
             listenConnection->srcPort == tcpLayer->getDstPort()) {
-            L_DEBUG("Handling new TCP Connection");
+            L_DEBUG(ID, "Handling new TCP Connection");
             // TODO not clear that we are creating a new connection with
             // listenConnection
             listenConnection->processMessage(layers);
         } else {
-            L_INFO("PORT closed or server not listening");
+            L_INFO(ID, "PORT closed or server not listening");
             resetConnection(ipLayer->getSrcIPv4Address().toString(),
                             tcpLayer->getSrcPort());
         }
@@ -177,7 +175,7 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
 }
 
 void Device::enqueueEvent(ReceivedPacketEvent *event) {
-    L_DEBUG("Enqueueing event in " + ID + " event queue");
+    L_DEBUG(ID, "Enqueueing event");
     unique_lock<std::mutex> receivedPacketsEventQueue_uniqueLock(
         receivedPacketsEventQueue_mutex);
 
@@ -211,8 +209,7 @@ void Device::closeConnection(std::string dstAddr, uint16_t dstPort) {
         getExistingConnectionOrNull(dstAddr, dstPort);
 
     if (existingConnection == nullptr) {
-        L_ERROR("Device " + ID +
-                " is trying to close an non existing connection");
+        L_ERROR(ID, "Trying to close an non existing connection");
     } else {
         existingConnection->enqueueEvent(TCPEvent::CloseSendFIN);
     }
@@ -223,8 +220,7 @@ void Device::resetConnection(std::string dstAddr, uint16_t dstPort) {
         getExistingConnectionOrNull(dstAddr, dstPort);
 
     if (existingConnection == nullptr) {
-        L_ERROR("Device " + ID +
-                " is trying to close an non existing connection");
+        L_ERROR(ID, " Trying to close an non existing connection");
     } else {
         existingConnection->enqueueEvent(TCPEvent::SendRST);
     }

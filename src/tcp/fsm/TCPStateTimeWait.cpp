@@ -6,7 +6,7 @@
 TCPStateTimeWait::TCPStateTimeWait(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
     NAME = "TIME-WAIT";
-    L_DEBUG("State created: " + NAME);
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
 }
 bool TCPStateTimeWait::onEvent(TCPEvent event) {
     bool handled = true;

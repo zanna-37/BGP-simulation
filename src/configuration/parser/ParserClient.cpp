@@ -6,7 +6,7 @@
 
 void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
                                            vector<Device *> *devices_ptr) {
-    L_DEBUG("Parsing Clients");
+    L_DEBUG("Parser", "Parsing Clients");
 
     assertNodeType(clients_yaml, YAML::NodeType::value::Sequence);
 
@@ -42,9 +42,10 @@ void ParserClient::parseAndAddBuiltClients(const YAML::Node &clients_yaml,
         devices_ptr->push_back(endPoint);
 
         if (networkCards->size() > 1) {
-            L_WARNING("Found multiple networkCards on " + ID + "\n" + "Last " +
-                      to_string(networkCards->size() - 1) +
-                      " will not be used");
+            L_WARNING("Parser",
+                      "Found multiple networkCards on " + ID + "\n" + "Last " +
+                          to_string(networkCards->size() - 1) +
+                          " will not be used");
         }
     }
 }

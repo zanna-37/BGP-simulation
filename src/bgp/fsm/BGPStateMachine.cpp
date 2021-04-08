@@ -14,8 +14,9 @@ BGPStateMachine::~BGPStateMachine() {
 }
 void BGPStateMachine::incrementConnectRetryCounter() {
     connectRetryCounter += 1;
-    L_DEBUG("connectRetryCounter incremented. Current value: " +
-            to_string(connectRetryCounter));
+    L_DEBUG(connection->owner->ID,
+            "connectRetryCounter incremented. Current value: " +
+                to_string(connectRetryCounter));
 }
 
 void BGPStateMachine::resetConnectRetryTimer() {

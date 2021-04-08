@@ -58,7 +58,7 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
     } else if (flags == RST) {
         enqueueEvent(TCPEvent::ReceiveRST);
     } else {
-        L_ERROR("TCP flag combination not handled");
+        L_ERROR(owner->ID, "TCP flag combination not handled");
     }
 
 

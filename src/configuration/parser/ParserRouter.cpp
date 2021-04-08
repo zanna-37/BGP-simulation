@@ -7,7 +7,7 @@
 
 void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
                                            vector<Device *> *devices_ptr) {
-    L_DEBUG("Parsing Routers");
+    L_DEBUG("Parser", "Parsing Routers");
 
     assertNodeType(routers_yaml, YAML::NodeType::value::Sequence);
 

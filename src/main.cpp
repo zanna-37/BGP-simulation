@@ -22,7 +22,8 @@ using namespace std;
 int main(int argc, char *argv[]) {
     srand(time(NULL) + getpid());
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
-    L_VERBOSE("START");
+    L_VERBOSE("main", "START");
+    L_INFO("main", "ciao\nsono\nmario");
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
@@ -79,14 +80,14 @@ int main(int argc, char *argv[]) {
     // this_thread::sleep_for(10s);
     // connection.enqueueEvent(ManualStop);
 
-    L_DEBUG("DELETING OBJECTS");
+    L_DEBUG("main", "DELETING OBJECTS");
     for (auto device : *devices) {
         delete device;
     }
     delete devices;
 
 
-    L_VERBOSE("END");
+    L_VERBOSE("main", "END");
 
     return 0;
 }

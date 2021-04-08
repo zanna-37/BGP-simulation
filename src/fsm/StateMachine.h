@@ -47,25 +47,28 @@ class StateMachine {
                 while (eventQueue.empty() && running) {
                     eventQueue_ready.wait(stateMachineEventQueue_uniqueLock);
                     if (eventQueue.empty() && running) {
-                        L_DEBUG("Spurious wakeup");
+                        L_DEBUG(connection->owner->ID, "Spurious wakeup");
                     }
                 }
                 if (running) {
                     Event event = eventQueue.front();
                     eventQueue.pop();
 
-                    L_DEBUG("Passing event " + getEventName(event) +
-                            " to the current state (" + currentState->NAME +
-                            ")");
+                    L_DEBUG(connection->owner->ID,
+                            "Passing event " + getEventName(event) +
+                                " to the current state (" + currentState->NAME +
+                                ")");
                     State* hanglingState_forlogs =
                         currentState;  // only used in the logs
                     bool result = currentState && currentState->onEvent(event);
-                    L_DEBUG("Event " + getEventName(event) +
-                            (result ? " handled" : " NOT handled") + " by " +
-                            hanglingState_forlogs->NAME);
+                    L_DEBUG(connection->owner->ID,
+                            "Event " + getEventName(event) +
+                                (result ? " handled" : " NOT handled") +
+                                " by " + hanglingState_forlogs->NAME);
                 } else {
-                    L_VERBOSE("Shutting down state machine: " +
-                              connection->owner->ID);
+                    L_VERBOSE(connection->owner->ID,
+                              "Shutting down state machine: " +
+                                  connection->owner->ID);
                 }
 
                 stateMachineEventQueue_uniqueLock.unlock();
@@ -84,10 +87,12 @@ class StateMachine {
         delete previousState;
         previousState = currentState;
         if (currentState == nullptr) {
-            L_VERBOSE("Initial state: " + newState->NAME);
+            L_VERBOSE(connection->owner->ID,
+                      "Initial state: " + newState->NAME);
         } else {
-            L_VERBOSE("State change: " + currentState->NAME + " -> " +
-                      newState->NAME);
+            L_VERBOSE(connection->owner->ID,
+                      "State change: " + currentState->NAME + " -> " +
+                          newState->NAME);
         }
 
 
