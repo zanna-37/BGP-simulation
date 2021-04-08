@@ -178,7 +178,7 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("n1");
+    writer.String("r1");
     writer.Key("loaded");
     writer.Bool(true);
     writer.Key("style");
@@ -186,13 +186,15 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("fillColor");
     writer.String("rgba(236,46,46,0.8)");
     writer.Key("label");
-    writer.String("Node1");
+    writer.String("Router1");
+    writer.Key("image");
+    writer.String("../net-visualization/img/router-icon.png");
     writer.EndObject();
     writer.EndObject();
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("n2");
+    writer.String("r2");
     writer.Key("loaded");
     writer.Bool(true);
     writer.Key("style");
@@ -200,13 +202,15 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("fillColor");
     writer.String("rgba(47,195,47,0.8)");
     writer.Key("label");
-    writer.String("Node2");
+    writer.String("Router2");
+    writer.Key("image");
+    writer.String("../net-visualization/img/router-icon.png");
     writer.EndObject();
     writer.EndObject();
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("n3");
+    writer.String("e1");
     writer.Key("loaded");
     writer.Bool(true);
     writer.Key("style");
@@ -214,7 +218,25 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("fillColor");
     writer.String("rgba(28,124,213,0.8)");
     writer.Key("label");
-    writer.String("Node3");
+    writer.String("Endpoint1");
+    writer.Key("image");
+    writer.String("../net-visualization/img/endpoint-icon.png");
+    writer.EndObject();
+    writer.EndObject();
+
+    writer.StartObject();
+    writer.Key("id");
+    writer.String("e2");
+    writer.Key("loaded");
+    writer.Bool(true);
+    writer.Key("style");
+    writer.StartObject();
+    writer.Key("fillColor");
+    writer.String("rgba(58,174,0,0.8)");
+    writer.Key("label");
+    writer.String("Endpoint2");
+    writer.Key("image");
+    writer.String("../net-visualization/img/endpoint-icon.png");
     writer.EndObject();
     writer.EndObject();
 
@@ -225,15 +247,13 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("l1");
+    writer.String("link_r1-e1");
     writer.Key("from");
-    writer.String("n1");
+    writer.String("r1");
     writer.Key("to");
-    writer.String("n2");
+    writer.String("e1");
     writer.Key("style");
     writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(236,46,46,1)");
     writer.Key("toDecoration");
     writer.String("arrow");
     writer.EndObject();
@@ -241,15 +261,13 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("l2");
+    writer.String("link_r2-e2");
     writer.Key("from");
-    writer.String("n2");
+    writer.String("r2");
     writer.Key("to");
-    writer.String("n3");
+    writer.String("e2");
     writer.Key("style");
     writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(47,195,47,1)");
     writer.Key("toDecoration");
     writer.String("arrow");
     writer.EndObject();
@@ -257,15 +275,13 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("l3");
+    writer.String("link_r1-r2");
     writer.Key("from");
-    writer.String("n3");
+    writer.String("r1");
     writer.Key("to");
-    writer.String("n1");
+    writer.String("r2");
     writer.Key("style");
     writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(28,124,213,1)");
     writer.Key("toDecoration");
     writer.String("arrow");
     writer.EndObject();
