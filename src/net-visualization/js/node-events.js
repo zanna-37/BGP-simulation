@@ -85,6 +85,26 @@ function modifyNodeNumbers(event){
     if (event.clickNode){
             event.chart.removeData({nodes:[{id:event.clickNode.id}]});
     }else if (event.clickLink){
+        var link = event.clickLink;
+        $.ajax({
+            url: "http://localhost:9080/brakeLink",
+            dataType: 'json',
+            method: "POST",
+            contentType: 'application/json',
+            crossDomain: true,
+            async: true,
+            headers: {
+                "accept": "application/json",
+                "Access-Control-Allow-Origin":"*",
+                "Access-Control-Allow-Credentials": "true"
+            },
+            data: JSON.stringify({
+                "from": link.data.from,
+                "to": link.data.to,
+                "from_interface": link.data.extra.from_interface,
+                "to_interface": link.data.extra.to_interface
+            })
+        });
         event.chart.removeData({links:[{id:event.clickLink.id}]});
     }
 
@@ -137,30 +157,4 @@ mdrouter.addEventListener('click', function() {
 mdendpoint.addEventListener('click', function() {
     mode_val = "e";
 });
-
-function showInfo(itemData){
-    var nodeInfo = itemData.extra;
-    var infoContent = "";
-    if (nodeInfo.AS_number != undefined){
-        infoContent += "AS Number: " + nodeInfo.AS_number + "<br>";
-    }
-    if (nodeInfo.default_gateway != undefined){
-        infoContent += "Default Gateway: " + nodeInfo.default_gateway + "<br>";
-    }
-    if (nodeInfo.networkCard != undefined){
-        infoContent += "Network Card:<br>";
-        infoContent += "<ul>"
-        for (interface in nodeInfo.networkCard){
-            infoContent += "<li> interface: " + nodeInfo.networkCard.interface + "</li>";
-            infoContent += "<li> IP: " + nodeInfo.networkCard.IP + "</li>";
-            infoContent += "<li> netmask: " + nodeInfo.networkCard.netmask + "</li>";
-        }
-        infoContent += "</ul>";
-    }
-
-    return "<div style='margin:auto; width:200px; height:100%; padding': 10px;>" +
-           "<p style='font-size: 13px;font-family: Arial, Helvetica, sans-serif;font-weight: 300;padding:5px'>" +
-           infoContent + "</p>" + "</div>";
-
-}
 
