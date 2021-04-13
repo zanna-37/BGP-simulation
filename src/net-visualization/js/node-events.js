@@ -7,6 +7,34 @@ var chart = new NetChart({
     container: document.getElementById("netchart"),
     area: { height: 400},
     data: { url: "http://localhost:9080/" },
+    info:{
+        enabled: true,
+        nodeContentsFunction: function(itemData, item){
+            var nodeInfo = itemData.extra;
+            var infoContent = "";
+            if (nodeInfo.AS_number != undefined){
+                infoContent += "AS Number: " + nodeInfo.AS_number + "<br>";
+            }
+            if (nodeInfo.default_gateway != undefined){
+                infoContent += "Default Gateway: " + nodeInfo.default_gateway + "<br>";
+            }
+            if (nodeInfo.networkCard != undefined){
+                infoContent += "Network Card:";
+                infoContent += "<ul>"
+                for (var i = 0; i < nodeInfo.networkCard.length; i++){
+                    var netCardItem = nodeInfo.networkCard[i];
+                    infoContent += "<li> interface: " + netCardItem.interface + "</li>";
+                    infoContent += "<li> IP: " + netCardItem.IP + "</li>";
+                    infoContent += "<li> netmask: " + netCardItem.netmask + "</li>";
+                }
+                infoContent += "</ul>";
+            }
+
+            return "<div style='margin:auto; width:200px; height:100%; padding': 10px;>" +
+                "<p style='font-size: 13px;font-family: Arial, Helvetica, sans-serif;font-weight: 300;padding:5px'>" +
+                infoContent + "</p>" + "</div>";
+        }
+    },
     events: {
         onClick: modifyNodeNumbers,
         onPointerUp: function(e, args) {
@@ -19,29 +47,29 @@ var chart = new NetChart({
     }
 });
 
-function getRoutersTot(nodes){
-    var tot_routers = 0
+function getLastRouterdId(nodes){
+    var last_router = 0;
     for (var node of nodes){
         if (node.id.charAt(0) == 'r'){
-            tot_routers += 1
+            last_router = node.id.charAt(1);
         }
     }
-    return tot_routers
+    return last_router
 }
 
-function getEndpointsTot(nodes){
-    var tot_endpoints = 0
+function getLastEndpointId(nodes){
+    var last_endpoint = 0
     for (var node of nodes){
         if (node.id.charAt(0) == 'e'){
-            tot_endpoints += 1
+            last_endpoint = node.id.charAt(1);
         }
     }
-    return tot_endpoints
+    return last_endpoint
 }
 
 function modifyNodeNumbers(event){
-    var new_routers_Id = getRoutersTot(chart.nodes()) + 1;
-    var new_endpoints_Id = getEndpointsTot(chart.nodes()) + 1; 
+    var new_routers_Id = parseInt(getLastRouterdId(chart.nodes())) + 1;
+    var new_endpoints_Id = parseInt(getLastEndpointId(chart.nodes())) + 1;
 
     if (!event.clickNode && !event.clickLink){//test the click was on empty space
         chart.addData({nodes:[{"id":mode_val == "r" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id, 
@@ -59,6 +87,7 @@ function modifyNodeNumbers(event){
     }else if (event.clickLink){
         event.chart.removeData({links:[{id:event.clickLink.id}]});
     }
+
     event.preventDefault();
 }
 
@@ -108,4 +137,30 @@ mdrouter.addEventListener('click', function() {
 mdendpoint.addEventListener('click', function() {
     mode_val = "e";
 });
+
+function showInfo(itemData){
+    var nodeInfo = itemData.extra;
+    var infoContent = "";
+    if (nodeInfo.AS_number != undefined){
+        infoContent += "AS Number: " + nodeInfo.AS_number + "<br>";
+    }
+    if (nodeInfo.default_gateway != undefined){
+        infoContent += "Default Gateway: " + nodeInfo.default_gateway + "<br>";
+    }
+    if (nodeInfo.networkCard != undefined){
+        infoContent += "Network Card:<br>";
+        infoContent += "<ul>"
+        for (interface in nodeInfo.networkCard){
+            infoContent += "<li> interface: " + nodeInfo.networkCard.interface + "</li>";
+            infoContent += "<li> IP: " + nodeInfo.networkCard.IP + "</li>";
+            infoContent += "<li> netmask: " + nodeInfo.networkCard.netmask + "</li>";
+        }
+        infoContent += "</ul>";
+    }
+
+    return "<div style='margin:auto; width:200px; height:100%; padding': 10px;>" +
+           "<p style='font-size: 13px;font-family: Arial, Helvetica, sans-serif;font-weight: 300;padding:5px'>" +
+           infoContent + "</p>" + "</div>";
+
+}
 
