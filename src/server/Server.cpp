@@ -355,6 +355,13 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("toDecoration");
     writer.String("arrow");
     writer.EndObject();
+    writer.Key("extra");
+    writer.StartObject();
+    writer.Key("from_interface");
+    writer.Int(0);
+    writer.Key("to_interface");
+    writer.Int(0);
+    writer.EndObject();
     writer.EndObject();
 
     writer.StartObject();
@@ -369,6 +376,13 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("toDecoration");
     writer.String("arrow");
     writer.EndObject();
+    writer.Key("extra");
+    writer.StartObject();
+    writer.Key("from_interface");
+    writer.Int(0);
+    writer.Key("to_interface");
+    writer.Int(0);
+    writer.EndObject();
     writer.EndObject();
 
     writer.StartObject();
@@ -382,6 +396,13 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.StartObject();
     writer.Key("toDecoration");
     writer.String("arrow");
+    writer.EndObject();
+    writer.Key("extra");
+    writer.StartObject();
+    writer.Key("from_interface");
+    writer.Int(1);
+    writer.Key("to_interface");
+    writer.Int(5);
     writer.EndObject();
     writer.EndObject();
 
