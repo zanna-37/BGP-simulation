@@ -23,7 +23,6 @@ int main(int argc, char *argv[]) {
     srand(time(NULL) + getpid());
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
     L_VERBOSE("main", "START");
-    L_INFO("main", "ciao\nsono\nmario");
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));

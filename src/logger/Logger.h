@@ -125,8 +125,9 @@ class Logger {
      * It is safe to call this method from multiple threads concurrently.
      *
      * @param logLevel The level with whom the message will be logged.
-     * @param owner The owner of the log message, who wrote it. Useful when
-     * dealing with multiple devices. Use \a "" if no owner is specified
+     * @param owner The name of component that originates the log message. (e.g.
+     * "parser", "main", "Device 42", ...). It should have no more than 10
+     * characters.
      * @param message The message to be logged.
      */
     void log(LogLevel logLevel, string owner, string message);
@@ -134,7 +135,7 @@ class Logger {
    private:
     static shared_ptr<Logger> logger;
     LogLevel                  targetLevel    = LogLevel::INFO;
-    bool                      longPrefix     = true;
+    bool                      longPrefix     = false;
     bool                      enableColor    = true;
     bool                      printTimestamp = true;
     std::mutex                mutex;
@@ -153,7 +154,13 @@ class Logger {
                                           {LogLevel::WARNING, "WARNING"},
                                           {LogLevel::ERROR, "ERROR"},
                                           {LogLevel::FATAL, "FATAL"}};
-    const string          padLong      = "          ";
+
+    const int padPrefixInternalLongLength =
+        levelMapLong.at(LogLevel::SUCCESS)
+            .size();  // SUCCESS if one of the longest
+
+    const int padPrefixExternalLongLength =
+        encloseInBrackets("", padPrefixInternalLongLength).size();
 
     map<LogLevel, string> levelMapShort = {{LogLevel::DEBUG, "|"},
                                            {LogLevel::VERBOSE, ":"},
@@ -162,10 +169,22 @@ class Logger {
                                            {LogLevel::WARNING, "!"},
                                            {LogLevel::ERROR, "-"},
                                            {LogLevel::FATAL, "x"}};
-    const string          padShort      = "    ";
-    const string          padTimestamp  = "               ";
-    const string          padOwner      = "         ";
 
+    const int padPrefixInternalShortLength =
+        levelMapShort.at(LogLevel::SUCCESS).size();
+    const int padPrefixExternalShortLength =
+        encloseInBrackets("", padPrefixInternalShortLength).size();
+
+    const int padTimestampInternalLength = string("HH:MM:ss.mmm").size();
+    const int padTimestampExternalLength =
+        encloseInBrackets("", padTimestampInternalLength).size();
+
+    const int padOwnerInternalLength = 10;
+    const int padOwnerExternalLength =
+        encloseInBrackets("", padOwnerInternalLength).size();
+
+
+    static string encloseInBrackets(const string& message, int padLenght);
 
     Logger() = default;
 };

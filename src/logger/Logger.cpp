@@ -32,12 +32,14 @@ void Logger::setLongPrefix(bool longPrefix) { this->longPrefix = longPrefix; }
 
 void addPadAfterEndline(std::string&       data,
                         const std::string& toSearch,
-                        const std::string& replaceStr) {
+                        int                padToAdd) {
     size_t pos = data.find(toSearch);
 
     while (pos != std::string::npos) {
-        data.insert(pos + 1, replaceStr);
-        pos = data.find(toSearch, pos + 1 + replaceStr.size());
+        pos++;  // Skip the \n
+        data.insert(pos, std::string(padToAdd, ' '));
+        pos += padToAdd;  // Skip the padding
+        pos = data.find(toSearch, pos);
     }
 }
 
@@ -68,15 +70,18 @@ void Logger::log(LogLevel logLevel, string owner, string message) {
             }
         }
 
-        string padToAdd = printTimestamp ? padTimestamp : "";
+        int padToAdd = 0;
         if (longPrefix) {
-            oss << "[" << left << setw(7) << levelMapLong.at(logLevel) << "] ";
-            padToAdd += padLong;
+            oss << encloseInBrackets(levelMapLong.at(logLevel),
+                                     padPrefixInternalLongLength);
+            padToAdd += padPrefixExternalLongLength;
         } else {
-            oss << "[" << levelMapShort.at(logLevel) << "] ";
-            padToAdd += padShort;
+            oss << encloseInBrackets(levelMapShort.at(logLevel),
+                                     padPrefixInternalShortLength);
+            padToAdd += padPrefixExternalShortLength;
         }
-        padToAdd += padOwner;
+        padToAdd += printTimestamp ? padTimestampExternalLength : 0;
+        padToAdd += padOwnerExternalLength;
 
         addPadAfterEndline(message, "\n", padToAdd);
 
@@ -102,23 +107,19 @@ void Logger::log(LogLevel logLevel, string owner, string message) {
             auto ms  = std::chrono::duration_cast<std::chrono::milliseconds>(
                           now.time_since_epoch()) %
                       1000;
-            //            auto us =
-            //            std::chrono::duration_cast<std::chrono::microseconds>(
-            //                          now.time_since_epoch()) %
-            //                      1000;
             auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
-            std::stringstream ss;
-            ss << std::put_time(std::localtime(&in_time_t), "[%H:%M:%S");
-            ss << '.' << std::setfill('0') << std::setw(3)
-               << ms.count()
-               /* << "." << std::setw(3) << us.count() */
-               << "] ";
+            std::ostringstream timestamp_oss;
+            timestamp_oss << std::put_time(std::localtime(&in_time_t),
+                                           "%H:%M:%S")
+                          << '.' << std::setfill('0') << std::setw(3)
+                          << ms.count();
 
-            oss << ss.str();
+            oss << encloseInBrackets(timestamp_oss.str(),
+                                     padTimestampInternalLength);
         }
 
-        oss << "[" << left << setw(6) << owner << "] ";
+        oss << encloseInBrackets(owner, padOwnerInternalLength);
         oss << message;
 
         if (enableColor) {
@@ -143,4 +144,10 @@ void Logger::log(LogLevel logLevel, string owner, string message) {
         cout << output << endl;
         mutex.unlock();
     }
+}
+
+string Logger::encloseInBrackets(const string& message, int padLenght) {
+    std::ostringstream oss;
+    oss << "[" << left << setw(padLenght) << message << "] ";
+    return oss.str();
 }
