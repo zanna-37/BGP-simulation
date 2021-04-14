@@ -7,31 +7,23 @@
 #include <queue>
 #include <thread>
 
-#include "../../logger/Logger.h"
-#include "../../utils/Timer.h"
+#include "../../fsm/StateMachine.h"
 #include "../BGPConnection.h"
-#include "../Event.h"
+#include "../BGPEvent.h"
+#include "../BGPTimer.h"
 #include "BGPState.h"
+
+// forward declarations
+#include "../BGPConnection.fwd.h"
+#include "../BGPTimer.fwd.h"
+#include "BGPState.fwd.h"
 
 using namespace std::chrono_literals;
 
-class BGPState;       // forward declaration
-class BGPConnection;  // forward declaration
-class Timer;          // forward declaration
-
-class BGPStateMachine {
+class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
    private:
-    BGPConnection* connection;
-    BGPState*      previousState = nullptr;  // TODO check if we really need it
-
-    std::thread*            eventHandler = nullptr;
-    std::mutex              eventQueue_mutex;
-    std::condition_variable eventQueue_ready;
-    queue<Event>            eventQueue;
-
     // Mandatory session attributes
-    BGPState* currentState        = nullptr;
-    int       connectRetryCounter = 0;
+    int connectRetryCounter = 0;
 #ifdef DEBUG_GUARD
     std::chrono::seconds connectRetryTime = 3s;
     std::chrono::seconds holdTime         = 4s;
@@ -63,25 +55,12 @@ class BGPStateMachine {
     ~BGPStateMachine();
 
     // Mandatory session attributes
-    Timer* connectRetryTimer = nullptr;
-    Timer* holdTimer         = nullptr;
-    Timer* keepAliveTimer    = nullptr;
+    BGPTimer* connectRetryTimer = nullptr;
+    BGPTimer* holdTimer         = nullptr;
+    BGPTimer* keepAliveTimer    = nullptr;
 
     // Optional session attributes
-    Timer* delayOpenTimer = nullptr;
-
-    /**
-     * Enqueue the event in the Finite state Machine event queue. It is called from BGPConnection::enqueue event
-     * @warning this method should be called by the BGPConnection. Use BGPConnection::enqueue instead
-     * @param event the event triggered
-     */
-    void enqueueEvent(Event event);
-
-    /**
-     * Change the current state of the Finite State Machine
-     * @param newState the newly created state that becomes the new current state of the Finite State Machine
-     */
-    void changeState(BGPState* newState);
+    BGPTimer* delayOpenTimer = nullptr;
 
     /**
      * Increment the connectRetryCounter by one
@@ -114,7 +93,7 @@ class BGPStateMachine {
      * Get the connectRetrycounter
      * @return the connectRetryCounter value
      */
-    int  getConnectRetryCounter() const { return connectRetryCounter; }
+    int getConnectRetryCounter() const { return connectRetryCounter; }
     /**
      * Set the connectRetryCounter
      * @param value the value of connectRetryCounter
@@ -160,28 +139,6 @@ class BGPStateMachine {
         sendNOTIFICATIONwithoutOPEN = value;
     }
 
-    /**
-     * Get the previousState of the Finite State Machine. Used for recreating the flow of the FSM
-     * @return the previousState value
-     */
-    BGPState* getPreviousState() const { return previousState; }
-    /**
-     * Set the previousState
-     * @param value the value of previousState
-     */
-    void      setPreviousState(BGPState* value) { previousState = value; }
-
-    /**
-     * Get the currentState of the Finite State Machine. Used for recreating the flow of the FSM
-     * @return the currentState value
-     */
-    BGPState* getCurrentState() const { return currentState; }
-
-    /**
-     * Set the currentState
-     * @param value the value of currentState
-     */
-    void      setCurrentState(BGPState* value) { currentState = value; }
 
     /**
      * Get the connectRetryTime default value. Used by connectRetryTimer
@@ -220,7 +177,7 @@ class BGPStateMachine {
      * Set the keepAliveTime default value
      * @param value the value of keepAliveTime
      */
-    void                 setKeepaliveTime(const std::chrono::seconds& value) {
+    void setKeepaliveTime(const std::chrono::seconds& value) {
         keepaliveTime = value;
     }
 
@@ -233,7 +190,7 @@ class BGPStateMachine {
      * Set the delayOpenTime default value
      * @param value the value of delayOpenTime
      */
-    void                 setDelayOpenTime(const std::chrono::seconds& value) {
+    void setDelayOpenTime(const std::chrono::seconds& value) {
         delayOpenTime = value;
     }
 

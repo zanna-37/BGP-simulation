@@ -25,6 +25,7 @@ dbuild: $(DEBUG_DIR)/Makefile
 	@echo;
 	@echo "[.] Building program in DEBUG mode...";
 	@cmake -DUSE_DEBUG=ON $(DEBUG_DIR)
+	@cmake -DCMAKE_BUILD_TYPE=Debug $(DEBUG_DIR)
 	@cmake --build $(DEBUG_DIR)
 
 # Cleanup

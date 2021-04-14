@@ -4,8 +4,10 @@
 #include <Packet.h>
 #include <SystemUtils.h>
 #include <UdpLayer.h>
+#include <unistd.h>
 
 #include <iostream>
+#include <stack>
 #include <string>
 
 #include "bgp/BGPConnection.h"
@@ -18,8 +20,9 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
+    srand(time(NULL) + getpid());
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
-    L_VERBOSE("START");
+    L_VERBOSE("main", "START");
 
     pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
@@ -38,8 +41,8 @@ int main(int argc, char *argv[]) {
 
     newPacket.addLayer(&newEthernetLayer);
     newPacket.addLayer(&newIPLayer);
-    newPacket.addLayer(&newUdpLayer);
-    newPacket.addLayer(&newDnsLayer);
+    // newPacket.addLayer(&newUdpLayer);
+    // newPacket.addLayer(&newDnsLayer);
 
     newPacket.computeCalculateFields();
 
@@ -55,21 +58,35 @@ int main(int argc, char *argv[]) {
         } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
             cout << x->ID << endl;
         }
+        device->start();
     }
 
+    devices->at(0)->listen();
+    std::string testAddress("90.36.25.1");
+    devices->at(2)->connect(testAddress, 179);
 
-    L_DEBUG("DELETING OBJECTS");
+    this_thread::sleep_for(5s);
+    devices->at(2)->resetConnection(testAddress, 179);
+    this_thread::sleep_for(5s);
+    devices->at(2)->closeConnection(testAddress, 179);
+    this_thread::sleep_for(2s);
+    testAddress = "90.36.25.123";
+    devices->at(0)->closeConnection(testAddress, 12345);
+    this_thread::sleep_for(5s);
+
+    // BGPConnection connection(devices->at(0));
+    // connection.enqueueEvent(AutomaticStart);
+    // this_thread::sleep_for(10s);
+    // connection.enqueueEvent(ManualStop);
+
+    L_DEBUG("main", "DELETING OBJECTS");
     for (auto device : *devices) {
         delete device;
     }
     delete devices;
 
-    BGPConnection connection;
-    connection.enqueueEvent(AutomaticStart);
-    this_thread::sleep_for(10s);
-    connection.enqueueEvent(ManualStop);
 
-    L_VERBOSE("END");
+    L_VERBOSE("main", "END");
 
     return 0;
 }

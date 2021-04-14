@@ -8,16 +8,20 @@
 
 using namespace std;
 
-#define L_DEBUG(message) Logger::getInstance()->log(LogLevel::DEBUG, message)
-#define L_VERBOSE(message) \
-    Logger::getInstance()->log(LogLevel::VERBOSE, message)
-#define L_INFO(message) Logger::getInstance()->log(LogLevel::INFO, message)
-#define L_SUCCESS(message) \
-    Logger::getInstance()->log(LogLevel::SUCCESS, message)
-#define L_WARNING(message) \
-    Logger::getInstance()->log(LogLevel::WARNING, message);
-#define L_ERROR(message) Logger::getInstance()->log(LogLevel::ERROR, message)
-#define L_FATAL(message) Logger::getInstance()->log(LogLevel::FATAL, message)
+#define L_DEBUG(owner, message) \
+    Logger::getInstance()->log(LogLevel::DEBUG, owner, message)
+#define L_VERBOSE(owner, message) \
+    Logger::getInstance()->log(LogLevel::VERBOSE, owner, message)
+#define L_INFO(owner, message) \
+    Logger::getInstance()->log(LogLevel::INFO, owner, message)
+#define L_SUCCESS(owner, message) \
+    Logger::getInstance()->log(LogLevel::SUCCESS, owner, message)
+#define L_WARNING(owner, message) \
+    Logger::getInstance()->log(LogLevel::WARNING, owner, message);
+#define L_ERROR(owner, message) \
+    Logger::getInstance()->log(LogLevel::ERROR, owner, message)
+#define L_FATAL(owner, message) \
+    Logger::getInstance()->log(LogLevel::FATAL, owner, message)
 
 enum class LogLevel : short {
     /**
@@ -121,9 +125,12 @@ class Logger {
      * It is safe to call this method from multiple threads concurrently.
      *
      * @param logLevel The level with whom the message will be logged.
+     * @param owner The name of component that originates the log message. (e.g.
+     * "parser", "main", "Device 42", ...). It should have no more than 10
+     * characters.
      * @param message The message to be logged.
      */
-    void log(LogLevel logLevel, string message);
+    void log(LogLevel logLevel, string owner, string message);
 
    private:
     static shared_ptr<Logger> logger;
@@ -140,25 +147,44 @@ class Logger {
     string COLOR_FG_LIGHT_GREEN  = ESCAPE_CHAR + "[92m";
     string COLOR_FG_LIGHT_YELLOW = ESCAPE_CHAR + "[93m";
 
-    map<LogLevel, string> levelMapLong = {{LogLevel::DEBUG, "[DEBUG  ] "},
-                                          {LogLevel::VERBOSE, "[VERBOSE] "},
-                                          {LogLevel::INFO, "[INFO   ] "},
-                                          {LogLevel::SUCCESS, "[SUCCESS] "},
-                                          {LogLevel::WARNING, "[WARNING] "},
-                                          {LogLevel::ERROR, "[ERROR  ] "},
-                                          {LogLevel::FATAL, "[FATAL  ] "}};
-    const string          padLong      = "          ";
+    map<LogLevel, string> levelMapLong = {{LogLevel::DEBUG, "DEBUG"},
+                                          {LogLevel::VERBOSE, "VERBOSE"},
+                                          {LogLevel::INFO, "INFO"},
+                                          {LogLevel::SUCCESS, "SUCCESS"},
+                                          {LogLevel::WARNING, "WARNING"},
+                                          {LogLevel::ERROR, "ERROR"},
+                                          {LogLevel::FATAL, "FATAL"}};
 
-    map<LogLevel, string> levelMapShort = {{LogLevel::DEBUG, "[|] "},
-                                           {LogLevel::VERBOSE, "[:] "},
-                                           {LogLevel::INFO, "[.] "},
-                                           {LogLevel::SUCCESS, "[+] "},
-                                           {LogLevel::WARNING, "[!] "},
-                                           {LogLevel::ERROR, "[-] "},
-                                           {LogLevel::FATAL, "[x] "}};
-    const string          padShort      = "    ";
-    const string          padTimestamp  = "               ";
+    const int padPrefixInternalLongLength =
+        levelMapLong.at(LogLevel::SUCCESS)
+            .size();  // SUCCESS if one of the longest
 
+    const int padPrefixExternalLongLength =
+        encloseInBrackets("", padPrefixInternalLongLength).size();
+
+    map<LogLevel, string> levelMapShort = {{LogLevel::DEBUG, "|"},
+                                           {LogLevel::VERBOSE, ":"},
+                                           {LogLevel::INFO, "."},
+                                           {LogLevel::SUCCESS, "+"},
+                                           {LogLevel::WARNING, "!"},
+                                           {LogLevel::ERROR, "-"},
+                                           {LogLevel::FATAL, "x"}};
+
+    const int padPrefixInternalShortLength =
+        levelMapShort.at(LogLevel::SUCCESS).size();
+    const int padPrefixExternalShortLength =
+        encloseInBrackets("", padPrefixInternalShortLength).size();
+
+    const int padTimestampInternalLength = string("HH:MM:ss.mmm").size();
+    const int padTimestampExternalLength =
+        encloseInBrackets("", padTimestampInternalLength).size();
+
+    const int padOwnerInternalLength = 10;
+    const int padOwnerExternalLength =
+        encloseInBrackets("", padOwnerInternalLength).size();
+
+
+    static string encloseInBrackets(const string& message, int padLenght);
 
     Logger() = default;
 };

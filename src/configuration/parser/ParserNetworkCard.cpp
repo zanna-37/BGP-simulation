@@ -1,7 +1,7 @@
 #include "ParserNetworkCard.h"
 
 vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
-    const YAML::Node& networkCards_yaml) {
+    const YAML::Node& networkCards_yaml, Device* owner) {
     assertNodeType(networkCards_yaml, YAML::NodeType::value::Sequence);
 
     auto* networkCards = new vector<NetworkCard*>;
@@ -10,6 +10,7 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
         string            interface;
         pcpp::IPv4Address IP;
         pcpp::IPv4Address netmask;
+        pcpp::MacAddress  mac(pcpp::MacAddress::Zero);
 
         for (const auto& detail_yaml : networkCard_yaml) {
             string     property = detail_yaml.first.as<std::string>();
@@ -23,11 +24,15 @@ vector<NetworkCard*>* ParserNetworkCard::parseAndBuildNetworkCards(
             } else if (property == "netmask") {
                 string netmask_str = value.as<string>();
                 netmask            = pcpp::IPv4Address(netmask_str);
+            } else if (property == "mac") {
+                string mac_str = value.as<string>();
+                mac            = pcpp::MacAddress(mac_str);
             } else {
                 throwInvalidKey(property, detail_yaml.first);
             }
         }
-        networkCards->push_back(new NetworkCard(interface, IP, netmask));
+        networkCards->push_back(
+            new NetworkCard(interface, IP, netmask, mac, owner));
     }
 
     return networkCards;

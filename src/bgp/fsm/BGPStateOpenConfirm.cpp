@@ -1,15 +1,16 @@
 #include "BGPStateOpenConfirm.h"
 
 #include "BGPStateEnstablished.h"
+#include "BGPStateIdle.h"
 
 
 BGPStateOpenConfirm ::~BGPStateOpenConfirm() {}
 
-bool BGPStateOpenConfirm ::onEvent(Event event) {
+bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
     bool handled = true;
 
     switch (event) {
-        case ManualStop:
+        case BGPEvent::ManualStop:
             // TODO sends the NOTIFICATION message with a Cease,
 
             // TODO releases all BGP resources,
@@ -25,7 +26,7 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case AutomaticStop:
+        case BGPEvent::AutomaticStop:
             // TODO sends the NOTIFICATION message with a Cease,
 
             // - sets the ConnectRetryTimer to zero,
@@ -45,7 +46,7 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case HoldTimer_Expires:
+        case BGPEvent::HoldTimer_Expires:
             // TODO sends the NOTIFICATION message with the Error Code Hold
             // Timer
             //   Expired,
@@ -67,7 +68,7 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case KeepaliveTimer_Expires:
+        case BGPEvent::KeepaliveTimer_Expires:
 
             // TODO sends a KEEPALIVE message,
 
@@ -77,17 +78,17 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
 
             // - remains in the OpenConfirmed state.
             break;
-        case TcpConnection_Valid:
-        case Tcp_CR_Acked:
-        case TcpConnectionConfirmed:
+        case BGPEvent::TcpConnection_Valid:
+        case BGPEvent::Tcp_CR_Acked:
+        case BGPEvent::TcpConnectionConfirmed:
             //   TODO   the local system needs to track the second
             //   connection.
             break;
-        case Tcp_CR_Invalid:
+        case BGPEvent::Tcp_CR_Invalid:
             // TODO the local system will ignore the second connection attempt.
             break;
-        case TcpConnectionFails:
-        case NotifMsg:
+        case BGPEvent::TcpConnectionFails:
+        case BGPEvent::NotifMsg:
             // - sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -106,7 +107,7 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case NotifMsgVerErr:
+        case BGPEvent::NotifMsgVerErr:
             // - sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -117,7 +118,7 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case BGPOpen:
+        case BGPEvent::BGPOpen:
             // TODO If this connection is to be dropped due to connection
             // collision, the local system:
             // TODO sends a NOTIFICATION with a Cease,
@@ -140,8 +141,8 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case BGPHeaderErr:
-        case BGPOpenMsgErr:
+        case BGPEvent::BGPHeaderErr:
+        case BGPEvent::BGPOpenMsgErr:
             // TODO sends a NOTIFICATION message with the appropriate error
             // code,
 
@@ -162,7 +163,7 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case OpenCollisionDump:
+        case BGPEvent::OpenCollisionDump:
             // TODO sends a NOTIFICATION with a Cease,
 
             // - sets the ConnectRetryTimer to zero,
@@ -183,7 +184,7 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case KeepAliveMsg:
+        case BGPEvent::KeepAliveMsg:
 
             // FIXME restarts the HoldTimer and
             stateMachine->resetHoldTimer();
@@ -192,12 +193,12 @@ bool BGPStateOpenConfirm ::onEvent(Event event) {
             // - changes its state to Established.
             stateMachine->changeState(new BGPStateEnstablished(stateMachine));
             break;
-        case ConnectRetryTimer_Expires:
-        case DelayOpenTimer_Expires:
-        case IdleHoldTimer_Expires:
-        case BGPOpen_with_DelayOpenTimer_running:
-        case UpdateMsg:
-        case UpdateMsgErr:
+        case BGPEvent::ConnectRetryTimer_Expires:
+        case BGPEvent::DelayOpenTimer_Expires:
+        case BGPEvent::IdleHoldTimer_Expires:
+        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:
+        case BGPEvent::UpdateMsg:
+        case BGPEvent::UpdateMsgErr:
             // TODO sends a NOTIFICATION with a code of Finite State Machine
             //   Error,
 

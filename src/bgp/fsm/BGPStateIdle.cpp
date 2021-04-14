@@ -2,21 +2,18 @@
 
 #include "BGPStateActive.h"
 #include "BGPStateConnect.h"
-// #include "BGPStateOpenSent.h"
-// #include "BGPStateOpenconfirm.h"
-// #include "BGPStateEnstablished.h"
 
 
 BGPStateIdle ::~BGPStateIdle() {}
 
-bool BGPStateIdle ::onEvent(Event event) {
+bool BGPStateIdle ::onEvent(BGPEvent event) {
     // maybe curly parenthesis
 
     bool handled = true;
 
     switch (event) {
-        case ManualStart:
-        case AutomaticStart:
+        case BGPEvent::ManualStart:
+        case BGPEvent::AutomaticStart:
             // TODO initializes all BGP resources for the peer connection,
 
             // - sets ConnectRetryCounter to zero,
@@ -35,8 +32,8 @@ bool BGPStateIdle ::onEvent(Event event) {
 
 
             break;
-        case ManualStart_with_PassiveTcpEstablishment:
-        case AutomaticStart_with_PassiveTcpEstablishment:
+        case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
+        case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
 
             // TODO initializes all BGP resources,
 
@@ -53,9 +50,10 @@ bool BGPStateIdle ::onEvent(Event event) {
             stateMachine->changeState(new BGPStateActive(stateMachine));
 
             break;
-        case AutomaticStart_with_DampPeerOscillations:
-        case AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
-        case IdleHoldTimer_Expires:
+        case BGPEvent::AutomaticStart_with_DampPeerOscillations:
+        case BGPEvent::
+            AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
+        case BGPEvent::IdleHoldTimer_Expires:
 
             if (stateMachine->getDampPeerOscillations()) {
                 // TODO: Do we need to implement DampPeerOscillations?

@@ -23,8 +23,12 @@ set(SRC_CONFIGURATION_PARSER ${SRC_CONFIGURATION}/parser)
 set(SRC_ENTITIES ${SRC}/entities)
 set(SRC_LOGGER ${SRC}/logger)
 set(SRC_BGP ${SRC}/bgp)
-set(SRC_FSM ${SRC_BGP}/fsm) 
+set(SRC_BGP_FSM ${SRC_BGP}/fsm) 
 set(SRC_UTILS ${SRC}/utils)
+set(SRC_IP ${SRC}/ip)
+set(SRC_TCP ${SRC}/tcp)
+set(SRC_TCP_FSM ${SRC_TCP}/fsm)
+set(SRC_FSM ${SRC}/fsm)
 
 
 set(SOURCE_FILES
@@ -41,17 +45,34 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
         ${SRC_BGP}/BGPConnection.cpp
-        ${SRC_BGP}/Event.cpp
-        # ${SRC_FSM}/BGPState.h
-        ${SRC_FSM}/BGPStateActive.cpp
-        ${SRC_FSM}/BGPStateConnect.cpp
-        ${SRC_FSM}/BGPStateEnstablished.cpp
-        ${SRC_FSM}/BGPStateIdle.cpp
-        ${SRC_FSM}/BGPStateMachine.cpp
-        ${SRC_FSM}/BGPStateOpenConfirm.cpp
-        ${SRC_FSM}/BGPStateOpenSent.cpp
-        ${SRC_UTILS}/Timer.cpp
-        ${SRC_UTILS}/Timer.h
+        ${SRC_BGP}/BGPEvent.cpp
+        ${SRC_BGP}/BGPTimer.cpp
+        ${SRC_BGP_FSM}/BGPStateActive.cpp
+        ${SRC_BGP_FSM}/BGPStateConnect.cpp
+        ${SRC_BGP_FSM}/BGPStateEnstablished.cpp
+        ${SRC_BGP_FSM}/BGPStateIdle.cpp
+        ${SRC_BGP_FSM}/BGPStateMachine.cpp
+        ${SRC_BGP_FSM}/BGPStateOpenConfirm.cpp
+        ${SRC_BGP_FSM}/BGPStateOpenSent.cpp
+        ${SRC_IP}/TableRow.cpp
+        ${SRC_UTILS}/MacGenerator.cpp
+        ${SRC_TCP}/TCPConnection.cpp
+        ${SRC_TCP}/TCPEvent.cpp
+        ${SRC_TCP}/TCPTimer.cpp
+        ${SRC_TCP_FSM}/TCPState.cpp
+        ${SRC_TCP_FSM}/TCPStateClosed.cpp
+        ${SRC_TCP_FSM}/TCPStateClosing.cpp
+        ${SRC_TCP_FSM}/TCPStateEnstablished.cpp
+        ${SRC_TCP_FSM}/TCPStateListen.cpp
+        ${SRC_TCP_FSM}/TCPStateMachine.cpp
+        ${SRC_TCP_FSM}/TCPStateSYNReceived.cpp
+        ${SRC_TCP_FSM}/TCPStateSYNSent.cpp
+        ${SRC_TCP_FSM}/TCPStateCloseWait.cpp
+        ${SRC_TCP_FSM}/TCPStateFINWait1.cpp
+        ${SRC_TCP_FSM}/TCPStateFINWait2.cpp
+        ${SRC_TCP_FSM}/TCPStateLastACK.cpp
+        ${SRC_TCP_FSM}/TCPStateTimeWait.cpp
+        
 
 )
 

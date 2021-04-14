@@ -7,7 +7,7 @@
 
 void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
                                            vector<Device *> *devices_ptr) {
-    L_DEBUG("Parsing Routers");
+    L_DEBUG("Parser", "Parsing Routers");
 
     assertNodeType(routers_yaml, YAML::NodeType::value::Sequence);
 
@@ -16,6 +16,8 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
         string                 AS_number;
         pcpp::IPv4Address      defaultGateway;
         vector<NetworkCard *> *networkCards = nullptr;
+
+        YAML::Node networkCards_yaml;
 
         for (const auto &router_property_yaml : router_yaml) {
             string     property = router_property_yaml.first.as<std::string>();
@@ -29,14 +31,17 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
                 string defaultGateway_str = value.as<string>();
                 defaultGateway = pcpp::IPv4Address(defaultGateway_str);
             } else if (property == "networkCard") {
-                networkCards =
-                    ParserNetworkCard::parseAndBuildNetworkCards(value);
+                networkCards_yaml = value;
             } else {
                 throwInvalidKey(property, router_property_yaml.first);
             }
         }
+        Router *router = new Router(ID, AS_number, defaultGateway);
 
-        devices_ptr->push_back(
-            new Router(ID, AS_number, defaultGateway, networkCards));
+        networkCards = ParserNetworkCard::parseAndBuildNetworkCards(
+            networkCards_yaml, router);
+
+        router->addCards(networkCards);
+        devices_ptr->push_back(router);
     }
 }

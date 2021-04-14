@@ -1,5 +1,6 @@
 #include "BGPStateConnect.h"
 
+#include "../BGPTimer.h"
 #include "BGPStateActive.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenConfirm.h"
@@ -8,11 +9,11 @@
 
 BGPStateConnect ::~BGPStateConnect() {}
 
-bool BGPStateConnect ::onEvent(Event event) {
+bool BGPStateConnect ::onEvent(BGPEvent event) {
     bool handled = true;
 
     switch (event) {
-        case ManualStop:
+        case BGPEvent::ManualStop:
             // TODO drops the TCP connection,
 
             // TODO releases all BGP resources,
@@ -28,7 +29,7 @@ bool BGPStateConnect ::onEvent(Event event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
 
             break;
-        case ConnectRetryTimer_Expires:
+        case BGPEvent::ConnectRetryTimer_Expires:
             // TODO drops the TCP connection,
 
             // - restarts the ConnectRetryTimer,
@@ -45,7 +46,7 @@ bool BGPStateConnect ::onEvent(Event event) {
             //   the remote BGP peer
 
             break;
-        case DelayOpenTimer_Expires:
+        case BGPEvent::DelayOpenTimer_Expires:
             // TODO sends an OPEN message to its peer,
 
             // - NOT_SURE sets the HoldTimer to a large value, and
@@ -55,15 +56,15 @@ bool BGPStateConnect ::onEvent(Event event) {
             // - changes its state to OpenSent.
             stateMachine->changeState(new BGPStateOpenSent(stateMachine));
             break;
-        case TcpConnection_Valid:
+        case BGPEvent::TcpConnection_Valid:
             // TODO the TCP connection is processed,
             break;
-        case Tcp_CR_Invalid:
+        case BGPEvent::Tcp_CR_Invalid:
 
             // TODO the local system rejects the TCP connection
             break;
-        case Tcp_CR_Acked:
-        case TcpConnectionConfirmed:
+        case BGPEvent::Tcp_CR_Acked:
+        case BGPEvent::TcpConnectionConfirmed:
 
             // If the DelayOpen attribute is set to TRUE, the local system:
             if (stateMachine->getDelayOpen()) {
@@ -95,7 +96,7 @@ bool BGPStateConnect ::onEvent(Event event) {
             }
             break;
 
-        case TcpConnectionFails:
+        case BGPEvent::TcpConnectionFails:
             //     If the DelayOpenTimer is running, the local
             //   system:
             if (stateMachine->delayOpenTimer->getState() == TICKING) {
@@ -127,7 +128,7 @@ bool BGPStateConnect ::onEvent(Event event) {
                 stateMachine->changeState(new BGPStateActive(stateMachine));
             }
             break;
-        case BGPOpen_with_DelayOpenTimer_running:
+        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:
             // - stops the ConnectRetryTimer (if running) and sets the
             //   ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
@@ -147,8 +148,11 @@ bool BGPStateConnect ::onEvent(Event event) {
                 stateMachine->keepAliveTimer->start();
 
                 //     - resets the HoldTimer to the negotiated value, // FIXME
-                stateMachine->holdTimer = new Timer(
-                    "holdTimer", stateMachine, HoldTimer_Expires, 240s);
+                stateMachine->holdTimer =
+                    new BGPTimer("holdTimer",
+                                 stateMachine,
+                                 BGPEvent::HoldTimer_Expires,
+                                 240s);
                 // stateMachine->holdTimer->setRemainingTime(0ms);  // NOT_SURE
 
                 //   else, if the HoldTimer initial value is zero,
@@ -161,8 +165,8 @@ bool BGPStateConnect ::onEvent(Event event) {
             // - and changes its state to OpenConfirm.
             stateMachine->changeState(new BGPStateOpenConfirm(stateMachine));
             break;
-        case BGPHeaderErr:
-        case BGPOpenMsgErr:
+        case BGPEvent::BGPHeaderErr:
+        case BGPEvent::BGPOpenMsgErr:
 
             if (stateMachine->getSendNOTIFICATIONwithoutOPEN()) {
                 // TODO
@@ -193,7 +197,7 @@ bool BGPStateConnect ::onEvent(Event event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
 
             break;
-        case NotifMsgVerErr:
+        case BGPEvent::NotifMsgVerErr:
             if (stateMachine->delayOpenTimer->getState() == TICKING) {
                 //     - stops the ConnectRetryTimer (if running) and sets the
                 //       ConnectRetryTimer to zero,
@@ -233,15 +237,15 @@ bool BGPStateConnect ::onEvent(Event event) {
             }
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
-        case AutomaticStop:
-        case HoldTimer_Expires:
-        case KeepaliveTimer_Expires:
-        case BGPOpen:
-        case OpenCollisionDump:
-        case NotifMsg:
-        case KeepAliveMsg:
-        case UpdateMsg:
-        case UpdateMsgErr:
+        case BGPEvent::AutomaticStop:
+        case BGPEvent::HoldTimer_Expires:
+        case BGPEvent::KeepaliveTimer_Expires:
+        case BGPEvent::BGPOpen:
+        case BGPEvent::OpenCollisionDump:
+        case BGPEvent::NotifMsg:
+        case BGPEvent::KeepAliveMsg:
+        case BGPEvent::UpdateMsg:
+        case BGPEvent::UpdateMsgErr:
             // - if the ConnectRetryTimer is running, stops and resets the
             //   ConnectRetryTimer (sets to zero),
             stateMachine->resetConnectRetryTimer();

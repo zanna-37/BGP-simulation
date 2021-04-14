@@ -1,9 +1,8 @@
 #ifndef BGPSTATEACTIVE_H
 #define BGPSTATEACTIVE_H
 
-#include "../BGPConnection.h"
+#include "../../logger/Logger.h"
 #include "BGPState.h"
-#include "BGPStateMachine.h"
 
 class BGPStateActive : public BGPState {
    private:
@@ -11,13 +10,13 @@ class BGPStateActive : public BGPState {
     // Constructor
     BGPStateActive(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         NAME = "ACTIVE";
-        L_DEBUG("State created: " + NAME);
+        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
     };
 
     // Deconstructor
     ~BGPStateActive();
 
-    bool onEvent(Event event);
+    bool onEvent(BGPEvent event);
 };
 
 #endif

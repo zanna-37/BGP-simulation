@@ -17,18 +17,25 @@ class Router : public virtual Device {
      * The Autonomous System number this router belongs to.
      */
     string AS_number;
+    bool   running = false;
     // TODO: announced_prefixes
     // TODO: local_preferences
     // TODO: trust
 
-    Router(string                 ID,
-           string                 AS_number,
-           pcpp::IPv4Address      defaultGateway,
-           vector<NetworkCard *> *networkCards)
-        : Device(std::move(ID), defaultGateway, networkCards),
+    Router(string ID, string AS_number, pcpp::IPv4Address defaultGateway)
+        : Device(std::move(ID), defaultGateway),
           AS_number(std::move(AS_number)) {}
 
     ~Router() override = default;
+
+    /**
+     * It forward the message to the next hop, if the message is not of this
+     * device.
+     * @param layers the std::stack simulation of the packet
+     * @param networkCard the network card that will send the packet
+     */
+    void forwardMessage(stack<pcpp::Layer *> *layers,
+                        NetworkCard *         networkCard) override;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_ROUTER_H

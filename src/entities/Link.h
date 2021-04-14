@@ -1,8 +1,14 @@
 #ifndef BGPSIMULATION_ENTITIES_LINK_H
 #define BGPSIMULATION_ENTITIES_LINK_H
 
+#include <Packet.h>
+#include <assert.h>
+#include <time.h>
+
 #include "NetworkCard.h"
 
+// forward declarations
+#include "NetworkCard.fwd.h"
 
 using namespace std;
 
@@ -16,8 +22,6 @@ enum Connection_status {
      */
     FAILED
 };
-
-class NetworkCard;  // forward declaration
 
 /**
  * This class abstracts the concept of a medium (e.g. a cable) that connects two
@@ -39,6 +43,38 @@ class Link {
      * networkCard is not connected to the link.
      */
     NetworkCard *getPeerNetworkCardOrNull(NetworkCard *networkCard);
+
+    /**
+     * Send a packet through the physical link. The packet is serialized, so it
+     * is a stream of bytes
+     * @warning it should be called by the Network card
+     * @param packet the packet to send
+     * @param origin the source network card
+     */
+    void sendPacket(pcpp::Packet *packet, NetworkCard *origin);
+
+    /**
+     * The physical link receive a packet (istantaneusly, no network delay)
+     * @warning it should be called by the Link
+     * @param data the pair indicating the length and the array of bytes
+     * @param destination the networkcard where the packet arrived
+     */
+    void receivePacket(pair<const uint8_t *, int> data,
+                       NetworkCard *              destination);
+    /**
+     * Transform a parsed packet to an array of bytes
+     * @param packet the packet to be parsed
+     * @return a pair with the data and data lenght
+     */
+    pair<const uint8_t *, int> serialize(pcpp::Packet *packet);
+
+    /**
+     * Transform a stream of bytes in a parsed packet
+     * @param rawdata the raw data
+     * @param rawDataLen the length of the stream
+     * @return a parsed packet
+     */
+    pcpp::Packet *deserialize(uint8_t *rawData, int rawDataLen);
 
    private:
     /**
