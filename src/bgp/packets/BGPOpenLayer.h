@@ -12,10 +12,15 @@ class BGPOpenLayer : public BGPLayer {
         uint16_t myAutonomousSystemNumber;
         uint16_t holdTime;
         uint32_t BGPIdentifier;
-        uint8_t  optionalParametersLength;
+        /**
+         * @warning This is invalid unset if computeCalculateFields() has never
+         * been called; it is invalid if something changed after the last call
+         * to computeCalculateFields().
+         */
+        uint8_t optionalParametersLength;
     };
 
-    BGPOpenHeader* getOpenHeader() const;
+    BGPOpenHeader* getOpenHeaderOrNull() const;
 
     uint8_t getBGPMessageType() const override { return BGPMessageType::OPEN; }
 
@@ -53,6 +58,7 @@ class BGPOpenLayer : public BGPLayer {
    private:
     std::string toStringInternal() const override;
     void        computeCalculateFieldsInternal() const override;
+    size_t      getHeaderLenInternal() const override;
 };
 
 

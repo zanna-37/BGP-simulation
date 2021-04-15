@@ -1,6 +1,7 @@
 #include "BGPLayer.h"
 
-#include <cassert>
+#include <Logger.h>
+
 #include <climits>
 #include <cstring>
 
@@ -33,17 +34,22 @@ BGPLayer* BGPLayer::parseBGPLayerOrNull(uint8_t*      data,
     }
 }
 
-BGPLayer::BGPCommonHeader* BGPLayer::getCommonHeader() const {
-    return (BGPCommonHeader*)m_Data;
+BGPLayer::BGPCommonHeader* BGPLayer::getCommonHeaderOrNull() const {
+    if (m_DataLen >= sizeof(BGPCommonHeader))
+        return (BGPCommonHeader*)m_Data;
+    else {
+        LOG_ERROR("The packet is to small to fit the BGP common header");
+        return nullptr;
+    }
 }
 
 size_t BGPLayer::getHeaderLen() const {
-    assert(m_DataLen >= sizeof(BGPCommonHeader));
-
-    uint16_t messageLen = be16toh(getCommonHeader()->length);
+    uint16_t messageLen = sizeof(BGPCommonHeader) + getHeaderLenInternal();
 
     // The following check is needed because, when parsing a received packet, we
     // must take into account that the field `length` might be wrong or invalid.
+    // Or maybe the packet is longer than the declared length and it is filled
+    // with garbage.
     if (m_DataLen < messageLen) {
         return m_DataLen;
     } else {
@@ -67,30 +73,35 @@ std::string BGPLayer::getBGPMessageTypeName(BGPLayer::BGPMessageType type) {
 }
 
 std::string BGPLayer::toString() const {
-    BGPCommonHeader* commonHeader = getCommonHeader();
+    BGPCommonHeader* commonHeader = getCommonHeaderOrNull();
+    if (commonHeader) {
+        std::string output = "BGP Message\n";
+        output += "Type: " +
+                  getBGPMessageTypeName((BGPMessageType)commonHeader->type) +
+                  "\n";
+        output +=
+            "Lenght: " + std::to_string(be16toh(commonHeader->length)) + "\n";
 
-    std::string output = "BGP Message\n";
-    output +=
-        "Type: " + getBGPMessageTypeName((BGPMessageType)commonHeader->type) +
-        "\n";
-    output += "Lenght: " + std::to_string(be16toh(commonHeader->length)) + "\n";
+        output += "-- Message header --\n";
+        output += toStringInternal();
 
-    output += "-- Message header --\n";
-    output += toStringInternal();
-
-    return output;
+        return output;
+    } else {
+        return "";
+    }
 };
 
 void BGPLayer::computeCalculateFields() {
-    BGPCommonHeader* header = getCommonHeader();
+    BGPCommonHeader* header = getCommonHeaderOrNull();
+    if (header) {
+        // every bit of the marker should be filled with ones as per RFC
+        memset(header,
+               UINT_MAX,
+               sizeof(BGPCommonHeader::marker));  // FIXME Check if the header
+                                                  // is really filled with ones
+        header->length = htobe16((uint16_t)getHeaderLen());
+        header->type   = getBGPMessageType();
 
-    // every bit of the marker should be filled with ones as per RFC
-    memset(header,
-           UINT_MAX,
-           sizeof(BGPCommonHeader::marker));  // FIXME Check if the header is
-                                              // really filled with ones
-    header->type   = getBGPMessageType();
-    header->length = htobe16((uint16_t)getHeaderLen());
-
-    computeCalculateFieldsInternal();
+        computeCalculateFieldsInternal();
+    }
 }

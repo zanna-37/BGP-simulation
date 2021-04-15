@@ -8,7 +8,12 @@
 class BGPLayer : public pcpp::Layer {
    public:
     struct BGPCommonHeader {
-        uint8_t  marker[16];
+        uint8_t marker[16];
+        /**
+         * @warning This is invalid unset if computeCalculateFields() has never
+         * been called; it is invalid if something changed after the last call
+         * to computeCalculateFields().
+         */
         uint16_t length;
         uint8_t  type;
     };
@@ -33,7 +38,7 @@ class BGPLayer : public pcpp::Layer {
      */
     void parseNextLayer() override {}
 
-    BGPCommonHeader* getCommonHeader() const;
+    BGPCommonHeader* getCommonHeaderOrNull() const;
 
     size_t getHeaderLen() const override;
 
@@ -61,6 +66,7 @@ class BGPLayer : public pcpp::Layer {
 
     virtual std::string toStringInternal() const               = 0;
     virtual void        computeCalculateFieldsInternal() const = 0;
+    virtual size_t      getHeaderLenInternal() const           = 0;
 };
 
 
