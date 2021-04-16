@@ -27,3 +27,11 @@
     float: right;
     margin-right: 10px;
 }
+
+ul {
+	overflow-x:hidden;
+	white-space:nowrap;
+    padding-top: 0;
+    margin-top: 0;
+    vertical-align: top;
+}

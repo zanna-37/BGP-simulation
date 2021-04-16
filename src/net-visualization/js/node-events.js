@@ -3,6 +3,8 @@ mdendpoint = document.querySelector("input[id='mdendpoint']");
 
 var mode_val = 'r';
 
+var num_interface = 1;
+
 var chart = new NetChart({
     container: document.getElementById("netchart"),
     area: { height: 400},
@@ -31,8 +33,7 @@ var chart = new NetChart({
             }
 
             return "<div style='margin:auto; width:200px; height:100%; padding': 10px;>" +
-                "<p style='font-size: 13px;font-family: Arial, Helvetica, sans-serif;font-weight: 300;padding:5px'>" +
-                infoContent + "</p>" + "</div>";
+                infoContent + "</div>";
         }
     },
     events: {
@@ -48,7 +49,7 @@ var chart = new NetChart({
 });
 
 function getLastRouterdId(nodes){
-    var last_router = 0;
+    var last_router = 0; 
     for (var node of nodes){
         if (node.id.charAt(0) == 'r'){
             last_router = node.id.charAt(1);
@@ -67,20 +68,23 @@ function getLastEndpointId(nodes){
     return last_endpoint
 }
 
+var eventAddNode = undefined;
+var new_routers_Id = 0;
+var new_endpoints_Id = 0;
+
 function modifyNodeNumbers(event){
-    var new_routers_Id = parseInt(getLastRouterdId(chart.nodes())) + 1;
-    var new_endpoints_Id = parseInt(getLastEndpointId(chart.nodes())) + 1;
+    new_routers_Id = parseInt(getLastRouterdId(chart.nodes())) + 1;
+    new_endpoints_Id = parseInt(getLastEndpointId(chart.nodes())) + 1;
 
     if (!event.clickNode && !event.clickLink){//test the click was on empty space
-        chart.addData({nodes:[{"id":mode_val == "r" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id, 
-                                "x":event.chartX, 
-                                "y":event.chartY,
-                                "loaded":true,
-                                "style": {
-                                    "label": mode_val == "r" ? "Router"+ new_routers_Id : "Endpoint"+ new_endpoints_Id,
-                                    "image": mode_val == "r" ? "./img/router-icon.png" : "./img/endpoint-icon.png"
-                                }
-                                }]});
+        if(mode_val == 'e'){
+            $('#ASnumberDiv').hide();
+        }
+        else if(mode_val == 'r'){
+            $('#ASnumberDiv').show();
+        }
+        $('#addDeviceModal').show();
+        eventAddNode = event;
     }
     if (event.clickNode){
             event.chart.removeData({nodes:[{id:event.clickNode.id}]});
@@ -96,7 +100,6 @@ function modifyNodeNumbers(event){
             headers: {
                 "accept": "application/json",
                 "Access-Control-Allow-Origin":"*",
-                "Access-Control-Allow-Credentials": "true"
             },
             data: JSON.stringify({
                 "from": link.data.from,
@@ -110,6 +113,46 @@ function modifyNodeNumbers(event){
 
     event.preventDefault();
 }
+
+$('#saveChanges').click(function(){
+    var default_gateway = $("#default_gateway").val();
+    var networkCard = [];
+    for (var i = 1; i <= num_interface; i++){
+        networkCard.push({
+            "interface": $('#interface-label-'+i).val(),
+            "IP": $('#interface-IP-'+i).val(),
+            "netmask": $('#interface-netmask-'+i).val()
+        });
+    }
+    chart.addData({nodes:[{"id":mode_val == "r" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id,
+                        "x":eventAddNode.chartX,
+                        "y":eventAddNode.chartY,
+                        "loaded":true,
+                        "style": {
+                            "label": mode_val == "r" ? "Router"+ new_routers_Id : "Endpoint"+ new_endpoints_Id,
+                            "image": mode_val == "r" ? "./img/router-icon.png" : "./img/endpoint-icon.png"
+                        },
+                        "extra": {
+                            "default_gateway": default_gateway,
+                            "networkCard": networkCard
+                        }
+    }]});
+
+    if (mode_val == 'r'){
+        var as_number = $("#as_number").val();
+        chart.getNode(new_routers_Id).data.extra.AS_number = as_number;
+    }
+
+    $('#addDeviceModal').hide();
+    if (num_interface > 1){
+        for (var i = 2; i <= num_interface; i++){
+            $("#interface-label-"+i).remove();
+            $("#interface-IP-"+i).remove();
+            $("#interface-netmask-"+i).remove();
+        }
+        num_interface = 1;
+    }
+});
 
 function getOverlappingNodes(node) {
     if(!node) return;
@@ -157,4 +200,19 @@ mdrouter.addEventListener('click', function() {
 mdendpoint.addEventListener('click', function() {
     mode_val = "e";
 });
+
+$("#add-interface-btn").click(function(){
+    num_interface += 1;
+    $("#interfaces-label").append("<input type='text' class='form-control' style='margin-bottom: 10px;' id='interface-label-" + num_interface+"'>");
+    $("#interfaces-IP").append("<input type='text' class='form-control' style='margin-bottom: 10px;' id='interface-IP-" + num_interface+"'>");
+    $("#interfaces-netmask").append("<input type='text' class='form-control' style='margin-bottom: 10px;' id='interface-netmask-" + num_interface+"'>");
+});
+
+$("#closeAddDeviceModalCross").click(function(){
+    $("#addDeviceModal").hide();
+})
+
+$("#closeAddDeviceModalBtn").click(function(){
+    $("#addDeviceModal").hide();
+})
 
