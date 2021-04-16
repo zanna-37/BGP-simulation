@@ -9,9 +9,9 @@ class BGPOpenLayer : public BGPLayer {
    public:
     struct BGPOpenHeader : BGPCommonHeader {
         uint8_t  version;
-        uint16_t myAutonomousSystemNumber;
-        uint16_t holdTime;
-        uint32_t BGPIdentifier;
+        uint16_t myAutonomousSystemNumber_be;
+        uint16_t holdTime_be;
+        uint32_t BGPIdentifier_be;
         /**
          * @warning This is invalid unset if computeCalculateFields() has never
          * been called; it is invalid if something changed after the last call

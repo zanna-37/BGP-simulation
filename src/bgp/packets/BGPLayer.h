@@ -14,7 +14,7 @@ class BGPLayer : public pcpp::Layer {
          * been called; it is invalid if something changed after the last call
          * to computeCalculateFields().
          */
-        uint16_t length;
+        uint16_t length_be;
         uint8_t  type;
     };
 

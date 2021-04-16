@@ -33,13 +33,13 @@ std::string BGPOpenLayer::toStringInternal() const {
         output += "Version: " + std::to_string(openHeader->version) + "\n";
         output +=
             "My Autonomous System: " +
-            std::to_string(be16toh(openHeader->myAutonomousSystemNumber)) +
+            std::to_string(be16toh(openHeader->myAutonomousSystemNumber_be)) +
             "\n";
         output +=
-            "Hold time: " + std::to_string(be16toh(openHeader->holdTime)) +
+            "Hold time: " + std::to_string(be16toh(openHeader->holdTime_be)) +
             "\n";
         output += "BGP Identifier: " +
-                  std::to_string(be32toh(openHeader->BGPIdentifier)) + "\n";
+                  std::to_string(be32toh(openHeader->BGPIdentifier_be)) + "\n";
 
         return output;
     } else {
@@ -61,7 +61,7 @@ BGPOpenLayer::BGPOpenLayer(uint16_t                 myAutonomousSystemNumber,
         getOpenHeaderOrNull();  // openHeader is not null as we just populated
                                 // m_Data and m_DataLen
 
-    openHeader->myAutonomousSystemNumber = htobe16(myAutonomousSystemNumber);
-    openHeader->holdTime                 = htobe16(holdTime);
-    openHeader->BGPIdentifier            = BGPIdentifier.toInt();
+    openHeader->myAutonomousSystemNumber_be = htobe16(myAutonomousSystemNumber);
+    openHeader->holdTime_be                 = htobe16(holdTime);
+    openHeader->BGPIdentifier_be            = BGPIdentifier.toInt();
 }

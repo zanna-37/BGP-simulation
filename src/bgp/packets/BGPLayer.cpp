@@ -80,7 +80,8 @@ std::string BGPLayer::toString() const {
                   getBGPMessageTypeName((BGPMessageType)commonHeader->type) +
                   "\n";
         output +=
-            "Lenght: " + std::to_string(be16toh(commonHeader->length)) + "\n";
+            "Lenght: " + std::to_string(be16toh(commonHeader->length_be)) +
+            "\n";
 
         output += "-- Message header --\n";
         output += toStringInternal();
@@ -99,8 +100,8 @@ void BGPLayer::computeCalculateFields() {
                UINT_MAX,
                sizeof(BGPCommonHeader::marker));  // FIXME Check if the header
                                                   // is really filled with ones
-        header->length = htobe16((uint16_t)getHeaderLen());
-        header->type   = getBGPMessageType();
+        header->length_be = htobe16((uint16_t)getHeaderLen());
+        header->type      = getBGPMessageType();
 
         computeCalculateFieldsInternal();
     }
