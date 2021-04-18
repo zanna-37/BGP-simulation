@@ -5,8 +5,8 @@
 
 TCPStateLastACK::TCPStateLastACK(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
-    NAME = "LAST-ACK";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+    name = "LAST-ACK";
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
 }
 
 bool TCPStateLastACK::onEvent(TCPEvent event) {

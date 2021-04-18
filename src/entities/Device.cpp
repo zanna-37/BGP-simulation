@@ -220,7 +220,7 @@ void Device::resetConnection(std::string dstAddr, uint16_t dstPort) {
         getExistingConnectionOrNull(dstAddr, dstPort);
 
     if (existingConnection == nullptr) {
-        L_ERROR(ID, " Trying to close an non existing connection");
+        L_ERROR(ID, "Trying to close an non existing connection");
     } else {
         existingConnection->enqueueEvent(TCPEvent::SendRST);
     }
@@ -233,7 +233,7 @@ TCPConnection *Device::getExistingConnectionOrNull(std::string address,
     if (search != tcpConnections.end()) {
         // The connection exists inside the hashmap but it was already closed
         // before, so we delete it and we create a new one
-        if (search->second->stateMachine->getCurrentState()->NAME == "CLOSED") {
+        if (search->second->stateMachine->getCurrentState()->name == "CLOSED") {
             TCPConnection *to_remove = search->second;
             removeTCPConnection(search->second);
             delete to_remove;

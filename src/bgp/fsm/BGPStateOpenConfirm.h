@@ -14,8 +14,8 @@ class BGPStateOpenConfirm : public BGPState {
     // Constructor
     BGPStateOpenConfirm(BGPStateMachine* stateMachine)
         : BGPState(stateMachine) {
-        NAME = "OPEN_CONFIRM";
-        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+        name = "OPEN_CONFIRM";
+        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
     };
 
     // Deconstructor

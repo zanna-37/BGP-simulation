@@ -12,8 +12,8 @@ class BGPStateConnect : public BGPState {
    public:
     // Constructor
     BGPStateConnect(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
-        NAME = "CONNECT";
-        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+        name = "CONNECT";
+        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
     };
 
     // Deconstructor

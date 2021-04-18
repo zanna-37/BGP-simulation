@@ -11,8 +11,8 @@
 
 TCPStateCloseWait::TCPStateCloseWait(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {
-    NAME = "CLOSE_WAIT";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+    name = "CLOSE_WAIT";
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
 }
 
 bool TCPStateCloseWait::onEvent(TCPEvent event) {

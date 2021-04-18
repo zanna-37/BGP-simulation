@@ -45,7 +45,7 @@ enum TimerState {
 template <class StateMachine, class Event>
 class Timer {
    private:
-    const std::string         NAME;
+    const std::string         name;
     std::thread*              timerThread = nullptr;
     StateMachine*             stateMachine;
     Event                     eventToSendUponExpire;
@@ -71,7 +71,7 @@ class Timer {
           StateMachine*        stateMachine,
           Event                eventToSendUponExpire,
           std::chrono::seconds totalDuration)
-        : NAME(std::move(name)),
+        : name(std::move(name)),
           stateMachine(stateMachine),
           eventToSendUponExpire(eventToSendUponExpire),
           totalDuration(totalDuration),
@@ -79,7 +79,7 @@ class Timer {
     ~Timer() {
         if (timerThread != nullptr) {
             L_ERROR(stateMachine->connection->owner->ID,
-                    "Timer " + NAME +
+                    "Timer " + name +
                         " has not been stopped before deletion.\nCall stop() "
                         "before "
                         "deleting the Timer.");
@@ -110,12 +110,12 @@ class Timer {
                 if (duration.count() < 0) {
                     timeToSleep = totalDuration;
                     L_DEBUG(stateMachine->connection->owner->ID,
-                            "START " + NAME + ": " +
+                            "START " + name + ": " +
                                 to_string(timeToSleep.count()) + "ms");
                 } else {
                     timeToSleep = duration;
                     L_DEBUG(stateMachine->connection->owner->ID,
-                            "RESUME " + NAME + ": " +
+                            "RESUME " + name + ": " +
                                 to_string(timeToSleep.count()) + "ms");
                 }
 
@@ -124,21 +124,21 @@ class Timer {
                 mutex.lock();
                 if (timerState == TICKING) {
                     L_DEBUG(stateMachine->connection->owner->ID,
-                            "TIMEOUT " + NAME + ": performing actions");
+                            "TIMEOUT " + name + ": performing actions");
                     timerState = EXECUTING_SCHEDULED_TASK;
                     stateMachine->enqueueEvent(eventToSendUponExpire);
                     timerState = COMPLETED;
 
                 } else {
                     L_DEBUG(stateMachine->connection->owner->ID,
-                            NAME + ": " + "was stopped, skipping actions");
+                            name + ": " + "was stopped, skipping actions");
                 }
 
                 auto end = std::chrono::steady_clock::now();
 
                 L_DEBUG(
                     stateMachine->connection->owner->ID,
-                    "END " + NAME + " after " +
+                    "END " + name + " after " +
                         to_string(std::chrono::duration_cast<
                                       std::chrono::milliseconds>(end - start)
                                       .count()) +
@@ -166,23 +166,23 @@ class Timer {
         switch (timerState) {
             case UNINITIALIZED:
                 L_DEBUG(stateMachine->connection->owner->ID,
-                        "STOP " + NAME + ": state uninitialized");
+                        "STOP " + name + ": state uninitialized");
                 break;
             case TICKING:
                 timerState = CANCELLED;
                 sleepMutex.unlock();
                 L_DEBUG(stateMachine->connection->owner->ID,
-                        "STOP " + NAME + ": state ticking");
-                L_DEBUG(stateMachine->connection->owner->ID, "CANCEL " + NAME);
+                        "STOP " + name + ": state ticking");
+                L_DEBUG(stateMachine->connection->owner->ID, "CANCEL " + name);
                 break;
             case EXECUTING_SCHEDULED_TASK:
             case COMPLETED:
                 L_DEBUG(stateMachine->connection->owner->ID,
-                        "STOP " + NAME + ": state expired");
+                        "STOP " + name + ": state expired");
                 break;
             case CANCELLED:
                 L_DEBUG(stateMachine->connection->owner->ID,
-                        "STOP " + NAME + ": state already cancelled");
+                        "STOP " + name + ": state already cancelled");
                 break;
         }
         mutex.unlock();

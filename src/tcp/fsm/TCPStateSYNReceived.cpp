@@ -8,8 +8,8 @@
 
 TCPStateSYNReceived::TCPStateSYNReceived(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {
-    NAME = "SYN-RECEIVED";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+    name = "SYN-RECEIVED";
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
 }
 
 bool TCPStateSYNReceived::onEvent(TCPEvent event) {

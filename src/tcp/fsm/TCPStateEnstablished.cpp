@@ -13,8 +13,8 @@
 
 TCPStateEnstablished::TCPStateEnstablished(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {
-    NAME = "ENSTABLISHED";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+    name = "ENSTABLISHED";
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
 }
 
 bool TCPStateEnstablished::onEvent(TCPEvent event) {

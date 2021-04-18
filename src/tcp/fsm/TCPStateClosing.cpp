@@ -6,8 +6,8 @@
 
 TCPStateClosing::TCPStateClosing(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
-    NAME = "CLOSING";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+    name = "CLOSING";
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
 }
 
 bool TCPStateClosing::onEvent(TCPEvent event) {

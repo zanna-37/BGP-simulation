@@ -9,8 +9,8 @@
 
 TCPStateFINWait2::TCPStateFINWait2(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
-    NAME = "FIN-WAIT-2";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+    name = "FIN-WAIT-2";
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
 }
 
 bool TCPStateFINWait2::onEvent(TCPEvent event) {

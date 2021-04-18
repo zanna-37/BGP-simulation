@@ -7,8 +7,8 @@
 
 TCPStateListen::TCPStateListen(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {
-    NAME = "LISTEN";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+    name = "LISTEN";
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
 }
 bool TCPStateListen::onEvent(TCPEvent event) {
     std::stack<pcpp::Layer *> *layers   = nullptr;

@@ -12,8 +12,8 @@ class BGPStateOpenSent : public BGPState {
    public:
     // Constructor
     BGPStateOpenSent(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
-        NAME = "OPEN_SENT";
-        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+        name = "OPEN_SENT";
+        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
     };
 
     // Deconstructor

@@ -9,8 +9,8 @@ class BGPStateActive : public BGPState {
    public:
     // Constructor
     BGPStateActive(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
-        NAME = "ACTIVE";
-        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+        name = "ACTIVE";
+        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
     };
 
     // Deconstructor

@@ -11,8 +11,8 @@
 
 TCPStateSYNSent::TCPStateSYNSent(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
-    NAME = "SYN-SENT";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + NAME);
+    name = "SYN-SENT";
+    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
 }
 
 bool TCPStateSYNSent::onEvent(TCPEvent event) {

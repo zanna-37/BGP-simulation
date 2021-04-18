@@ -56,7 +56,7 @@ class StateMachine {
 
                     L_DEBUG(connection->owner->ID,
                             "Passing event " + getEventName(event) +
-                                " to the current state (" + currentState->NAME +
+                                " to the current state (" + currentState->name +
                                 ")");
                     State* hanglingState_forlogs =
                         currentState;  // only used in the logs
@@ -64,7 +64,7 @@ class StateMachine {
                     L_DEBUG(connection->owner->ID,
                             "Event " + getEventName(event) +
                                 (result ? " handled" : " NOT handled") +
-                                " by " + hanglingState_forlogs->NAME);
+                                " by " + hanglingState_forlogs->name);
                 } else {
                     L_VERBOSE(connection->owner->ID,
                               "Shutting down state machine: " +
@@ -88,11 +88,11 @@ class StateMachine {
         previousState = currentState;
         if (currentState == nullptr) {
             L_VERBOSE(connection->owner->ID,
-                      "Initial state: " + newState->NAME);
+                      "Initial state: " + newState->name);
         } else {
             L_VERBOSE(connection->owner->ID,
-                      "State change: " + currentState->NAME + " -> " +
-                          newState->NAME);
+                      "State change: " + currentState->name + " -> " +
+                          newState->name);
         }
 
 

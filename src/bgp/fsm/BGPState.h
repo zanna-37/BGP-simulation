@@ -10,7 +10,7 @@
 class BGPState {
    public:
     BGPStateMachine* stateMachine;
-    string           NAME;
+    string           name;
     BGPState(BGPStateMachine* stateMachine) : stateMachine(stateMachine){};
     virtual ~BGPState() {}
 

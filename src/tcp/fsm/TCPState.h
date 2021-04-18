@@ -33,7 +33,7 @@ class TCPState {
      * - SYN-SENT
      * - TIME-WAIT
      */
-    std::string NAME;
+    std::string name;
 
     TCPState(TCPStateMachine* stateMachine) : stateMachine(stateMachine){};
     virtual ~TCPState() {}
