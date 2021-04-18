@@ -1,18 +1,18 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef BGP_SIMULATION_SERVER_SERVER_H
+#define BGP_SIMULATION_SERVER_SERVER_H
 
-#include <pistache/endpoint.h>
-#include <pistache/http.h>
-#include <pistache/router.h>
-#include <string.h>
+#include <string>
 
+#include "../entities/EndPoint.h"
+#include "../entities/Router.h"
+#include "../logger/Logger.h"
+#include "pistache/endpoint.h"
+#include "pistache/http.h"
+#include "pistache/router.h"
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#include "../entities/EndPoint.h"
-#include "../entities/Router.h"
-#include "../logger/Logger.h"
 
 using namespace std;
 using namespace Pistache;
@@ -148,4 +148,4 @@ class ApiEndpoint {
     Rest::Router                    router;
 };
 
-#endif
+#endif  // BGP_SIMULATION_SERVER_SERVER_H
