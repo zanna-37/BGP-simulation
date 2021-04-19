@@ -15,15 +15,7 @@ void BGPOpenLayer::computeCalculateFieldsInternal() const {
     BGPOpenHeader* openHeader = getOpenHeaderOrNull();
     if (openHeader) {
         openHeader->version = 4;
-        openHeader->optionalParametersLength =
-            0; /* optionalParameters.size; TODO change me if we support
-                  optional parameters */
     }
-}
-
-size_t BGPOpenLayer::getHeaderLenInternal() const {
-    return sizeof(BGPOpenHeader); /* + optionalParameters.size; TODO change me
-                                     if we support optional parameters */
 }
 
 std::string BGPOpenLayer::toStringInternal() const {
@@ -52,7 +44,7 @@ BGPOpenLayer::BGPOpenLayer(uint16_t                 myAutonomousSystemNumber,
     : BGPLayer() {
     const size_t headerLen =
         sizeof(BGPOpenHeader); /* + optionalParameters.size; TODO change me if
-      we support                  optional parameters */
+                                  we support optional parameters */
     m_DataLen = headerLen;
     m_Data    = new uint8_t[headerLen];
     memset(m_Data, 0, headerLen);
@@ -61,7 +53,9 @@ BGPOpenLayer::BGPOpenLayer(uint16_t                 myAutonomousSystemNumber,
         getOpenHeaderOrNull();  // openHeader is not null as we just populated
                                 // m_Data and m_DataLen
 
+    openHeader->length_be                   = htobe16(headerLen);
     openHeader->myAutonomousSystemNumber_be = htobe16(myAutonomousSystemNumber);
     openHeader->holdTime_be                 = htobe16(holdTime);
     openHeader->BGPIdentifier_be            = BGPIdentifier.toInt();
+    // openHeader->optionalParametersLength = optionalParamsDataLen;
 }

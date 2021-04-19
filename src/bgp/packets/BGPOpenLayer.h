@@ -13,9 +13,9 @@ class BGPOpenLayer : public BGPLayer {
         uint16_t holdTime_be;
         uint32_t BGPIdentifier_be;
         /**
-         * @warning This is invalid unset if computeCalculateFields() has never
-         * been called; it is invalid if something changed after the last call
-         * to computeCalculateFields().
+         * @warning This must be always kept in sync with the real length of the
+         * layer and promptly updated when it changes. However, its value could
+         * be wrong or invalid, for example in case we parse a received packet.
          */
         uint8_t optionalParametersLength;
     };
@@ -58,7 +58,6 @@ class BGPOpenLayer : public BGPLayer {
    private:
     std::string toStringInternal() const override;
     void        computeCalculateFieldsInternal() const override;
-    size_t      getHeaderLenInternal() const override;
 };
 
 

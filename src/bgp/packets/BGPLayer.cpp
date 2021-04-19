@@ -44,7 +44,14 @@ BGPLayer::BGPCommonHeader* BGPLayer::getCommonHeaderOrNull() const {
 }
 
 size_t BGPLayer::getHeaderLen() const {
-    uint16_t messageLen = sizeof(BGPCommonHeader) + getHeaderLenInternal();
+    BGPCommonHeader* commonHeader = getCommonHeaderOrNull();
+
+    uint16_t messageLen;
+    if (commonHeader) {
+        messageLen = be16toh(commonHeader->length_be);
+    } else {
+        messageLen = m_DataLen;
+    }
 
     // The following check is needed because, when parsing a received packet, we
     // must take into account that the field `length` might be wrong or invalid.
@@ -100,7 +107,6 @@ void BGPLayer::computeCalculateFields() {
                UINT_MAX,
                sizeof(BGPCommonHeader::marker));  // FIXME Check if the header
                                                   // is really filled with ones
-        header->length_be = htobe16((uint16_t)getHeaderLen());
         header->type      = getBGPMessageType();
 
         computeCalculateFieldsInternal();

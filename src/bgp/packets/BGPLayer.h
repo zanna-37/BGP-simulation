@@ -10,9 +10,9 @@ class BGPLayer : public pcpp::Layer {
     struct BGPCommonHeader {
         uint8_t marker[16];
         /**
-         * @warning This is invalid unset if computeCalculateFields() has never
-         * been called; it is invalid if something changed after the last call
-         * to computeCalculateFields().
+         * @warning This must be always kept in sync with the real length of the
+         * layer and promptly updated when it changes. However, its value could
+         * be wrong or invalid, for example in case we parse a received packet.
          */
         uint16_t length_be;
         uint8_t  type;
@@ -66,7 +66,6 @@ class BGPLayer : public pcpp::Layer {
 
     virtual std::string toStringInternal() const               = 0;
     virtual void        computeCalculateFieldsInternal() const = 0;
-    virtual size_t      getHeaderLenInternal() const           = 0;
 };
 
 
