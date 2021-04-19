@@ -42,11 +42,12 @@ BGPOpenLayer::BGPOpenLayer(uint16_t                 myAutonomousSystemNumber,
                            uint16_t                 holdTime,
                            const pcpp::IPv4Address& BGPIdentifier)
     : BGPLayer() {
-    const size_t headerLen =
-        sizeof(BGPOpenHeader); /* + optionalParameters.size; TODO change me if
-                                  we support optional parameters */
-    m_DataLen = headerLen;
-    m_Data    = new uint8_t[headerLen];
+    uint8_t optionalParamsDataLen =
+        0;  // TODO change me if we support optional parameters
+
+    const size_t headerLen = sizeof(BGPOpenHeader) + optionalParamsDataLen;
+    m_DataLen              = headerLen;
+    m_Data                 = new uint8_t[headerLen];
     memset(m_Data, 0, headerLen);
 
     BGPOpenHeader* openHeader =
@@ -57,5 +58,5 @@ BGPOpenLayer::BGPOpenLayer(uint16_t                 myAutonomousSystemNumber,
     openHeader->myAutonomousSystemNumber_be = htobe16(myAutonomousSystemNumber);
     openHeader->holdTime_be                 = htobe16(holdTime);
     openHeader->BGPIdentifier_be            = BGPIdentifier.toInt();
-    // openHeader->optionalParametersLength = optionalParamsDataLen;
+    openHeader->optionalParametersLength    = optionalParamsDataLen;
 }
