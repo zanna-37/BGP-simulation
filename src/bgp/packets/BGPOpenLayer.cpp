@@ -31,7 +31,9 @@ std::string BGPOpenLayer::toStringInternal() const {
             "Hold time: " + std::to_string(be16toh(openHeader->holdTime_be)) +
             "\n";
         output += "BGP Identifier: " +
-                  std::to_string(be32toh(openHeader->BGPIdentifier_be)) + "\n";
+                  std::to_string(be32toh(openHeader->BGPIdentifier_be)) + " (" +
+                  pcpp::IPv4Address(openHeader->BGPIdentifier_be).toString() +
+                  ")\n";
 
         return output;
     } else {

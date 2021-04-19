@@ -75,7 +75,7 @@ std::string BGPLayer::getBGPMessageTypeName(BGPLayer::BGPMessageType type) {
         case BGPLayer::KEEPALIVE:
             return "KEEPALIVE";
         default:
-            return "UNKNOWN TYPE";
+            return "UNKNOWN TYPE (" + std::to_string(type) + ")";
     }
 }
 
