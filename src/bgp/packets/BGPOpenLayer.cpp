@@ -45,9 +45,10 @@ BGPOpenLayer::BGPOpenLayer(uint16_t                 myAutonomousSystemNumber,
     uint8_t optionalParamsDataLen =
         0;  // TODO change me if we support optional parameters
 
-    const size_t headerLen = sizeof(BGPOpenHeader) + optionalParamsDataLen;
-    m_DataLen              = headerLen;
-    m_Data                 = new uint8_t[headerLen];
+    const size_t headerLen =
+        sizeof(BGPCommonHeader) + sizeof(BGPOpenHeader) + optionalParamsDataLen;
+    m_DataLen = headerLen;
+    m_Data    = new uint8_t[headerLen];
     memset(m_Data, 0, headerLen);
 
     BGPOpenHeader* openHeader =
