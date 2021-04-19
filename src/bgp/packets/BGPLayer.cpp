@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include "BGPOpenLayer.h"
+#include "BGPUpdateLayer.h"
 
 
 BGPLayer* BGPLayer::parseBGPLayerOrNull(uint8_t*      data,
@@ -20,8 +21,7 @@ BGPLayer* BGPLayer::parseBGPLayerOrNull(uint8_t*      data,
             case OPEN:
                 return new BGPOpenLayer(data, dataLength, prevLayer, packet);
             case UPDATE:
-                // TODO
-                // return
+                return new BGPUpdateLayer(data, dataLength, prevLayer, packet);
             case NOTIFICATION:
                 // TODO
                 // return
