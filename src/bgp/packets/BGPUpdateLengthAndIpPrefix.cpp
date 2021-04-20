@@ -1,5 +1,7 @@
 #include "BGPUpdateLengthAndIpPrefix.h"
 
+#include <bitset>
+
 size_t LengthAndIpPrefix::lengthAndIpPrefixDataToByteArray(
     const std::vector<LengthAndIpPrefix>& vector,
     uint8_t*                              arrayToFill,
@@ -123,8 +125,17 @@ void LengthAndIpPrefix::parsePrefixAndIPData(
 std::string LengthAndIpPrefix::toString() const {
     std::string output;
 
-    output +=
-        "- " + ipPrefix.toString() + " /" + std::to_string(prefixLength) + "\n";
+    std::bitset<32> mask;
+    mask.set();
+    mask >>= prefixLength;
+    mask.flip();
+
+
+    pcpp::IPv4Address ipPrefixClean(
+        htobe32(be32toh(ipPrefix.toInt()) & (uint32_t)mask.to_ulong()));
+
+    output += "- " + ipPrefixClean.toString() + " /" +
+              std::to_string(prefixLength) + "\n";
 
     return output;
 }
