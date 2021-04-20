@@ -22,9 +22,25 @@ void ApiEndpoint::setupRoutes() {
 
     Routes::Get(router, "/", Routes::bind(&ApiEndpoint::index, this));
     Routes::Get(
+        router, "/showGUI", Routes::bind(&ApiEndpoint::showGUI, this));
+    Routes::Get(
         router, "/getNetwork", Routes::bind(&ApiEndpoint::getNetwork, this));
     Routes::Post(
         router, "/brakeLink", Routes::bind(&ApiEndpoint::brakeLink, this));
+
+    //Routes for WebPage content
+    Routes::Get(
+        router, "/showGUI/add-icon.png", Routes::bind(&ApiEndpoint::getAddIcon, this));
+    Routes::Get(
+    router, "/showGUI/endpoint-icon.png", Routes::bind(&ApiEndpoint::getEndpointIcon, this));
+    Routes::Get(
+    router, "/showGUI/packet-icon.png", Routes::bind(&ApiEndpoint::getPacketIcon, this));
+    Routes::Get(
+    router, "/showGUI/router-icon.png", Routes::bind(&ApiEndpoint::getRouterIcon, this));
+    Routes::Get(
+    router, "/showGUI/node-events.js", Routes::bind(&ApiEndpoint::getNodeEvents, this));
+    Routes::Get(
+    router, "/showGUI/main.css", Routes::bind(&ApiEndpoint::getMainCSS, this));
 }
 
 void ApiEndpoint::initDoc() {
@@ -188,7 +204,7 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("label");
     writer.String("Router1");
     writer.Key("image");
-    writer.String("../net-visualization/img/router-icon.png");
+    writer.String("showGUI/router-icon.png");
     writer.EndObject();
     writer.Key("extra");
     writer.StartObject();
@@ -228,7 +244,7 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("label");
     writer.String("Router2");
     writer.Key("image");
-    writer.String("../net-visualization/img/router-icon.png");
+    writer.String("showGUI/router-icon.png");
     writer.EndObject();
     writer.Key("extra");
     writer.StartObject();
@@ -270,7 +286,7 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("label");
     writer.String("Endpoint1");
     writer.Key("image");
-    writer.String("../net-visualization/img/endpoint-icon.png");
+    writer.String("showGUI/endpoint-icon.png");
     writer.EndObject();
     writer.Key("extra");
     writer.StartObject();
@@ -302,7 +318,7 @@ void ApiEndpoint::index(const Rest::Request &request,
     writer.Key("label");
     writer.String("Endpoint2");
     writer.Key("image");
-    writer.String("../net-visualization/img/endpoint-icon.png");
+    writer.String("showGUI/endpoint-icon.png");
     writer.EndObject();
     writer.Key("extra");
     writer.StartObject();
@@ -390,6 +406,47 @@ void ApiEndpoint::getNetwork(const Rest::Request &request,
     response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
     response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
     response.send(Http::Code::Ok, buf.GetString());
+}
+
+void ApiEndpoint::showGUI(const Rest::Request &request,
+                        Http::ResponseWriter response){
+
+    if (request.method() == Http::Method::Get) {
+        Http::serveFile(response, "src/net-visualization/bgp-visualization.html");
+    }
+}
+
+void ApiEndpoint::getAddIcon(const Rest::Request& request, Http::ResponseWriter response){
+    if (request.method() == Http::Method::Get) {
+        Http::serveFile(response, "src/net-visualization/img/add-icon.png");
+    }
+}
+void ApiEndpoint::getEndpointIcon(const Rest::Request& request, Http::ResponseWriter response){
+    if (request.method() == Http::Method::Get) {
+        Http::serveFile(response, "src/net-visualization/img/endpoint-icon.png");
+    }
+}
+void ApiEndpoint::getPacketIcon(const Rest::Request& request, Http::ResponseWriter response){
+    if (request.method() == Http::Method::Get) {
+        Http::serveFile(response, "src/net-visualization/img/packet-icon.png");
+    }
+}
+
+void ApiEndpoint::getRouterIcon(const Rest::Request& request, Http::ResponseWriter response){
+    if (request.method() == Http::Method::Get) {
+        Http::serveFile(response, "src/net-visualization/img/router-icon.png");
+    }
+}
+
+void ApiEndpoint::getNodeEvents(const Rest::Request& request, Http::ResponseWriter response){
+    if (request.method() == Http::Method::Get) {
+        Http::serveFile(response, "src/net-visualization/js/node-events.js");
+    }
+}
+void ApiEndpoint::getMainCSS(const Rest::Request& request, Http::ResponseWriter response){
+    if (request.method() == Http::Method::Get) {
+        Http::serveFile(response, "src/net-visualization/css/main.css");
+    }
 }
 
 void ApiEndpoint::getNodes(const Rest::Request &request,
