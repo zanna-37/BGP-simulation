@@ -57,6 +57,8 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
         enqueueEvent(TCPEvent::ReceiveACKforFIN);
     } else if (flags == RST) {
         enqueueEvent(TCPEvent::ReceiveRST);
+    } else if (flags == PSH + ACK) {
+        // Application layer will handle the message
     } else {
         L_ERROR(owner->ID, "TCP flag combination not handled");
     }

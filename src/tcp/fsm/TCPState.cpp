@@ -28,6 +28,10 @@ pcpp::TcpLayer* TCPState::craftTCPLayer(uint16_t srcPort,
         case RST:
             tcpLayer->getTcpHeader()->rstFlag = 1;
             break;
+        case PSH + ACK:
+            tcpLayer->getTcpHeader()->pshFlag = 1;
+            tcpLayer->getTcpHeader()->ackFlag = 1;
+            break;
         default:
             break;
     }
