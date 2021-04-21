@@ -14,7 +14,7 @@ option(USE_DEBUG OFF)
 IF (USE_DEBUG)
     add_compile_definitions(DEBUG_GUARD)
     MESSAGE(NOTICE "Entering Debug Mode...")
-ENDIF()
+ENDIF ()
 
 
 set(SRC src)
@@ -22,13 +22,14 @@ set(SRC_CONFIGURATION ${SRC}/configuration)
 set(SRC_CONFIGURATION_PARSER ${SRC_CONFIGURATION}/parser)
 set(SRC_ENTITIES ${SRC}/entities)
 set(SRC_LOGGER ${SRC}/logger)
-set(SRC_BGP ${SRC}/bgp)
-set(SRC_BGP_FSM ${SRC_BGP}/fsm) 
 set(SRC_UTILS ${SRC}/utils)
 set(SRC_IP ${SRC}/ip)
+set(SRC_FSM ${SRC}/fsm)
+set(SRC_BGP ${SRC}/bgp)
+set(SRC_BGP_FSM ${SRC_BGP}/fsm)
+set(SRC_BGP_PACKETS ${SRC_BGP}/packets)
 set(SRC_TCP ${SRC}/tcp)
 set(SRC_TCP_FSM ${SRC_TCP}/fsm)
-set(SRC_FSM ${SRC}/fsm)
 
 
 set(SOURCE_FILES
@@ -44,6 +45,8 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/NetworkCard.cpp
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
+        ${SRC_UTILS}/MacGenerator.cpp
+        ${SRC_IP}/TableRow.cpp
         ${SRC_BGP}/BGPConnection.cpp
         ${SRC_BGP}/BGPEvent.cpp
         ${SRC_BGP}/BGPTimer.cpp
@@ -54,8 +57,11 @@ set(SOURCE_FILES
         ${SRC_BGP_FSM}/BGPStateMachine.cpp
         ${SRC_BGP_FSM}/BGPStateOpenConfirm.cpp
         ${SRC_BGP_FSM}/BGPStateOpenSent.cpp
-        ${SRC_IP}/TableRow.cpp
-        ${SRC_UTILS}/MacGenerator.cpp
+        ${SRC_BGP_PACKETS}/BGPLayer.cpp
+        ${SRC_BGP_PACKETS}/BGPOpenLayer.cpp
+        ${SRC_BGP_PACKETS}/BGPUpdateLayer.cpp
+        ${SRC_BGP_PACKETS}/BGPUpdateLengthAndIpPrefix.cpp
+        ${SRC_BGP_PACKETS}/BGPUpdatePathAttribute.cpp
         ${SRC_TCP}/TCPConnection.cpp
         ${SRC_TCP}/TCPEvent.cpp
         ${SRC_TCP}/TCPTimer.cpp
@@ -72,15 +78,13 @@ set(SOURCE_FILES
         ${SRC_TCP_FSM}/TCPStateFINWait2.cpp
         ${SRC_TCP_FSM}/TCPStateLastACK.cpp
         ${SRC_TCP_FSM}/TCPStateTimeWait.cpp
-        
-
-)
+        )
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 
 ###### -lpthread flag support ######
-find_package( Threads )
-target_link_libraries( ${CMAKE_PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} )
+find_package(Threads)
+target_link_libraries(${CMAKE_PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 
 ###### Libraries and dependencies #####
 

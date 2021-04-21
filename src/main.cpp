@@ -1,3 +1,4 @@
+#include <BgpLayer.h>
 #include <DnsLayer.h>
 #include <EthLayer.h>
 #include <IPv4Layer.h>
@@ -11,6 +12,8 @@
 #include <string>
 
 #include "bgp/BGPConnection.h"
+#include "bgp/packets/BGPOpenLayer.h"
+#include "bgp/packets/BGPUpdateLayer.h"
 #include "configuration/parser/Parser.h"
 #include "entities/EndPoint.h"
 #include "entities/Router.h"
@@ -24,25 +27,49 @@ int main(int argc, char *argv[]) {
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
     L_VERBOSE("main", "START");
 
-    pcpp::EthLayer newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
+    pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
-
     pcpp::IPv4Layer newIPLayer(pcpp::IPv4Address(std::string("192.168.1.1")),
                                pcpp::IPv4Address(std::string("10.0.0.1")));
     newIPLayer.getIPv4Header()->ipId       = pcpp::hostToNet16(2000);
     newIPLayer.getIPv4Header()->timeToLive = 64;
 
-    pcpp::UdpLayer newUdpLayer(12345, 53);
+    // BGP Open
 
-    pcpp::DnsLayer newDnsLayer;
-    newDnsLayer.addQuery("www.ebay.com", pcpp::DNS_TYPE_A, pcpp::DNS_CLASS_IN);
+    BGPOpenLayer bgpOpen =
+        BGPOpenLayer(1, 2, pcpp::IPv4Address(std::string("10.0.0.1")));
+    bgpOpen.computeCalculateFields();
+    cout << bgpOpen.toString() << endl;
+
+    // BGP Update
+
+    std::vector<LengthAndIpPrefix> withdrawnRoutes;
+    withdrawnRoutes.push_back(LengthAndIpPrefix(20, "10.3.2.1"));
+    withdrawnRoutes.push_back(LengthAndIpPrefix(24, "10.6.5.4"));
+
+    std::vector<PathAttribute> pathAttributes;
+    PathAttribute              pathAttribute;
+    const int                  data_len       = 10;
+    uint8_t                    data[data_len] = {'a', 'b'};
+    pathAttribute.setAttributeLengthAndValue(data, data_len);
+    pathAttribute.attributeTypeCode = PathAttribute::NEXT_HOP;
+    pathAttributes.push_back(pathAttribute);
+    std::vector<LengthAndIpPrefix> nlri;
+    nlri.push_back(LengthAndIpPrefix(4, "10.9.8.7"));
+    BGPUpdateLayer bgpUpdate =
+        BGPUpdateLayer(withdrawnRoutes, pathAttributes, nlri);
+    bgpUpdate.computeCalculateFields();
+    cout << bgpUpdate.toString() << endl;
+
+
+    // Add to packet
 
     pcpp::Packet newPacket(100);
 
     newPacket.addLayer(&newEthernetLayer);
     newPacket.addLayer(&newIPLayer);
-    // newPacket.addLayer(&newUdpLayer);
-    // newPacket.addLayer(&newDnsLayer);
+    // newPacket.addLayer(&bgpOpen);
+    newPacket.addLayer(&bgpUpdate);
 
     newPacket.computeCalculateFields();
 
