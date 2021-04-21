@@ -21,6 +21,8 @@ class BGPConnection {
 
    public:
     Device* owner;
+
+    std::string dstAddr;
     // Constructors
     BGPConnection(Device* owner);
 

@@ -200,8 +200,9 @@ class Device {
      * hashmap
      * @param dstAddr, a pointer to the destination address
      * @param dstPort the destination port the device wants to connect to
+     * @return the TCP connection created
      */
-    void connect(std::string dstAddr, uint16_t dstPort);
+    TCPConnection *connect(std::string dstAddr, uint16_t dstPort);
 
     /**
      * Gently close the connection using 4-way closing mechanism, following TCP
@@ -267,6 +268,9 @@ class Device {
      */
     void handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
                                 TCPConnection *            connection);
+
+
+    void bgpConnect(std::string dstAddr);
 
    private:
     /**

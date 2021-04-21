@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "../bgp/BGPEvent.h"
 #include "../bgp/packets/BGPLayer.h"
 #include "../logger/Logger.h"
 
@@ -40,6 +41,14 @@ Device::~Device() {
     delete networkCards;
 
     delete listenConnection;
+
+    std::map<TCPConnection *, BGPConnection *>::iterator
+        applicationSocketsIterator;
+    for (applicationSocketsIterator = applicationSockets.begin();
+         applicationSocketsIterator != applicationSockets.end();
+         ++applicationSocketsIterator) {
+        delete applicationSocketsIterator->second;
+    }
 
     std::map<std::size_t, TCPConnection *>::iterator it;
     for (it = tcpConnections.begin(); it != tcpConnections.end(); ++it) {
@@ -192,7 +201,7 @@ void Device::listen() {
     listenConnection->srcPort = listenConnection->BGPPort;
     listenConnection->enqueueEvent(TCPEvent::PassiveOpen);
 }
-void Device::connect(std::string dstAddr, uint16_t dstPort) {
+TCPConnection *Device::connect(std::string dstAddr, uint16_t dstPort) {
     TCPConnection *connection = new TCPConnection(this);
 
     connection->dstAddr = new pcpp::IPv4Address(dstAddr);
@@ -203,6 +212,8 @@ void Device::connect(std::string dstAddr, uint16_t dstPort) {
     connection->srcPort = randomPort;
     addTCPConnection(connection);
     connection->enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
+
+    return connection;
 }
 
 void Device::closeConnection(std::string dstAddr, uint16_t dstPort) {
@@ -319,6 +330,13 @@ void Device::handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
             // TODO handle new BGP connection
         }
     }
+}
+
+void Device::bgpConnect(std::string dstAddr) {
+    BGPConnection *connection = new BGPConnection(this);
+    connection->dstAddr       = dstAddr;
+
+    connection->enqueueEvent(BGPEvent::ManualStart);
 }
 
 // ### ReceivedPacketEvent methods

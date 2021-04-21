@@ -36,5 +36,6 @@ void BGPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
             // TODO keepalive
             // TODO not recognized
         }
+        delete bgpLayer;
     }
 }
