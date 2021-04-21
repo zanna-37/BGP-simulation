@@ -304,6 +304,12 @@ void Device::printTable() {
     std::cout << std::endl;
 }
 
+
+void Device::handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
+                                    uint16_t                   port) {
+    // the device will call the proper connection callback
+}
+
 // ### ReceivedPacketEvent methods
 
 ReceivedPacketEvent::ReceivedPacketEvent(NetworkCard *networkCard,

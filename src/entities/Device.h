@@ -247,6 +247,15 @@ class Device {
      */
     void printTable();
 
+    /**
+     * Handle the application layer of the packet. It depends on the application
+     * ports open
+     * @param layers the stack containing the application layers
+     * @param port the application port
+     */
+    void handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
+                                uint16_t                   port);
+
    private:
     /**
      * private methd to print a single element in the routing table
