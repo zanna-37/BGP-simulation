@@ -32,6 +32,12 @@ class BGPConnection {
      * @param event the event triggered
      */
     void enqueueEvent(BGPEvent event);
+
+    /**
+     * Handle BGP message
+     * @param layers the BGP layers contained in the received message
+     */
+    void processMessage(std::stack<pcpp::Layer*>* layers);
 };
 
 #endif

@@ -60,7 +60,7 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
     } else if (flags == PSH + ACK &&
                stateMachine->getCurrentState()->name == "ENSTABLISHED") {
         // Application layer will handle the message
-        owner->handleApplicationLayer(layers, srcPort);
+        owner->handleApplicationLayer(layers, this);
     } else {
         L_ERROR(owner->ID, "TCP flag combination not handled");
     }

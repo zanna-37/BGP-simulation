@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "../bgp/packets/BGPLayer.h"
 #include "../logger/Logger.h"
 
 Device::Device(string ID, pcpp::IPv4Address defaultGateway)
@@ -306,8 +307,18 @@ void Device::printTable() {
 
 
 void Device::handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
-                                    uint16_t                   port) {
+                                    TCPConnection *            tcpConnection) {
     // the device will call the proper connection callback
+
+    if (tcpConnection->srcPort == 179) {
+        auto searchIterator = applicationSockets.find(tcpConnection);
+        if (searchIterator != applicationSockets.end()) {
+            BGPConnection *bgpConnection = searchIterator->second;
+            bgpConnection->processMessage(layers);
+        } else {
+            // TODO handle new BGP connection
+        }
+    }
 }
 
 // ### ReceivedPacketEvent methods

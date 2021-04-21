@@ -15,11 +15,13 @@
 #include <utility>
 #include <vector>
 
+#include "../bgp/BGPConnection.h"
 #include "../ip/TableRow.h"
 #include "../tcp/TCPConnection.h"
 #include "NetworkCard.h"
 
 // forward declarations
+#include "../bgp/BGPConnection.fwd.h"
 #include "../ip/TableRow.fwd.h"
 #include "../tcp/TCPConnection.fwd.h"
 #include "NetworkCard.fwd.h"
@@ -104,6 +106,12 @@ class Device {
      * stored here.
      */
     std::map<std::size_t, TCPConnection *> tcpConnections;
+
+
+    std::map<std::string, BGPConnection *> bgpConnections;
+
+
+    std::map<TCPConnection *, BGPConnection *> applicationSockets;
 
     /**
      * If a deivice has open ports and accept connections, this pointer is
@@ -234,6 +242,10 @@ class Device {
      */
     void removeTCPConnection(TCPConnection *connection);
 
+    void addBGPConnection(BGPConnection connection);
+
+    void removeBGPConnection(BGPConnection connection);
+
     /**
      * Search for the network card that have to send the packet, based on the IP
      * destination address. If no network card can handle the message, a \a
@@ -254,7 +266,7 @@ class Device {
      * @param port the application port
      */
     void handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
-                                uint16_t                   port);
+                                TCPConnection *            connection);
 
    private:
     /**
