@@ -23,6 +23,10 @@ class BGPState {
      * @return boolean indicating if the event was handled correctly
      */
     virtual bool onEvent(BGPEvent) = 0;
+
+    void initiateTCPConnection();
+
+    void dropTCPConnection();
 };
 
 #endif

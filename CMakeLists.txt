@@ -50,6 +50,7 @@ set(SOURCE_FILES
         ${SRC_BGP}/BGPConnection.cpp
         ${SRC_BGP}/BGPEvent.cpp
         ${SRC_BGP}/BGPTimer.cpp
+        ${SRC_BGP_FSM}/BGPState.cpp
         ${SRC_BGP_FSM}/BGPStateActive.cpp
         ${SRC_BGP_FSM}/BGPStateConnect.cpp
         ${SRC_BGP_FSM}/BGPStateEnstablished.cpp

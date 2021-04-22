@@ -11,7 +11,8 @@
 TCPStateClosed::TCPStateClosed(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
     name = "CLOSED";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
+    L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
+            "State created: " + name);
 }
 
 bool TCPStateClosed::onEvent(TCPEvent event) {
@@ -29,6 +30,9 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
             // the connection. It then transitions to the LISTEN state.
 
             stateMachine->changeState(new TCPStateListen(stateMachine));
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Listening on port " +
+                        std::to_string(stateMachine->connection->srcPort));
 
             break;
         case TCPEvent::ActiveOpen_SendSYN:

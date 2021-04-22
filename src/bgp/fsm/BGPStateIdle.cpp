@@ -11,7 +11,6 @@ BGPStateIdle ::~BGPStateIdle() {}
 bool BGPStateIdle ::onEvent(BGPEvent event) {
     // maybe curly parenthesis
 
-    TCPConnection *tcpConnection = nullptr;
 
     bool handled = true;
 
@@ -27,12 +26,7 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->connectRetryTimer->start();
 
             // TODO initiates a TCP connection to the other BGP peer,
-            tcpConnection = stateMachine->connection->owner->connect(
-                stateMachine->connection->dstAddr, 179);
-
-            stateMachine->connection->owner->applicationSockets.insert(
-                std::make_pair(tcpConnection, stateMachine->connection));
-
+            initiateTCPConnection();
 
             // TODO listens for a connection that may be initiated by the
             // remote

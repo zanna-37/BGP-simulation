@@ -5,12 +5,14 @@
 #include <cassert>
 
 #include "../entities/Device.h"
+#include "../tcp/TCPConnection.h"
 #include "BGPEvent.h"
 #include "fsm/BGPStateMachine.h"
 
 
 // forward declarations
 #include "../entities/Device.fwd.h"
+#include "../tcp/TCPConnection.fwd.h"
 #include "fsm/BGPStateMachine.fwd.h"
 
 class BGPConnection {
@@ -22,7 +24,8 @@ class BGPConnection {
    public:
     Device* owner;
 
-    std::string dstAddr;
+    std::string    dstAddr;
+    TCPConnection* tcpConnection = nullptr;
     // Constructors
     BGPConnection(Device* owner);
 

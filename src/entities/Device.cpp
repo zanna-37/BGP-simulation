@@ -42,12 +42,8 @@ Device::~Device() {
 
     delete listenConnection;
 
-    std::map<TCPConnection *, BGPConnection *>::iterator
-        applicationSocketsIterator;
-    for (applicationSocketsIterator = applicationSockets.begin();
-         applicationSocketsIterator != applicationSockets.end();
-         ++applicationSocketsIterator) {
-        delete applicationSocketsIterator->second;
+    for (BGPConnection *connection : bgpConnections) {
+        delete connection;
     }
 
     std::map<std::size_t, TCPConnection *>::iterator it;
@@ -322,13 +318,14 @@ void Device::handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
     // the device will call the proper connection callback
 
     if (tcpConnection->srcPort == 179) {
-        auto searchIterator = applicationSockets.find(tcpConnection);
-        if (searchIterator != applicationSockets.end()) {
-            BGPConnection *bgpConnection = searchIterator->second;
-            bgpConnection->processMessage(layers);
-        } else {
-            // TODO handle new BGP connection
+        for (BGPConnection *connection : bgpConnections) {
+            if (connection->tcpConnection == tcpConnection) {
+                connection->processMessage(layers);
+                return;
+            }
         }
+
+        // handle new BGP connection
     }
 }
 
@@ -337,6 +334,8 @@ void Device::bgpConnect(std::string dstAddr) {
     connection->dstAddr       = dstAddr;
 
     connection->enqueueEvent(BGPEvent::ManualStart);
+
+    bgpConnections.push_back(connection);
 }
 
 // ### ReceivedPacketEvent methods

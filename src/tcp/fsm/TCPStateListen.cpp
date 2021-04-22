@@ -8,7 +8,8 @@
 TCPStateListen::TCPStateListen(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {
     name = "LISTEN";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
+    L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
+            "State created: " + name);
 }
 bool TCPStateListen::onEvent(TCPEvent event) {
     std::stack<pcpp::Layer *> *layers   = nullptr;
@@ -40,9 +41,6 @@ bool TCPStateListen::onEvent(TCPEvent event) {
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
             delete layers;
-            stateMachine->changeState(new TCPStateClosed(stateMachine));
-            break;
-        case TCPEvent::ReceiveRST:
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 

@@ -11,7 +11,8 @@ class BGPStateIdle : public BGPState {
     // Constructor
     BGPStateIdle(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         name = "IDLE";
-        L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
+        L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
+                "State created: " + name);
     };
 
     // Deconstructor

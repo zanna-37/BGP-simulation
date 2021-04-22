@@ -21,6 +21,8 @@ class StateMachine {
     State*      previousState = nullptr;
     State*      currentState  = nullptr;
 
+    std::string name = "";
+
     StateMachine(Connection* connection) : connection(connection) {}
 
     ~StateMachine() {
@@ -54,19 +56,19 @@ class StateMachine {
                     Event event = eventQueue.front();
                     eventQueue.pop();
 
-                    L_DEBUG(connection->owner->ID,
+                    L_DEBUG(connection->owner->ID + " " + name,
                             "Passing event " + getEventName(event) +
                                 " to the current state (" + currentState->name +
                                 ")");
                     State* hanglingState_forlogs =
                         currentState;  // only used in the logs
                     bool result = currentState && currentState->onEvent(event);
-                    L_DEBUG(connection->owner->ID,
+                    L_DEBUG(connection->owner->ID + " " + name,
                             "Event " + getEventName(event) +
                                 (result ? " handled" : " NOT handled") +
                                 " by " + hanglingState_forlogs->name);
                 } else {
-                    L_VERBOSE(connection->owner->ID,
+                    L_VERBOSE(connection->owner->ID + " " + name,
                               "Shutting down state machine: " +
                                   connection->owner->ID);
                 }
@@ -87,10 +89,10 @@ class StateMachine {
         delete previousState;
         previousState = currentState;
         if (currentState == nullptr) {
-            L_VERBOSE(connection->owner->ID,
+            L_VERBOSE(connection->owner->ID + " " + name,
                       "Initial state: " + newState->name);
         } else {
-            L_VERBOSE(connection->owner->ID,
+            L_VERBOSE(connection->owner->ID + " " + name,
                       "State change: " + currentState->name + " -> " +
                           newState->name);
         }

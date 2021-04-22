@@ -15,7 +15,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
     switch (event) {
         case BGPEvent::ManualStop:
             // TODO drops the TCP connection,
-
+            dropTCPConnection();
             // TODO releases all BGP resources,
 
             // - sets ConnectRetryCounter to zero,
@@ -31,7 +31,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             break;
         case BGPEvent::ConnectRetryTimer_Expires:
             // TODO drops the TCP connection,
-
+            dropTCPConnection();
             // - restarts the ConnectRetryTimer,
             stateMachine->resetConnectRetryTimer();
             stateMachine->connectRetryTimer->start();
@@ -40,7 +40,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             stateMachine->resetDelayOpenTimer();
 
             // TODO initiates a TCP connection to the other BGP peer,
-
+            initiateTCPConnection();
             // TODO continues to listen for a connection that may be initiated
             // by
             //   the remote BGP peer

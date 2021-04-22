@@ -2,6 +2,7 @@
 
 BGPStateMachine::BGPStateMachine(BGPConnection* connection)
     : StateMachine(connection) {
+    name = "BGPfsm";
     initializeTimers();
 }
 BGPStateMachine::~BGPStateMachine() {

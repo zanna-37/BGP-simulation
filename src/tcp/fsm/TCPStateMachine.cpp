@@ -3,6 +3,7 @@
 
 TCPStateMachine::TCPStateMachine(TCPConnection* connection)
     : StateMachine(connection) {
+    name = "TCPfsm";
     initializeTimers();
 }
 

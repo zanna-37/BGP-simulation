@@ -108,10 +108,8 @@ class Device {
     std::map<std::size_t, TCPConnection *> tcpConnections;
 
 
-    std::map<std::string, BGPConnection *> bgpConnections;
+    std::vector<BGPConnection *> bgpConnections;
 
-
-    std::map<TCPConnection *, BGPConnection *> applicationSockets;
 
     /**
      * If a deivice has open ports and accept connections, this pointer is
