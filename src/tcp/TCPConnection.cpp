@@ -51,6 +51,10 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
         enqueueEvent(TCPEvent::ReceiveSYNACKSendACK);
     } else if (flags == ACK) {
         enqueueEvent(TCPEvent::ReceiveACK);
+        // the TCP connection has been enstablished
+        if (stateMachine->getCurrentState()->name == "ENSTABLISHED") {
+            owner->connectionConfirmed(this);
+        }
     } else if (flags == FIN) {
         enqueueEvent(TCPEvent::ReceiveFINSendACK);
     } else if (flags == FIN + ACK) {

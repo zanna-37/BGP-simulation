@@ -57,11 +57,11 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateOpenSent(stateMachine));
             break;
         case BGPEvent::TcpConnection_Valid:
-            // TODO the TCP connection is processed,
+            // TODO the TCP connection is processed, OPTIONAL
             break;
         case BGPEvent::Tcp_CR_Invalid:
 
-            // TODO the local system rejects the TCP connection
+            // TODO the local system rejects the TCP connection, OPTIONAL
             break;
         case BGPEvent::Tcp_CR_Acked:
         case BGPEvent::TcpConnectionConfirmed:

@@ -270,6 +270,12 @@ class Device {
 
     void bgpConnect(std::string dstAddr);
 
+    void connectionConfirmed(TCPConnection *connection);
+
+    void connectionAcked(TCPConnection *connection);
+
+    BGPConnection *findBGPConnectionOrNull(TCPConnection *tcpConnection);
+
    private:
     /**
      * private methd to print a single element in the routing table

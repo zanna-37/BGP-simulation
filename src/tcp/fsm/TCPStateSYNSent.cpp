@@ -55,6 +55,9 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
             delete layers;
             stateMachine->changeState(new TCPStateEnstablished(stateMachine));
 
+            stateMachine->connection->owner->connectionAcked(
+                stateMachine->connection);
+
             break;
         case TCPEvent::SendRST:
             layers   = new std::stack<pcpp::Layer*>();

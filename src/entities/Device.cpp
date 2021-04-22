@@ -338,6 +338,33 @@ void Device::bgpConnect(std::string dstAddr) {
     bgpConnections.push_back(connection);
 }
 
+void Device::connectionConfirmed(TCPConnection *tcpConnection) {
+    if (tcpConnection->srcPort == 179) {
+        BGPConnection *connection = findBGPConnectionOrNull(tcpConnection);
+        if (connection != nullptr) {
+            connection->enqueueEvent(BGPEvent::TcpConnectionConfirmed);
+        }
+    }
+}
+
+void Device::connectionAcked(TCPConnection *tcpConnection) {
+    if (tcpConnection->srcPort == 179) {
+        BGPConnection *bgpConnection = findBGPConnectionOrNull(tcpConnection);
+        if (bgpConnection != nullptr) {
+            bgpConnection->enqueueEvent(BGPEvent::Tcp_CR_Acked);
+        }
+    }
+}
+
+BGPConnection *Device::findBGPConnectionOrNull(TCPConnection *tcpConnection) {
+    for (BGPConnection *connection : bgpConnections) {
+        if (connection->tcpConnection == tcpConnection) {
+            return connection;
+        }
+    }
+    return nullptr;
+}
+
 // ### ReceivedPacketEvent methods
 
 ReceivedPacketEvent::ReceivedPacketEvent(NetworkCard *networkCard,
