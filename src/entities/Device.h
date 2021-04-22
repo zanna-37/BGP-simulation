@@ -270,6 +270,8 @@ class Device {
 
     void bgpConnect(std::string dstAddr);
 
+    void bgpListen();
+
     void connectionConfirmed(TCPConnection *connection);
 
     void connectionAcked(TCPConnection *connection);

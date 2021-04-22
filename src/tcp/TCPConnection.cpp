@@ -102,3 +102,14 @@ uint8_t TCPConnection::parseTCPFlags(pcpp::tcphdr* tcpHeader) {
 
     return result;
 }
+
+
+void TCPConnection::sendPacket(std::stack<pcpp::Layer*>* layers) {
+    pcpp::TcpLayer* tcpLayer          = new pcpp::TcpLayer(srcPort, dstPort);
+    tcpLayer->getTcpHeader()->pshFlag = 1;
+    tcpLayer->getTcpHeader()->ackFlag = 1;
+
+    layers->push(tcpLayer);
+
+    owner->sendPacket(layers, dstAddr->toString());
+}

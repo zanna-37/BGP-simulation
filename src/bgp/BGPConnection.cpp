@@ -28,14 +28,28 @@ void BGPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
     while (!layers->empty()) {
         BGPLayer* bgpLayer = dynamic_cast<BGPLayer*>(layers->top());
         layers->pop();
+        BGPLayer::BGPCommonHeader* bgpHeader =
+            bgpLayer->getCommonHeaderOrNull();
+        if (bgpHeader) {
+            switch (bgpHeader->type) {
+                case BGPLayer::BGPMessageType::OPEN:
+                    L_DEBUG(owner->ID, "OPEN message arrived");
+                    break;
+                case BGPLayer::BGPMessageType::UPDATE:
+                    L_DEBUG(owner->ID, "UPDATE message arrived");
+                    break;
+                case BGPLayer::BGPMessageType::NOTIFICATION:
+                    L_DEBUG(owner->ID, "NOTIFICATION message arrived");
+                    break;
+                case BGPLayer::BGPMessageType::KEEPALIVE:
+                    L_DEBUG(owner->ID, "KEEPALIVE message arrived");
+                    break;
 
-        if (instanceof <BGPOpenLayer>(bgpLayer)) {
-        } else if (instanceof <BGPUpdateLayer>(bgpLayer)) {
-        } else {
-            // TODO notification
-            // TODO keepalive
-            // TODO not recognized
+                default:
+                    break;
+            }
         }
+
         delete bgpLayer;
     }
 }

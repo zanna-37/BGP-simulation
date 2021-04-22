@@ -73,6 +73,9 @@ class TCPConnection {
      * @return pointer to the current state of the connection
      */
     TCPState* getCurrentState();
+
+
+    void sendPacket(std::stack<pcpp::Layer*>* layers);
 };
 
 #endif

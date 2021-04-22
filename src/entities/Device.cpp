@@ -342,13 +342,14 @@ void Device::connectionConfirmed(TCPConnection *tcpConnection) {
     if (tcpConnection->srcPort == 179) {
         BGPConnection *connection = findBGPConnectionOrNull(tcpConnection);
         if (connection != nullptr) {
+            connection->dstAddr = tcpConnection->dstAddr->toString();
             connection->enqueueEvent(BGPEvent::TcpConnectionConfirmed);
         }
     }
 }
 
 void Device::connectionAcked(TCPConnection *tcpConnection) {
-    if (tcpConnection->srcPort == 179) {
+    if (tcpConnection->dstPort == 179) {
         BGPConnection *bgpConnection = findBGPConnectionOrNull(tcpConnection);
         if (bgpConnection != nullptr) {
             bgpConnection->enqueueEvent(BGPEvent::Tcp_CR_Acked);
@@ -363,6 +364,15 @@ BGPConnection *Device::findBGPConnectionOrNull(TCPConnection *tcpConnection) {
         }
     }
     return nullptr;
+}
+
+void Device::bgpListen() {
+    BGPConnection *connection = new BGPConnection(this);
+
+    connection->enqueueEvent(
+        BGPEvent::ManualStart_with_PassiveTcpEstablishment);
+
+    bgpConnections.push_back(connection);
 }
 
 // ### ReceivedPacketEvent methods

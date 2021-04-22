@@ -1,6 +1,10 @@
 #include "BGPStateConnect.h"
 
+#include <stack>
+
+#include "../../entities/Router.h"
 #include "../BGPTimer.h"
+#include "../packets/BGPOpenLayer.h"
 #include "BGPStateActive.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenConfirm.h"
@@ -11,6 +15,10 @@ BGPStateConnect ::~BGPStateConnect() {}
 
 bool BGPStateConnect ::onEvent(BGPEvent event) {
     bool handled = true;
+
+    std::stack<pcpp::Layer*>* layers = nullptr;
+
+    BGPOpenLayer* bgpOpenLayer = nullptr;
 
     switch (event) {
         case BGPEvent::ManualStop:
@@ -86,10 +94,26 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 // TODO completes BGP initialization
 
                 // TODO sends an OPEN message to its peer,
+                layers = new std::stack<pcpp::Layer*>();
 
+                // dynamic_cast<Router*>(stateMachine->connection->owner)->AS_number
+                bgpOpenLayer = new BGPOpenLayer(
+                    1111,
+                    (uint16_t)(stateMachine->getHoldTime().count()),
+                    pcpp::IPv4Address("1.1.1.1"));
+                bgpOpenLayer->computeCalculateFields();
+
+
+                L_DEBUG(stateMachine->connection->owner->ID,
+                        bgpOpenLayer->toString());
+                layers->push(bgpOpenLayer);
+
+                stateMachine->connection->tcpConnection->sendPacket(layers);
+
+                delete layers;
                 // - NOT_SURE sets the HoldTimer to a large value, and
-                stateMachine->setDelayOpenTime(240s);
-                stateMachine->delayOpenTimer->start();
+                stateMachine->setHoldTime(240s);
+                stateMachine->holdTimer->start();
 
                 // - changes its state to OpenSent.
                 stateMachine->changeState(new BGPStateOpenSent(stateMachine));
