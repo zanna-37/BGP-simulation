@@ -7,6 +7,7 @@
 #include "ASPath.h"
 
 class BGPTableRow {
+   public:
     bool              valid     = true;
     bool              preferred = true;
     pcpp::IPv4Address networkIP;
@@ -25,12 +26,11 @@ class BGPTableRow {
                 pcpp::IPv4Address,
                 pcpp::IPv4Address,
                 char,
-                NetworkCard*,
                 ASPath,
                 int,
                 int,
                 int);
-    ~BGPTableRow();
+    ~BGPTableRow(){};
 };
 
 #endif

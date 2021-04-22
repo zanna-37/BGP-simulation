@@ -11,6 +11,8 @@
 
 #include "configuration/parser/Parser.h"
 #include "entities/Device.h"
+#include "entities/Router.h"
+#include "entities/EndPoint.h"
 #include "logger/Logger.h"
 #include "pistache/net.h"
 #include "pistache/os.h"
@@ -161,13 +163,12 @@ int main(int argc, char *argv[]) {
                       "/showGUI\nPress Ctrl+C to end the simulation");
 
         for (auto device : *devices) {
-            /* TODO REMOVE ME, just an example
             if (auto *x = dynamic_cast<Router *>(device)) {
-                cout << x->ID << endl;
+                // cout << x->ID << endl;
+                x->setUpRIP(x->networkCards);
             } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
-                cout << x->ID << endl;
+                // cout << x->ID << endl;
             }
-            */
             device->bootUp();
             std::this_thread::sleep_for(
                 std::chrono::milliseconds(500));  // TODO remove me

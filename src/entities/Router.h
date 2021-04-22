@@ -13,7 +13,9 @@
 #include "NetworkCard.h"
 
 // forward declarations
+#include "../bgp/ASPath.fwd.h"
 #include "../bgp/BGPApplication.fwd.h"
+#include "../bgp/BGPTableRow.fwd.h"
 
 using namespace std;
 
@@ -28,7 +30,9 @@ class Router : public virtual Device {
     int  AS_number;
     bool running = false;
 
-    BGPApplication *bgpApplication = nullptr;
+    BGPApplication *            bgpApplication = nullptr;
+    pcpp::IPv4Address           loopbackIP;
+    std::vector<BGPTableRow *> *bgpTable = nullptr;
     // TODO: announced_prefixes
     // TODO: local_preferences
     // TODO: trust
@@ -42,6 +46,12 @@ class Router : public virtual Device {
         this->peer_addresses.insert(this->peer_addresses.end(),
                                     peer_addresses.begin(),
                                     peer_addresses.end());
+
+        char        numID = ID[1];
+        std::string loopback =
+            std::string() + numID + "." + numID + "." + numID + "." + numID;
+        pcpp::IPv4Address tmp(loopback);
+        this->loopbackIP = tmp;
     }
 
     ~Router();
@@ -60,6 +70,13 @@ class Router : public virtual Device {
      * Start the BGP application in passive open mode
      */
     void bootUpInternal() override;
+
+    void setUpRIP(vector<NetworkCard *> *networkCards);
+
+    void printBGPTable();
+
+   private:
+    void printElement(std::string t);
 };
 
 #endif  // BGPSIMULATION_ENTITIES_ROUTER_H
