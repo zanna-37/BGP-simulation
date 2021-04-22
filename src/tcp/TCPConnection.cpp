@@ -63,6 +63,12 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
         enqueueEvent(TCPEvent::ReceiveRST);
     } else if (flags == PSH + ACK &&
                stateMachine->getCurrentState()->name == "ENSTABLISHED") {
+        std::stack<pcpp::Layer*>* ackLayers = new std::stack<pcpp::Layer*>();
+        pcpp::TcpLayer*           ack = new pcpp::TcpLayer(srcPort, dstPort);
+        ack->getTcpHeader()->ackFlag  = 1;
+        ackLayers->push(ack);
+        owner->sendPacket(ackLayers, dstAddr->toString());
+        delete ackLayers;
         // Application layer will handle the message
         owner->handleApplicationLayer(layers, this);
     } else {

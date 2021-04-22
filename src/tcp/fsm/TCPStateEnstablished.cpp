@@ -69,6 +69,9 @@ bool TCPStateEnstablished::onEvent(TCPEvent event) {
         case TCPEvent::ReceiveRST:
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
+        case TCPEvent::ReceiveACK:
+            L_DEBUG(stateMachine->connection->owner->ID, "Message ACKed");
+            break;
 
         default:
             handled = false;

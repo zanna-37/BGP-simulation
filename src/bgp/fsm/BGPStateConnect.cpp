@@ -103,9 +103,6 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                     pcpp::IPv4Address("1.1.1.1"));
                 bgpOpenLayer->computeCalculateFields();
 
-
-                L_DEBUG(stateMachine->connection->owner->ID,
-                        bgpOpenLayer->toString());
                 layers->push(bgpOpenLayer);
 
                 stateMachine->connection->tcpConnection->sendPacket(layers);
