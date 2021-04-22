@@ -57,10 +57,12 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
         }
     } else if (flags == FIN) {
         enqueueEvent(TCPEvent::ReceiveFINSendACK);
+        owner->tcpConnectionClosed(this);
     } else if (flags == FIN + ACK) {
         enqueueEvent(TCPEvent::ReceiveACKforFIN);
     } else if (flags == RST) {
         enqueueEvent(TCPEvent::ReceiveRST);
+        owner->tcpConnectionClosed(this);
     } else if (flags == PSH + ACK &&
                stateMachine->getCurrentState()->name == "ENSTABLISHED") {
         std::stack<pcpp::Layer*>* ackLayers = new std::stack<pcpp::Layer*>();

@@ -276,6 +276,8 @@ class Device {
 
     void connectionAcked(TCPConnection *connection);
 
+    void tcpConnectionClosed(TCPConnection *connection);
+
     BGPConnection *findBGPConnectionOrNull(TCPConnection *tcpConnection);
 
    private:

@@ -96,6 +96,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 // TODO sends an OPEN message to its peer,
                 layers = new std::stack<pcpp::Layer*>();
 
+                // FIXME
                 // dynamic_cast<Router*>(stateMachine->connection->owner)->AS_number
                 bgpOpenLayer = new BGPOpenLayer(
                     1111,
@@ -142,6 +143,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->resetConnectRetryTimer();
 
                 //     TODO drops the TCP connection,
+                dropTCPConnection();
 
                 //     TODO releases all BGP resources, and
 
@@ -205,6 +207,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             // TODO releases all BGP resources,
 
             // TODO drops the TCP connection,
+            dropTCPConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -230,6 +233,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 //     TODO releases all BGP resources,
 
                 //     TODO drops the TCP connection, and
+                dropTCPConnection();
 
                 //     - changes its state to Idle.
 
@@ -244,6 +248,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 //     TODO releases all BGP resources,
 
                 //     TODO drops the TCP connection,
+                dropTCPConnection();
 
                 //     - increments the ConnectRetryCounter by 1,
                 stateMachine->incrementConnectRetryCounter();
@@ -277,6 +282,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             // TODO releases all BGP resources,
 
             // TODO drops the TCP connection,
+            dropTCPConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();

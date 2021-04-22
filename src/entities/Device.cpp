@@ -375,6 +375,15 @@ void Device::bgpListen() {
     bgpConnections.push_back(connection);
 }
 
+void Device::tcpConnectionClosed(TCPConnection *tcpConnection) {
+    if (tcpConnection->dstPort == 179) {
+        BGPConnection *bgpConnection = findBGPConnectionOrNull(tcpConnection);
+        if (bgpConnection != nullptr) {
+            bgpConnection->enqueueEvent(BGPEvent::TcpConnectionFails);
+        }
+    }
+}
+
 // ### ReceivedPacketEvent methods
 
 ReceivedPacketEvent::ReceivedPacketEvent(NetworkCard *networkCard,
