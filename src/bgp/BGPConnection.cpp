@@ -25,15 +25,21 @@ void BGPConnection::enqueueEvent(BGPEvent event) {
 
 
 void BGPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
+    L_DEBUG(owner->ID, "Processing BGP Message");
     while (!layers->empty()) {
         BGPLayer* bgpLayer = dynamic_cast<BGPLayer*>(layers->top());
         layers->pop();
         BGPLayer::BGPCommonHeader* bgpHeader =
             bgpLayer->getCommonHeaderOrNull();
         if (bgpHeader) {
+            BGPOpenLayer* bgpOpenLayer = nullptr;
             switch (bgpHeader->type) {
                 case BGPLayer::BGPMessageType::OPEN:
                     L_DEBUG(owner->ID, "OPEN message arrived");
+                    bgpOpenLayer = dynamic_cast<BGPOpenLayer*>(bgpLayer);
+                    holdTime     = std::chrono::seconds(be16toh(
+                        bgpOpenLayer->getOpenHeaderOrNull()->holdTime_be));
+                    enqueueEvent(BGPEvent::BGPOpen);
                     break;
                 case BGPLayer::BGPMessageType::UPDATE:
                     L_DEBUG(owner->ID, "UPDATE message arrived");

@@ -24,8 +24,9 @@ class BGPConnection {
    public:
     Device* owner;
 
-    std::string    dstAddr;
-    TCPConnection* tcpConnection = nullptr;
+    std::string          dstAddr;
+    TCPConnection*       tcpConnection = nullptr;
+    std::chrono::seconds holdTime      = 0s;
     // Constructors
     BGPConnection(Device* owner);
 
