@@ -5,6 +5,7 @@
 #include <climits>
 #include <cstring>
 
+#include "BGPKeepaliveLayer.h"
 #include "BGPOpenLayer.h"
 #include "BGPUpdateLayer.h"
 
@@ -26,8 +27,8 @@ BGPLayer* BGPLayer::parseBGPLayerOrNull(uint8_t*      data,
                 // TODO
                 // return
             case KEEPALIVE:
-                // TODO
-                // return
+                return new BGPKeepaliveLayer(
+                    data, dataLength, prevLayer, packet);
             default:
                 return nullptr;
         }
