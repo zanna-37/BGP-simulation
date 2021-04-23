@@ -212,6 +212,9 @@ class Timer {
      * @return The duration value.
      */
     std::chrono::milliseconds getDuration() const { return duration; }
+
+
+    void setDuration(std::chrono::seconds value) { duration = value; }
 };
 
 #endif

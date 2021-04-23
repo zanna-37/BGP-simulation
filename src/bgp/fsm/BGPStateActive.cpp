@@ -1,6 +1,11 @@
 #include "BGPStateActive.h"
 
+#include <Layer.h>
+
+#include <stack>
+
 #include "../BGPTimer.h"
+#include "../packets/BGPOpenLayer.h"
 #include "BGPStateConnect.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenSent.h"
@@ -9,6 +14,12 @@ BGPStateActive ::~BGPStateActive() {}
 
 bool BGPStateActive ::onEvent(BGPEvent event) {
     bool handled = true;
+
+    BGPLayer* bgpOpenLayer = nullptr;
+
+    std::stack<pcpp::Layer*>* layers = nullptr;
+
+
     switch (event) {
         case BGPEvent::ManualStop:
             if (stateMachine->delayOpenTimer->getState() == TICKING &&
@@ -23,6 +34,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetDelayOpenTimer();
 
             // TODO drops the TCP connection,
+            dropTCPConnection();
 
             // - sets ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
@@ -41,10 +53,12 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->connectRetryTimer->start();
 
             // TODO initiates a TCP connection to the other BGP peer,
+            initiateTCPConnection();
 
             // TODO continues to listen for a TCP connection that may be
             // initiated
             //   by a remote BGP peer, and
+            stateMachine->connection->owner->listen();
 
             // - changes its state to Connect.
             stateMachine->changeState(new BGPStateConnect(stateMachine));
@@ -103,14 +117,24 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 //   TODO completes the BGP initialization,
 
                 //   TODO sends the OPEN message to its peer,
+                layers = new std::stack<pcpp::Layer*>();
+
+                // FIXME
+                bgpOpenLayer = new BGPOpenLayer(
+                    1111,
+                    (uint16_t)(stateMachine->getHoldTime().count()),
+                    pcpp::IPv4Address("1.1.1.1"));
+                bgpOpenLayer->computeCalculateFields();
+
+                layers->push(bgpOpenLayer);
+
+                stateMachine->connection->tcpConnection->sendPacket(layers);
+
+                delete layers;
 
                 //   - sets its HoldTimer to a large value, and
                 stateMachine->resetHoldTimer();
-                stateMachine->holdTimer =
-                    new BGPTimer("holdTimer",
-                                 stateMachine,
-                                 BGPEvent::HoldTimer_Expires,
-                                 240s);
+                stateMachine->holdTimer->setDuration(240s);
                 stateMachine->holdTimer->start();
 
 

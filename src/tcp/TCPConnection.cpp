@@ -52,9 +52,9 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
     } else if (flags == ACK) {
         enqueueEvent(TCPEvent::ReceiveACK);
         // the TCP connection has been enstablished
-        if (stateMachine->getCurrentState()->name == "ENSTABLISHED") {
-            owner->connectionConfirmed(this);
-        }
+
+        owner->connectionConfirmed(this);
+
     } else if (flags == FIN) {
         enqueueEvent(TCPEvent::ReceiveFINSendACK);
         owner->tcpConnectionClosed(this);
@@ -80,9 +80,6 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
 
     delete ipLayer;
     delete tcpLayer;
-
-    // FIXME
-    delete layers;
 }
 
 

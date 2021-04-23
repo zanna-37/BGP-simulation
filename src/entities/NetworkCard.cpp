@@ -91,4 +91,13 @@ void NetworkCard::handleNextPacket() {
     // compute mac layer stuff
     delete ethLayer;
     owner->receivePacket(layers, this);
+
+    // FIXME
+    L_DEBUG(owner->ID, std::to_string(layers->empty()));
+    while (!layers->empty()) {
+        pcpp::Layer* layer = layers->top();
+        layers->pop();
+        delete layer;
+    }
+    delete layers;
 }
