@@ -106,14 +106,14 @@ void Device::start() {
                     ID,
                     "Packet arrived at " + event->networkCard->netInterface);
                 receivedPacketsEventQueue.pop();
-
+                receivedPacketsEventQueue_uniqueLock.unlock();
                 event->networkCard->handleNextPacket();
 
                 delete event;
             } else {
+                receivedPacketsEventQueue_uniqueLock.unlock();
                 L_VERBOSE(ID, "Shutting down");
             }
-            receivedPacketsEventQueue_uniqueLock.unlock();
         }
     });
 }
@@ -181,7 +181,7 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
 }
 
 void Device::enqueueEvent(ReceivedPacketEvent *event) {
-    L_DEBUG(ID, "Enqueueing event");
+    L_DEBUG(ID, "Enqueueing event in receivedPacketEventQueue");
     unique_lock<std::mutex> receivedPacketsEventQueue_uniqueLock(
         receivedPacketsEventQueue_mutex);
 

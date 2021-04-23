@@ -64,7 +64,7 @@ void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
 }
 
 void NetworkCard::receivePacket(pcpp::Packet* receivedPacket) {
-    L_DEBUG(owner->ID, "Enqueueing event in " + netInterface + " queue");
+    L_DEBUG(owner->ID, "Enqueueing packet in " + netInterface + " queue");
     receivedPacketsQueue.push(receivedPacket);
     ReceivedPacketEvent* event = new ReceivedPacketEvent(
         this, ReceivedPacketEvent::Description::PACKET_ARRIVED);
