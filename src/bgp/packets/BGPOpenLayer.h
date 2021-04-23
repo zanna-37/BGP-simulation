@@ -7,6 +7,7 @@
 
 class BGPOpenLayer : public BGPLayer {
    public:
+#pragma pack(push, 1)
     struct BGPOpenHeader : BGPCommonHeader {
         uint8_t  version;
         uint16_t myAutonomousSystemNumber_be;
@@ -19,6 +20,7 @@ class BGPOpenLayer : public BGPLayer {
          */
         uint8_t optionalParametersLength;
     };
+#pragma pack(pop)
 
     BGPOpenHeader* getOpenHeaderOrNull() const;
 

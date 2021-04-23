@@ -7,6 +7,7 @@
 
 class BGPLayer : public pcpp::Layer {
    public:
+#pragma pack(push, 1)
     struct BGPCommonHeader {
         uint8_t marker[16];
         /**
@@ -17,6 +18,7 @@ class BGPLayer : public pcpp::Layer {
         uint16_t length_be;
         uint8_t  type;
     };
+#pragma pack(pop)
 
     enum BGPMessageType : uint8_t {
         OPEN         = 1,
