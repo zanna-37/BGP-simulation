@@ -6,12 +6,45 @@
 
 class BGPNotificationLayer : public BGPLayer {
    public:
+    enum ErrorCode_uint8_t : uint8_t {
+        MSG_HEADER_ERR     = 1,
+        OPEN_MSG_ERR       = 2,
+        UPDATE_MSG_ERR     = 3,
+        HOLD_TIMER_EXPIRED = 4,
+        FSM_ERR            = 5,
+        CEASE              = 6
+    };
+
+    enum ErrorSubcode_uint8_t : uint8_t {
+        ERR_1_CONN_NOT_SYNC              = 1,
+        ERR_1_BAD_MSG_LENGTH             = 2,
+        ERR_1_BAD_MSG_TYPE               = 3,
+        ERR_2_UNSUPPORTED_VERSION_NUM    = 1,
+        ERR_2_BAD_PEER_AS                = 2,
+        ERR_2_BAD_BGP_IDENTIFIER         = 3,
+        ERR_2_UNSUPPORTED_OPTIONAL_PARAM = 4,
+        // Subcode ERR_2_... = 5 is deprecated
+        ERR_2_UNACCEPTABLE_HOLD_TIME      = 6,
+        ERR_3_MALFORMED_ATTR_LIST         = 1,
+        ERR_3_UNRECOGNIZED_WELLKNOWN_ATTR = 2,
+        ERR_3_MISSING_WELLKNOWN_ATTR      = 3,
+        ERR_3_ATTRIBUTE_FLAGS_ERR         = 4,
+        ERR_3_ATTRIBUTE_LENGTH_ERR        = 5,
+        ERR_3_INVALID_ORIGIN_ATTRIBUTE    = 6,
+        // Subcode ERR_3_... = 7 is deprecated
+        ERR_3_INVALID_NEXTHOP_ATTRIBUTE = 8,
+        ERR_3_OPTIONAL_ATTR_ERR         = 9,
+        ERR_3_INVALID_NETWORK_FIELD     = 10,
+        ERR_3_MALFORMED_AS_PATH         = 11,
+    };
+
 #pragma pack(push, 1)
     struct BGPNotificationHeader : BGPCommonHeader {
-        uint8_t errorCode;
-        uint8_t errorSubcode;
+        ErrorCode_uint8_t    errorCode;
+        ErrorSubcode_uint8_t errorSubcode;
     };
 #pragma pack(pop)
+
 
     BGPNotificationHeader* getNotificationHeaderOrNull() const;
 
@@ -41,7 +74,8 @@ class BGPNotificationLayer : public BGPLayer {
      * @param[in] errorCode BGP notification error code
      * @param[in] errorSubCode BGP notification error sub code
      */
-    BGPNotificationLayer(uint8_t errorCode, uint8_t errorSubcode);
+    BGPNotificationLayer(ErrorCode_uint8_t    errorCode,
+                         ErrorSubcode_uint8_t errorSubcode);
 
     /**
      * A c'tor that creates a new BGP Notification message
@@ -52,10 +86,10 @@ class BGPNotificationLayer : public BGPLayer {
      * @param[in] notificationDataLen The size of the byte array that contains
      * the notification data
      */
-    BGPNotificationLayer(uint8_t        errorCode,
-                         uint8_t        errorSubcode,
-                         const uint8_t* notificationData,
-                         size_t         notificationDataLen);
+    BGPNotificationLayer(ErrorCode_uint8_t    errorCode,
+                         ErrorSubcode_uint8_t errorSubcode,
+                         const uint8_t*       notificationData,
+                         size_t               notificationDataLen);
 
     size_t getNotificationDataLength() const;
 
@@ -65,10 +99,10 @@ class BGPNotificationLayer : public BGPLayer {
    private:
     std::string toStringInternal() const override;
     void        computeCalculateFieldsInternal() const override;
-    void        fillLayer(uint8_t        errorCode,
-                          uint8_t        errorSubcode,
-                          const uint8_t* notificationData,
-                          size_t         notificationDataLen);
+    void        fillLayer(ErrorCode_uint8_t    errorCode,
+                          ErrorSubcode_uint8_t errorSubcode,
+                          const uint8_t*       notificationData,
+                          size_t               notificationDataLen);
 };
 
 

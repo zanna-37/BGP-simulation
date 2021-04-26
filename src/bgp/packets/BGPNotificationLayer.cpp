@@ -49,13 +49,13 @@ std::string BGPNotificationLayer::toStringInternal() const {
         return "";
     }
 }
-BGPNotificationLayer::BGPNotificationLayer(uint8_t errorCode,
-                                           uint8_t errorSubcode) {
+BGPNotificationLayer::BGPNotificationLayer(ErrorCode_uint8_t    errorCode,
+                                           ErrorSubcode_uint8_t errorSubcode) {
     fillLayer(errorCode, errorSubcode, nullptr, 0);
 }
 
-BGPNotificationLayer::BGPNotificationLayer(uint8_t        errorCode,
-                                           uint8_t        errorSubcode,
+BGPNotificationLayer::BGPNotificationLayer(ErrorCode_uint8_t    errorCode,
+                                           ErrorSubcode_uint8_t errorSubcode,
                                            const uint8_t* notificationData,
                                            size_t         notificationDataLen) {
     if (notificationData == nullptr || notificationDataLen < 0) {
@@ -65,10 +65,10 @@ BGPNotificationLayer::BGPNotificationLayer(uint8_t        errorCode,
     fillLayer(errorCode, errorSubcode, notificationData, notificationDataLen);
 }
 
-void BGPNotificationLayer::fillLayer(uint8_t        errorCode,
-                                     uint8_t        errorSubcode,
-                                     const uint8_t* notificationData,
-                                     size_t         notificationDataLen) {
+void BGPNotificationLayer::fillLayer(ErrorCode_uint8_t    errorCode,
+                                     ErrorSubcode_uint8_t errorSubcode,
+                                     const uint8_t*       notificationData,
+                                     size_t               notificationDataLen) {
     // TODO place (and document) a max length for notificationDataLen
     const size_t headerLen =
         sizeof(BGPNotificationHeader) + notificationDataLen;
