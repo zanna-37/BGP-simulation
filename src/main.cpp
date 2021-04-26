@@ -12,6 +12,8 @@
 #include <string>
 
 #include "bgp/BGPConnection.h"
+#include "bgp/packets/BGPKeepaliveLayer.h"
+#include "bgp/packets/BGPNotificationLayer.h"
 #include "bgp/packets/BGPOpenLayer.h"
 #include "bgp/packets/BGPUpdateLayer.h"
 #include "configuration/parser/Parser.h"
@@ -35,14 +37,12 @@ int main(int argc, char *argv[]) {
     newIPLayer.getIPv4Header()->timeToLive = 64;
 
     // BGP Open
-
     BGPOpenLayer bgpOpen =
         BGPOpenLayer(1, 2, pcpp::IPv4Address(std::string("10.0.0.1")));
     bgpOpen.computeCalculateFields();
     cout << bgpOpen.toString() << endl;
 
     // BGP Update
-
     std::vector<LengthAndIpPrefix> withdrawnRoutes;
     withdrawnRoutes.push_back(LengthAndIpPrefix(20, "10.3.2.1"));
     withdrawnRoutes.push_back(LengthAndIpPrefix(24, "10.6.5.4"));
@@ -61,6 +61,21 @@ int main(int argc, char *argv[]) {
     bgpUpdate.computeCalculateFields();
     cout << bgpUpdate.toString() << endl;
 
+    // BGP Keepalive
+    BGPKeepaliveLayer bgpKeepalive = BGPKeepaliveLayer();
+    bgpKeepalive.computeCalculateFields();
+    cout << bgpKeepalive.toString() << endl;
+
+    // BGP Notification
+    uint8_t              notificationData[] = {'a', '0'};
+    BGPNotificationLayer bgpNotification    = BGPNotificationLayer(
+        BGPNotificationLayer::ErrorCode_uint8_t::MSG_HEADER_ERR,
+        BGPNotificationLayer::ErrorSubcode_uint8_t::ERR_1_BAD_MSG_TYPE,
+        notificationData,
+        sizeof(notificationData));
+    bgpNotification.computeCalculateFields();
+    cout << bgpNotification.toString() << endl;
+
 
     // Add to packet
 
@@ -69,7 +84,9 @@ int main(int argc, char *argv[]) {
     newPacket.addLayer(&newEthernetLayer);
     newPacket.addLayer(&newIPLayer);
     // newPacket.addLayer(&bgpOpen);
-    newPacket.addLayer(&bgpUpdate);
+    // newPacket.addLayer(&bgpUpdate);
+    // newPacket.addLayer(&bgpKeepalive);
+    newPacket.addLayer(&bgpNotification);
 
     newPacket.computeCalculateFields();
 
