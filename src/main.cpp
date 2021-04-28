@@ -52,7 +52,8 @@ int main(int argc, char *argv[]) {
     const int                  data_len       = 10;
     uint8_t                    data[data_len] = {'a', 'b'};
     pathAttribute.setAttributeLengthAndValue(data, data_len);
-    pathAttribute.attributeTypeCode = PathAttribute::NEXT_HOP;
+    pathAttribute.attributeTypeCode =
+        PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
     pathAttributes.push_back(pathAttribute);
     std::vector<LengthAndIpPrefix> nlri;
     nlri.push_back(LengthAndIpPrefix(4, "10.9.8.7"));
