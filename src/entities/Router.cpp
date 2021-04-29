@@ -40,13 +40,9 @@ void Router::setUpRIP(vector<NetworkCard *> *networkCards) {
 
     char origin =
         'i';  // this value can be 'i', 'e' or '?'
-              // need to understand if the router is interior or exterior
+    // need to understand if the router is interior or exterior
 
-    ASPath loopback_asPath;
-
-    loopback_asPath.add(
-        "i");  // this value can be 'i', 'e' or '?'
-               // need to understand if the router is interior or exterior
+    std::vector<uint16_t> loopback_asPath;  // empty vector
 
     BGPTableRow *loopback_row =
         new BGPTableRow(loopbackIP,
@@ -66,9 +62,7 @@ void Router::setUpRIP(vector<NetworkCard *> *networkCards) {
                 networkCard->link->getPeerNetworkCardOrNull(networkCard);
 
             if (networkCardPeer->owner->ID[0] == 'R') {
-                ASPath asPath;
-
-                asPath.add("i");
+                std::vector<uint16_t> asPath;
 
                 pcpp::IPv4Address networkIP(networkCard->IP.toInt() &
                                             networkCard->netmask.toInt());
@@ -90,7 +84,9 @@ void Router::setUpRIP(vector<NetworkCard *> *networkCards) {
                 std::string numIDPeer =
                     std::string(1, networkCardPeer->owner->ID[1]);
 
-                asPath.add(" " + numIDPeer);
+                asPath.push_back(
+                    std::stoi(numIDPeer));  // in asPath vector we don't
+                // consider the AS itself
 
                 BGPTableRow *rowPeer =
                     new BGPTableRow(networkIPPeer,
@@ -133,8 +129,9 @@ void Router::printBGPTable() {
         printElement(std::to_string(row->metric));
         printElement(std::to_string(row->localPreferences));
         printElement(std::to_string(row->weight));
-        for (int i = 0; i < row->asPath.autonomousSystems.size(); i++) {
-            std::cout << row->asPath.autonomousSystems[i];
+        for (int i = 0; i < row->asPath.size(); i++) {
+            std::cout << std::to_string(row->asPath[i]);
+            std::cout << " ";
         }
         std::cout << std::endl;
     }

@@ -3,21 +3,23 @@
 
 #include <IPLayer.h>
 
+#include <cstdint>
+#include <cstdlib>
+
 #include "../entities/NetworkCard.h"
-#include "ASPath.h"
 
 class BGPTableRow {
    public:
-    bool              valid     = true;
-    bool              preferred = true;
-    pcpp::IPv4Address networkIP;
-    pcpp::IPv4Address networkMask;
-    pcpp::IPv4Address nextHop;
-    int               metric;
-    int               localPreferences;
-    int               weight;
-    char              origin;
-    ASPath            asPath;
+    bool                  valid     = true;
+    bool                  preferred = true;
+    pcpp::IPv4Address     networkIP;
+    pcpp::IPv4Address     networkMask;
+    pcpp::IPv4Address     nextHop;
+    uint32_t              metric;
+    uint32_t              localPreferences;
+    uint32_t              weight;
+    char                  origin;
+    std::vector<uint16_t> asPath;
 
 
     NetworkCard* networkCard;
@@ -26,10 +28,10 @@ class BGPTableRow {
                 pcpp::IPv4Address,
                 pcpp::IPv4Address,
                 char,
-                ASPath,
-                int,
-                int,
-                int);
+                std::vector<uint16_t>,
+                uint32_t,
+                uint32_t,
+                uint32_t);
     ~BGPTableRow(){};
 };
 

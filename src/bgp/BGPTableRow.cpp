@@ -1,13 +1,13 @@
 #include "BGPTableRow.h"
 
-BGPTableRow::BGPTableRow(pcpp::IPv4Address networkIP,
-                         pcpp::IPv4Address networkMask,
-                         pcpp::IPv4Address nextHop,
-                         char              origin,
-                         ASPath            asPath,
-                         int               metric           = 0,
-                         int               localPreferences = 0,
-                         int               weight           = 0)
+BGPTableRow::BGPTableRow(pcpp::IPv4Address     networkIP,
+                         pcpp::IPv4Address     networkMask,
+                         pcpp::IPv4Address     nextHop,
+                         char                  origin,
+                         std::vector<uint16_t> asPath,
+                         uint32_t              metric           = 0,
+                         uint32_t              localPreferences = 0,
+                         uint32_t              weight           = 0)
     : networkIP(networkIP),
       networkMask(networkMask),
       nextHop(nextHop),
