@@ -3,7 +3,7 @@
 #include <Logger.h>
 
 BGPOpenLayer::BGPOpenHeader* BGPOpenLayer::getOpenHeaderOrNull() const {
-    if (m_DataLen >= sizeof(BGPCommonHeader) + sizeof(BGPOpenHeader))
+    if (m_DataLen >= sizeof(BGPOpenHeader))
         return (BGPOpenHeader*)m_Data;
     else {
         LOG_ERROR("The packet is to small to fit the BGP open header");
@@ -47,8 +47,7 @@ BGPOpenLayer::BGPOpenLayer(uint16_t                 myAutonomousSystemNumber,
     uint8_t optionalParamsDataLen =
         0;  // TODO change me if we support optional parameters
 
-    const size_t headerLen =
-        sizeof(BGPCommonHeader) + sizeof(BGPOpenHeader) + optionalParamsDataLen;
+    const size_t headerLen = sizeof(BGPOpenHeader) + optionalParamsDataLen;
     m_DataLen = headerLen;
     m_Data    = new uint8_t[headerLen];
     memset(m_Data, 0, headerLen);

@@ -5,6 +5,8 @@
 #include <climits>
 #include <cstring>
 
+#include "BGPKeepaliveLayer.h"
+#include "BGPNotificationLayer.h"
 #include "BGPOpenLayer.h"
 #include "BGPUpdateLayer.h"
 
@@ -23,11 +25,11 @@ BGPLayer* BGPLayer::parseBGPLayerOrNull(uint8_t*      data,
             case UPDATE:
                 return new BGPUpdateLayer(data, dataLength, prevLayer, packet);
             case NOTIFICATION:
-                // TODO
-                // return
+                return new BGPNotificationLayer(
+                    data, dataLength, prevLayer, packet);
             case KEEPALIVE:
-                // TODO
-                // return
+                return new BGPKeepaliveLayer(
+                    data, dataLength, prevLayer, packet);
             default:
                 return nullptr;
         }
@@ -107,7 +109,7 @@ void BGPLayer::computeCalculateFields() {
                UINT_MAX,
                sizeof(BGPCommonHeader::marker));  // FIXME Check if the header
                                                   // is really filled with ones
-        header->type      = getBGPMessageType();
+        header->type = getBGPMessageType();
 
         computeCalculateFieldsInternal();
     }

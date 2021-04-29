@@ -58,6 +58,8 @@ set(SOURCE_FILES
         ${SRC_BGP_FSM}/BGPStateOpenConfirm.cpp
         ${SRC_BGP_FSM}/BGPStateOpenSent.cpp
         ${SRC_BGP_PACKETS}/BGPLayer.cpp
+        ${SRC_BGP_PACKETS}/BGPKeepaliveLayer.cpp
+        ${SRC_BGP_PACKETS}/BGPNotificationLayer.cpp
         ${SRC_BGP_PACKETS}/BGPOpenLayer.cpp
         ${SRC_BGP_PACKETS}/BGPUpdateLayer.cpp
         ${SRC_BGP_PACKETS}/BGPUpdateLengthAndIpPrefix.cpp

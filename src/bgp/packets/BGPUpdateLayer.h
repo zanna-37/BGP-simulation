@@ -51,15 +51,17 @@ class BGPUpdateLayer : public BGPLayer {
 
     size_t getWithdrawnRoutesBytesLength() const;
 
-    std::vector<LengthAndIpPrefix> getWithdrawnRoutes() const;
+    void getWithdrawnRoutes(
+        std::vector<LengthAndIpPrefix>& withdrawnRoutes) const;
 
     size_t getPathAttributesBytesLength() const;
 
-    std::vector<PathAttribute> getPathAttributes() const;
+    void getPathAttributes(std::vector<PathAttribute>& pathAttributes) const;
 
     size_t getNetworkLayerReachabilityInfoBytesLength() const;
 
-    std::vector<LengthAndIpPrefix> getNetworkLayerReachabilityInfo() const;
+    void getNetworkLayerReachabilityInfo(
+        std::vector<LengthAndIpPrefix>& nlri) const;
 
    private:
     std::string toStringInternal() const override;

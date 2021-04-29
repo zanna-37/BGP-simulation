@@ -11,7 +11,8 @@ std::string BGPUpdateLayer::toStringInternal() const {
 
     output += "-- Withdrawn routes length: " +
               std::to_string(getWithdrawnRoutesBytesLength()) + "\n";
-    auto withdrawnRoutesList = getWithdrawnRoutes();
+    std::vector<LengthAndIpPrefix>  withdrawnRoutesList;
+     getWithdrawnRoutes(withdrawnRoutesList);
     output +=
         std::to_string(withdrawnRoutesList.size()) + " Withdrawn routes\n";
     for (const auto& withdrawnRoute : withdrawnRoutesList) {
@@ -20,7 +21,8 @@ std::string BGPUpdateLayer::toStringInternal() const {
 
     output += "-- Path attributes length: " +
               std::to_string(getPathAttributesBytesLength()) + "\n";
-    auto pathAttributesList = getPathAttributes();
+    std::vector<PathAttribute>    pathAttributesList ;
+    getPathAttributes(pathAttributesList);
     output += std::to_string(pathAttributesList.size()) + " Path attributes\n";
     for (const auto& pathAttributes : pathAttributesList) {
         output += pathAttributes.toString();
@@ -29,7 +31,8 @@ std::string BGPUpdateLayer::toStringInternal() const {
     output += "-- Network layer reachability info length: " +
               std::to_string(getNetworkLayerReachabilityInfoBytesLength()) +
               "\n";
-    auto nlriList = getNetworkLayerReachabilityInfo();
+    std::vector<LengthAndIpPrefix>   nlriList ;
+    getNetworkLayerReachabilityInfo(nlriList);
     output +=
         std::to_string(nlriList.size()) + " Network layer reachability info\n";
     for (const auto& nlri : nlriList) {
@@ -135,8 +138,8 @@ size_t BGPUpdateLayer::getWithdrawnRoutesBytesLength() const {
     }
 }
 
-std::vector<LengthAndIpPrefix> BGPUpdateLayer::getWithdrawnRoutes() const {
-    std::vector<LengthAndIpPrefix> withdrawnRoutes;
+void BGPUpdateLayer::getWithdrawnRoutes(
+    std::vector<LengthAndIpPrefix>& withdrawnRoutes) const {
 
     size_t withdrawnRouteLen = getWithdrawnRoutesBytesLength();
     if (withdrawnRouteLen != 0) {
@@ -148,8 +151,6 @@ std::vector<LengthAndIpPrefix> BGPUpdateLayer::getWithdrawnRoutes() const {
         LengthAndIpPrefix::parsePrefixAndIPData(
             dataPtr, withdrawnRouteLen, withdrawnRoutes);
     }
-
-    return withdrawnRoutes;
 }
 
 size_t BGPUpdateLayer::getPathAttributesBytesLength() const {
@@ -179,8 +180,8 @@ size_t BGPUpdateLayer::getPathAttributesBytesLength() const {
     return 0;
 }
 
-std::vector<PathAttribute> BGPUpdateLayer::getPathAttributes() const {
-    std::vector<PathAttribute> pathAttributes;
+void BGPUpdateLayer::getPathAttributes(
+    std::vector<PathAttribute>& pathAttributes) const {
 
     size_t pathAttrLen = getPathAttributesBytesLength();
     if (pathAttrLen != 0) {
@@ -197,8 +198,6 @@ std::vector<PathAttribute> BGPUpdateLayer::getPathAttributes() const {
         PathAttribute::parsePathAttributes(
             dataPtr, pathAttrLen, pathAttributes);
     }
-
-    return pathAttributes;
 }
 
 size_t BGPUpdateLayer::getNetworkLayerReachabilityInfoBytesLength() const {
@@ -231,9 +230,8 @@ size_t BGPUpdateLayer::getNetworkLayerReachabilityInfoBytesLength() const {
     return 0;
 }
 
-std::vector<LengthAndIpPrefix> BGPUpdateLayer::getNetworkLayerReachabilityInfo()
-    const {
-    std::vector<LengthAndIpPrefix> nlri;
+void BGPUpdateLayer::getNetworkLayerReachabilityInfo(
+    std::vector<LengthAndIpPrefix>& nlri) const {
 
     size_t nlriSize = getNetworkLayerReachabilityInfoBytesLength();
     if (nlriSize != 0) {
@@ -251,6 +249,4 @@ std::vector<LengthAndIpPrefix> BGPUpdateLayer::getNetworkLayerReachabilityInfo()
 
         LengthAndIpPrefix::parsePrefixAndIPData(dataPtr, nlriSize, nlri);
     }
-
-    return nlri;
 }
