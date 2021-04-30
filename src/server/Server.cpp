@@ -26,7 +26,7 @@ void ApiEndpoint::setupRoutes() {
     Routes::Get(
         router, "/getNetwork", Routes::bind(&ApiEndpoint::getNetwork, this));
     Routes::Post(
-        router, "/brakeLink", Routes::bind(&ApiEndpoint::brakeLink, this));
+        router, "/breakLink", Routes::bind(&ApiEndpoint::breakLink, this));
 
     //Routes for WebPage content
     Routes::Get(
@@ -479,7 +479,7 @@ void ApiEndpoint::getLinks(const Rest::Request &request,
 void ApiEndpoint::setLink(const Rest::Request &request,
                           Http::ResponseWriter response) {}
 
-void ApiEndpoint::brakeLink(const Rest::Request &request,
+void ApiEndpoint::breakLink(const Rest::Request &request,
                              Http::ResponseWriter response) {
     StringBuffer               buf;
     PrettyWriter<StringBuffer> writer(buf);
