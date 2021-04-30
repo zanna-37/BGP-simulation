@@ -28,7 +28,7 @@ class ApiEndpoint {
      *
      * @param thr Number of threads
      */
-    void init(size_t thr, vector<Device *> *devicesMain);
+    void init(size_t thr, vector<Device*>* devicesMain);
 
     /**
      * @brief Start servign the APIs
@@ -36,8 +36,8 @@ class ApiEndpoint {
      */
     void start();
 
-    vector<Device *> *devices = nullptr;
-    Document doc;
+    vector<Device*>* devices = nullptr;
+    Document         doc;
 
    private:
     /**
@@ -51,7 +51,8 @@ class ApiEndpoint {
      *
      * @param response Handler used to send back the reply
      */
-    void getNetwork(const Rest::Request& request, Http::ResponseWriter response);
+    void getNetwork(const Rest::Request& request,
+                    Http::ResponseWriter response);
 
     void getNodes(const Rest::Request& request, Http::ResponseWriter response);
 
@@ -60,20 +61,22 @@ class ApiEndpoint {
     void setLink(const Rest::Request& request, Http::ResponseWriter response);
 
     /**
-     * @brief Deactivate a link of the network 
-     * 
+     * @brief Deactivate a link of the network
+     *
      * @param response Handler used to send back the reply
      */
-    void brakeLink(const Rest::Request& request, Http::ResponseWriter response);
+    void breakLink(const Rest::Request& request, Http::ResponseWriter response);
 
     /**
      * @brief Remove a node from the Network
-     * 
+     *
      * @param response Handler used to send back the reply
      */
-    void removeNode(const Rest::Request& request, Http::ResponseWriter response);
+    void removeNode(const Rest::Request& request,
+                    Http::ResponseWriter response);
 
-    void getPackets(const Rest::Request& request, Http::ResponseWriter response);
+    void getPackets(const Rest::Request& request,
+                    Http::ResponseWriter response);
 
     void setReady(const Rest::Request& request, Http::ResponseWriter response);
 
@@ -85,64 +88,71 @@ class ApiEndpoint {
     void index(const Rest::Request& request, Http::ResponseWriter response);
 
     /**
-     * @brief Initialize the document/Object with all the data information about the Network
-     * 
+     * @brief Initialize the document/Object with all the data information about
+     * the Network
+     *
      */
     void initDoc();
 
     /**
      * @brief Show GUI of BGP simulation
-     * 
+     *
      * @param response Handler used to send back the reply
      */
     void showGUI(const Rest::Request& request, Http::ResponseWriter response);
 
     /**
      * @brief Get image of 'plus' icon for GUI
-     * 
+     *
      * @param response Handler used to send back the reply
      */
-    void getAddIcon(const Rest::Request& request, Http::ResponseWriter response);
+    void getAddIcon(const Rest::Request& request,
+                    Http::ResponseWriter response);
 
     /**
      * @brief Get image of 'endpoint' icon for GUI
-     * 
+     *
      * @param response Handler used to send back the reply
      */
-    void getEndpointIcon(const Rest::Request& request, Http::ResponseWriter response);
+    void getEndpointIcon(const Rest::Request& request,
+                         Http::ResponseWriter response);
 
     /**
      * @brief Get image of 'packet' icon for GUI
-     * 
+     *
      * @param response Handler used to send back the reply
      */
-    void getPacketIcon(const Rest::Request& request, Http::ResponseWriter response);
+    void getPacketIcon(const Rest::Request& request,
+                       Http::ResponseWriter response);
 
     /**
      * @brief Get image of 'router' icon for GUI
-     * 
+     *
      * @param response Handler used to send back the reply
      */
-    void getRouterIcon(const Rest::Request& request, Http::ResponseWriter response);
+    void getRouterIcon(const Rest::Request& request,
+                       Http::ResponseWriter response);
 
     /**
      * @brief Get js file for events in the GUI
-     * 
+     *
      * @param response Handler used to send back the reply
      */
-    void getNodeEvents(const Rest::Request& request, Http::ResponseWriter response);
+    void getNodeEvents(const Rest::Request& request,
+                       Http::ResponseWriter response);
 
     /**
      * @brief Get css file for style in the GUI
-     * 
+     *
      * @param response Handler used to send back the reply
      */
-    void getMainCSS(const Rest::Request& request, Http::ResponseWriter response);
+    void getMainCSS(const Rest::Request& request,
+                    Http::ResponseWriter response);
 
     using Lock  = std::mutex;
     using Guard = std::lock_guard<Lock>;
     Lock metricsLock;
-    
+
 
     std::shared_ptr<Http::Endpoint> httpEndpoint;
     Rest::Router                    router;
