@@ -1,7 +1,7 @@
 mdrouter = document.querySelector("input[id='mdrouter']");
 mdendpoint = document.querySelector("input[id='mdendpoint']");
 
-var mode_val = 'r';
+var mode_val = 'R';
 
 var num_interface = 1;
 
@@ -51,7 +51,7 @@ var chart = new NetChart({
 function getLastRouterdId(nodes) {
     var last_router = 0;
     for (var node of nodes) {
-        if (node.id.charAt(0) == 'r') {
+        if (node.id.charAt(0) == 'R') {
             last_router = node.id.charAt(1);
         }
     }
@@ -61,7 +61,7 @@ function getLastRouterdId(nodes) {
 function getLastEndpointId(nodes) {
     var last_endpoint = 0
     for (var node of nodes) {
-        if (node.id.charAt(0) == 'e') {
+        if (node.id.charAt(0) == 'E') {
             last_endpoint = node.id.charAt(1);
         }
     }
@@ -77,11 +77,11 @@ function modifyNodeNumbers(event) {
     new_endpoints_Id = parseInt(getLastEndpointId(chart.nodes())) + 1;
 
     if (!event.clickNode && !event.clickLink) {//test the click was on empty space
-        if (mode_val == 'e') {
+        if (mode_val == 'E') {
             $('#ASnumberDiv').hide();
             $('#as_number').val(undefined);
         }
-        else if (mode_val == 'r') {
+        else if (mode_val == 'R') {
             $('#ASnumberDiv').show();
         }
         $('#addDeviceModal').show();
@@ -126,24 +126,24 @@ $('#saveChanges').click(function () {
         });
     }
     var as_number = undefined;
-    if (mode_val == "r") {
+    if (mode_val == "R") {
         as_number = $("#as_number").val();
     }
 
     chart.addData({
         nodes: [{
-            "id": mode_val == "r" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id,
+            "id": mode_val == "R" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id,
             "x": eventAddNode.chartX,
             "y": eventAddNode.chartY,
             "loaded": true,
             "style": {
-                "label": mode_val == "r" ? "Router" + new_routers_Id : "Endpoint" + new_endpoints_Id,
-                "image": mode_val == "r" ? "showGUI/router-icon.png" : "showGUI/endpoint-icon.png"
+                "label": mode_val == "R" ? "Router" + new_routers_Id : "Endpoint" + new_endpoints_Id,
+                "image": mode_val == "R" ? "showGUI/router-icon.png" : "showGUI/endpoint-icon.png"
             },
             "extra": {
                 "default_gateway": default_gateway,
                 "networkCard": networkCard,
-                "AS_number": mode_val == "r" ? as_number : undefined
+                "AS_number": mode_val == "R" ? as_number : undefined
             }
         }]
     });
@@ -160,9 +160,9 @@ $('#saveChanges').click(function () {
             "Access-Control-Allow-Origin": "*",
         },
         data: JSON.stringify({
-            "id": mode_val == "r" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id,
+            "id": mode_val == "R" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id,
             "gateway": default_gateway,
-            "asNumber": mode_val == "r" ? as_number : undefined,
+            "asNumber": mode_val == "R" ? as_number : undefined,
             "networkCards": networkCard
         })
     });
@@ -185,7 +185,7 @@ $('#saveChanges').click(function () {
         $('#interface-netmask-' + i).val(undefined);
     }
 
-    if (mode_val == 'r') {
+    if (mode_val == 'R') {
         $("#as_number").val(undefined);
     }
 
@@ -231,11 +231,11 @@ function connectNodes(node, onodes) {
 }
 
 mdrouter.addEventListener('click', function () {
-    mode_val = "r";
+    mode_val = "R";
 });
 
 mdendpoint.addEventListener('click', function () {
-    mode_val = "e";
+    mode_val = "E";
 });
 
 $("#add-interface-btn").click(function () {
