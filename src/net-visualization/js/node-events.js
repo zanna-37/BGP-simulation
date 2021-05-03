@@ -79,6 +79,7 @@ function modifyNodeNumbers(event) {
     if (!event.clickNode && !event.clickLink) {//test the click was on empty space
         if (mode_val == 'e') {
             $('#ASnumberDiv').hide();
+            $('#as_number').val(undefined);
         }
         else if (mode_val == 'r') {
             $('#ASnumberDiv').show();
@@ -124,6 +125,11 @@ $('#saveChanges').click(function () {
             "netmask": $('#interface-netmask-' + i).val()
         });
     }
+    var as_number = undefined;
+    if (mode_val == "r") {
+        as_number = $("#as_number").val();
+    }
+
     chart.addData({
         nodes: [{
             "id": mode_val == "r" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id,
@@ -136,15 +142,30 @@ $('#saveChanges').click(function () {
             },
             "extra": {
                 "default_gateway": default_gateway,
-                "networkCard": networkCard
+                "networkCard": networkCard,
+                "AS_number": mode_val == "r" ? as_number : undefined
             }
         }]
     });
 
-    if (mode_val == 'r') {
-        var as_number = $("#as_number").val();
-        chart.getNode(new_routers_Id).data.extra.AS_number = as_number;
-    }
+    $.ajax({
+        url: "http://localhost:9080/addNode",
+        dataType: 'json',
+        method: "POST",
+        contentType: 'application/json',
+        crossDomain: true,
+        async: true,
+        headers: {
+            "accept": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
+        data: JSON.stringify({
+            "id": mode_val == "r" ? mode_val + new_routers_Id : mode_val + new_endpoints_Id,
+            "gateway": default_gateway,
+            "asNumber": mode_val == "r" ? as_number : undefined,
+            "networkCards": networkCard
+        })
+    });
 
     $('#addDeviceModal').hide();
 
@@ -155,6 +176,17 @@ $('#saveChanges').click(function () {
             $("#interface-netmask-" + i).remove();
         }
         num_interface = 1;
+    }
+
+    $("#default_gateway").val(undefined);
+    for (var i = 1; i <= num_interface; i++) {
+        $('#interface-label-' + i).val(undefined);
+        $('#interface-IP-' + i).val(undefined);
+        $('#interface-netmask-' + i).val(undefined);
+    }
+
+    if (mode_val == 'r') {
+        $("#as_number").val(undefined);
     }
 
 });

@@ -11,36 +11,43 @@ void ApiEndpoint::init(size_t thr, vector<Device *> *devicesMain) {
 }
 
 void ApiEndpoint::start() {
-    L_VERBOSE("Server","START");
+    L_VERBOSE("Server", "START");
     httpEndpoint->setHandler(router.handler());
     httpEndpoint->serve();
 }
 
 void ApiEndpoint::setupRoutes() {
-    L_DEBUG("Server","Setting up routes");
+    L_DEBUG("Server", "Setting up routes");
     using namespace Rest;
 
     Routes::Get(router, "/", Routes::bind(&ApiEndpoint::index, this));
-    Routes::Get(
-        router, "/showGUI", Routes::bind(&ApiEndpoint::showGUI, this));
+    Routes::Get(router, "/showGUI", Routes::bind(&ApiEndpoint::showGUI, this));
     Routes::Get(
         router, "/getNetwork", Routes::bind(&ApiEndpoint::getNetwork, this));
     Routes::Post(
         router, "/breakLink", Routes::bind(&ApiEndpoint::breakLink, this));
 
-    //Routes for WebPage content
-    Routes::Get(
-        router, "/showGUI/add-icon.png", Routes::bind(&ApiEndpoint::getAddIcon, this));
-    Routes::Get(
-    router, "/showGUI/endpoint-icon.png", Routes::bind(&ApiEndpoint::getEndpointIcon, this));
-    Routes::Get(
-    router, "/showGUI/packet-icon.png", Routes::bind(&ApiEndpoint::getPacketIcon, this));
-    Routes::Get(
-    router, "/showGUI/router-icon.png", Routes::bind(&ApiEndpoint::getRouterIcon, this));
-    Routes::Get(
-    router, "/showGUI/node-events.js", Routes::bind(&ApiEndpoint::getNodeEvents, this));
-    Routes::Get(
-    router, "/showGUI/main.css", Routes::bind(&ApiEndpoint::getMainCSS, this));
+    Routes::Post(router, "/addNode", Routes::bind(&ApiEndpoint::addNode, this));
+
+    // Routes for WebPage content
+    Routes::Get(router,
+                "/showGUI/add-icon.png",
+                Routes::bind(&ApiEndpoint::getAddIcon, this));
+    Routes::Get(router,
+                "/showGUI/endpoint-icon.png",
+                Routes::bind(&ApiEndpoint::getEndpointIcon, this));
+    Routes::Get(router,
+                "/showGUI/packet-icon.png",
+                Routes::bind(&ApiEndpoint::getPacketIcon, this));
+    Routes::Get(router,
+                "/showGUI/router-icon.png",
+                Routes::bind(&ApiEndpoint::getRouterIcon, this));
+    Routes::Get(router,
+                "/showGUI/node-events.js",
+                Routes::bind(&ApiEndpoint::getNodeEvents, this));
+    Routes::Get(router,
+                "/showGUI/main.css",
+                Routes::bind(&ApiEndpoint::getMainCSS, this));
 }
 
 void ApiEndpoint::initDoc() {
@@ -142,14 +149,15 @@ void ApiEndpoint::initDoc() {
 
                 if (doc["links"].Empty()) {
                     doc["links"].PushBack(link, allocator);
-                L_DEBUG("Server", "Pushed back empty links");
+                    L_DEBUG("Server", "Pushed back empty links");
                 } else {
                     bool exists = false;
                     for (auto &l : doc["links"].GetArray()) {
                         if (l == link || l == link_reverse) {
                             L_DEBUG("Server", "Link :" + to_string(l == link));
-                            L_DEBUG("Server", "Reverse Link :" +
-                                    to_string(l == link_reverse));
+                            L_DEBUG("Server",
+                                    "Reverse Link :" +
+                                        to_string(l == link_reverse));
 
                             exists = true;
                         }
@@ -178,7 +186,7 @@ void ApiEndpoint::initDoc() {
         }
     }
 
-    L_DEBUG("Server","Network object created");
+    L_DEBUG("Server", "Network object created");
 }
 
 void ApiEndpoint::index(const Rest::Request &request,
@@ -430,57 +438,167 @@ void ApiEndpoint::getNetwork(const Rest::Request &request,
 }
 
 void ApiEndpoint::showGUI(const Rest::Request &request,
-                        Http::ResponseWriter response){
-
+                          Http::ResponseWriter response) {
     if (request.method() == Http::Method::Get) {
-        Http::serveFile(response, "src/net-visualization/bgp-visualization.html");
+        Http::serveFile(response,
+                        "src/net-visualization/bgp-visualization.html");
     }
 }
 
-void ApiEndpoint::getAddIcon(const Rest::Request& request, Http::ResponseWriter response){
+// API to retrive static files
+void ApiEndpoint::getAddIcon(const Rest::Request &request,
+                             Http::ResponseWriter response) {
     if (request.method() == Http::Method::Get) {
         Http::serveFile(response, "src/net-visualization/img/add-icon.png");
     }
 }
-void ApiEndpoint::getEndpointIcon(const Rest::Request& request, Http::ResponseWriter response){
+
+void ApiEndpoint::getEndpointIcon(const Rest::Request &request,
+                                  Http::ResponseWriter response) {
     if (request.method() == Http::Method::Get) {
-        Http::serveFile(response, "src/net-visualization/img/endpoint-icon.png");
+        Http::serveFile(response,
+                        "src/net-visualization/img/endpoint-icon.png");
     }
 }
-void ApiEndpoint::getPacketIcon(const Rest::Request& request, Http::ResponseWriter response){
+
+void ApiEndpoint::getPacketIcon(const Rest::Request &request,
+                                Http::ResponseWriter response) {
     if (request.method() == Http::Method::Get) {
         Http::serveFile(response, "src/net-visualization/img/packet-icon.png");
     }
 }
 
-void ApiEndpoint::getRouterIcon(const Rest::Request& request, Http::ResponseWriter response){
+void ApiEndpoint::getRouterIcon(const Rest::Request &request,
+                                Http::ResponseWriter response) {
     if (request.method() == Http::Method::Get) {
         Http::serveFile(response, "src/net-visualization/img/router-icon.png");
     }
 }
 
-void ApiEndpoint::getNodeEvents(const Rest::Request& request, Http::ResponseWriter response){
+void ApiEndpoint::getNodeEvents(const Rest::Request &request,
+                                Http::ResponseWriter response) {
     if (request.method() == Http::Method::Get) {
         Http::serveFile(response, "src/net-visualization/js/node-events.js");
     }
 }
-void ApiEndpoint::getMainCSS(const Rest::Request& request, Http::ResponseWriter response){
+void ApiEndpoint::getMainCSS(const Rest::Request &request,
+                             Http::ResponseWriter response) {
     if (request.method() == Http::Method::Get) {
         Http::serveFile(response, "src/net-visualization/css/main.css");
     }
 }
 
-void ApiEndpoint::getNodes(const Rest::Request &request,
-                           Http::ResponseWriter response) {}
 
-void ApiEndpoint::getLinks(const Rest::Request &request,
-                           Http::ResponseWriter response) {}
+// API to change Network status
 
-void ApiEndpoint::setLink(const Rest::Request &request,
-                          Http::ResponseWriter response) {}
+void ApiEndpoint::addNode(const Rest::Request &request,
+                          Http::ResponseWriter response) {
+    // TODO: add logic to add new node to devices array
+    StringBuffer               buf;
+    PrettyWriter<StringBuffer> writer(buf);
+
+    auto body = request.body();
+
+    Document postDoc;
+
+    L_DEBUG("Server", body);
+
+    postDoc.Parse(body.c_str());
+
+    if (!postDoc.HasParseError() && postDoc.HasMember("id") &&
+        postDoc.HasMember("gateway") && postDoc.HasMember("networkCards")) {
+        Value device(kObjectType);
+        Value networkCards(kArrayType);
+
+        device.AddMember(
+            "id",
+            Value(postDoc.FindMember("id")->value, postDoc.GetAllocator()),
+            postDoc.GetAllocator());
+
+        device.AddMember(
+            "gateway",
+            Value(postDoc.FindMember("gateway")->value, postDoc.GetAllocator()),
+            postDoc.GetAllocator());
+
+        if (postDoc.HasMember("asNumber") &&
+            postDoc.FindMember("asNumber")->value.GetString() != "undefined") {
+            device.AddMember("asNumber",
+                             Value(postDoc.FindMember("asNumber")->value,
+                                   postDoc.GetAllocator()),
+                             postDoc.GetAllocator());
+        }
+
+        for (int i = 0; i < postDoc["networkCards"].Size(); i++) {
+            if (postDoc["networkCards"][i].HasMember("interface") &&
+                postDoc["networkCards"][i].HasMember("IP") &&
+                postDoc["networkCards"][i].HasMember("netmask")) {
+                Value networkCard(kObjectType);
+
+                string            interface;
+                pcpp::IPv4Address IP;
+                pcpp::IPv4Address netmask;
+
+                networkCard.AddMember("interface",
+                                      Value(postDoc["networkCards"][i]
+                                                .FindMember("interface")
+                                                ->value,
+                                            postDoc.GetAllocator()),
+                                      postDoc.GetAllocator());
+
+                networkCard.AddMember(
+                    "IP",
+                    Value(postDoc["networkCards"][i].FindMember("IP")->value,
+                          postDoc.GetAllocator()),
+                    postDoc.GetAllocator());
+
+                networkCard.AddMember(
+                    "netmask",
+                    Value(
+                        postDoc["networkCards"][i].FindMember("netmask")->value,
+                        postDoc.GetAllocator()),
+                    postDoc.GetAllocator());
+
+
+                networkCards.PushBack(networkCard, postDoc.GetAllocator());
+            }
+        }
+
+        device.AddMember("networkCards", networkCards, postDoc.GetAllocator());
+
+        if (device.HasMember("asNumber")) {
+            doc["routers"].PushBack(device, postDoc.GetAllocator());
+        } else {
+            doc["endpoints"].PushBack(device, postDoc.GetAllocator());
+        }
+
+    } else {
+        if (postDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)postDoc.GetErrorOffset()) +
+                          "): " + to_string((postDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"id\" : "
+                      "\"device_ID\""
+                      "\n\t\"gateway\" : \"device_gateway\""
+                      "\n\t\"networkCards\" : \"device_array_networks_cards\""
+                      "\n}");
+    }
+
+    response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
+    response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+    response.send(Http::Code::Ok, "New Node Added");
+}
 
 void ApiEndpoint::breakLink(const Rest::Request &request,
-                             Http::ResponseWriter response) {
+                            Http::ResponseWriter response) {
     StringBuffer               buf;
     PrettyWriter<StringBuffer> writer(buf);
 
@@ -556,11 +674,13 @@ void ApiEndpoint::breakLink(const Rest::Request &request,
                                     net->link->connection_status =
                                         FAILED;  // TODO Use setter when it will
                                                  // be ready on the class.
-                                    L_INFO("Server", "Link disconnetcted. Device: " +
-                                           dev->ID +
-                                           " Interface: " + net->netInterface);
-                                    L_DEBUG("Server", "Link status: " +
-                                            net->link->connection_status);
+                                    L_INFO("Server",
+                                           "Link disconnetcted. Device: " +
+                                               dev->ID + " Interface: " +
+                                               net->netInterface);
+                                    L_DEBUG("Server",
+                                            "Link status: " +
+                                                net->link->connection_status);
                                 }
                             }
                         }
@@ -570,9 +690,10 @@ void ApiEndpoint::breakLink(const Rest::Request &request,
         }
     } else {
         if (postDoc.HasParseError()) {
-            L_WARNING("Server", "Parsing Error(offset " +
-                      to_string((unsigned)postDoc.GetErrorOffset()) +
-                      "): " + to_string((postDoc.GetParseError())));
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)postDoc.GetErrorOffset()) +
+                          "): " + to_string((postDoc.GetParseError())));
         } else {
             L_WARNING("Server", "JSON key values are wrong");
         }
@@ -598,12 +719,3 @@ void ApiEndpoint::breakLink(const Rest::Request &request,
     response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
     response.send(Http::Code::Ok, "Link removed Successfully!");
 }
-
-void ApiEndpoint::removeNode(const Rest::Request &request,
-                             Http::ResponseWriter response) {}
-
-void ApiEndpoint::getPackets(const Rest::Request &request,
-                             Http::ResponseWriter response) {}
-
-void ApiEndpoint::setReady(const Rest::Request &request,
-                           Http::ResponseWriter response) {}

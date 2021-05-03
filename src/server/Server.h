@@ -54,11 +54,13 @@ class ApiEndpoint {
     void getNetwork(const Rest::Request& request,
                     Http::ResponseWriter response);
 
-    void getNodes(const Rest::Request& request, Http::ResponseWriter response);
 
-    void getLinks(const Rest::Request& request, Http::ResponseWriter response);
-
-    void setLink(const Rest::Request& request, Http::ResponseWriter response);
+    /**
+     * @brief Add a new device to the network
+     *
+     * @param response Handler used to send back the reply
+     */
+    void addNode(const Rest::Request& request, Http::ResponseWriter response);
 
     /**
      * @brief Deactivate a link of the network
@@ -74,11 +76,6 @@ class ApiEndpoint {
      */
     void removeNode(const Rest::Request& request,
                     Http::ResponseWriter response);
-
-    void getPackets(const Rest::Request& request,
-                    Http::ResponseWriter response);
-
-    void setReady(const Rest::Request& request, Http::ResponseWriter response);
 
     /**
      * @brief General reply with JSON without rapidjson object
