@@ -202,7 +202,7 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("r1");
+    writer.String("R1");
     writer.Key("loaded");
     writer.Bool(true);
     writer.Key("style");
@@ -242,7 +242,7 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("r2");
+    writer.String("R2");
     writer.Key("loaded");
     writer.Bool(true);
     writer.Key("style");
@@ -284,7 +284,7 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("e1");
+    writer.String("E1");
     writer.Key("loaded");
     writer.Bool(true);
     writer.Key("style");
@@ -316,7 +316,7 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("e2");
+    writer.String("E2");
     writer.Key("loaded");
     writer.Bool(true);
     writer.Key("style");
@@ -353,11 +353,11 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("link_r1-e1");
+    writer.String("link_R1-E1");
     writer.Key("from");
-    writer.String("r1");
+    writer.String("R1");
     writer.Key("to");
-    writer.String("e1");
+    writer.String("E1");
     writer.Key("style");
     writer.StartObject();
     writer.Key("toDecoration");
@@ -374,11 +374,11 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("link_r2-e2");
+    writer.String("link_R2-E2");
     writer.Key("from");
-    writer.String("r2");
+    writer.String("R2");
     writer.Key("to");
-    writer.String("e2");
+    writer.String("E2");
     writer.Key("style");
     writer.StartObject();
     writer.Key("toDecoration");
@@ -395,11 +395,11 @@ void ApiEndpoint::index(const Rest::Request &request,
 
     writer.StartObject();
     writer.Key("id");
-    writer.String("link_r1-r2");
+    writer.String("link_R1-R2");
     writer.Key("from");
-    writer.String("r1");
+    writer.String("R1");
     writer.Key("to");
-    writer.String("r2");
+    writer.String("R2");
     writer.Key("style");
     writer.StartObject();
     writer.Key("toDecoration");
