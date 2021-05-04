@@ -36,10 +36,10 @@ volatile sig_atomic_t stop;
 void start_server(vector<Device *> *devices) {
     Pistache::Port    port(9080);
     int               thr = 2;
-    Pistache::Address addr(Ipv4::any(), port);
+    Pistache::Address addr(Pistache::Ipv4::any(), port);
 
     // Start rest server
-    cout << "Cores = " << hardware_concurrency() << endl;
+    cout << "Cores = " << Pistache::hardware_concurrency() << endl;
     cout << "Using " << thr << " threads" << endl;
 
     ApiEndpoint stats(addr);
