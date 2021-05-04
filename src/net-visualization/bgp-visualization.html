@@ -35,6 +35,8 @@
     </div>
   </div>
 
+  <!-- ADD DEVICE MODAL -->
+
   <div class="modal" tabindex="-1" id="addDeviceModal">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -80,7 +82,44 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" id="closeAddDeviceModalBtn">Close</button>
-          <button type="button" class="btn btn-primary" id="saveChanges">Save changes</button>
+          <button type="button" class="btn btn-primary" id="saveAddDeviceChanges">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD LINK MODAL -->
+
+  <div class="modal" tabindex="-1" id="addLinkModal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Activate Link</h5>
+          <button type="button" id="closeAddLinkModalCross" class="btn-close" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group row" style="padding-bottom: 10px;" id="FromInterfaceDiv">
+              <label for="FromInterface" class="col-sm-4 col-form-label" id="from_label">From </label>
+              <div class="col-sm-8">
+                <select class="form-select" id="from_interface">
+                  <option selected>Select Interface</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group row" style="padding-bottom: 10px;" id="ToInterfaceDiv">
+              <label for="ToInterface" class="col-sm-4 col-form-label" id="to_label">To </label>
+              <div class="col-sm-8">
+                <select class="form-select" id="to_interface">
+                  <option selected>Select Interface</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="closeAddLinkModalBtn">Close</button>
+          <button type="button" class="btn btn-primary" id="saveAddLinkChanges">Save changes</button>
         </div>
       </div>
     </div>
