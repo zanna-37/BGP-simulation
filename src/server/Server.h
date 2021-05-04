@@ -76,7 +76,6 @@ class ApiEndpoint {
      */
     void removeNode(const Rest::Request& request,
                     Http::ResponseWriter response);
-
     /**
      * @brief General reply with JSON without rapidjson object
      *

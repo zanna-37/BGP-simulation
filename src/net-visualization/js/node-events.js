@@ -130,7 +130,7 @@ function modifyNodeNumbers(event) {
     event.preventDefault();
 }
 
-$('#saveChanges').click(function () {
+$('#saveAddDeviceChanges').click(function () {
     var default_gateway = $("#default_gateway").val();
     var networkCard = [];
     for (var i = 1; i <= num_interface; i++) {
@@ -242,8 +242,66 @@ function connectNodes(node, onodes) {
 
         var link = { "id": "link_" + node.id + "-" + onode.id, "from": node.id, "to": onode.id, style: { "toDecoration": "arrow" } }
         chart.addData({ nodes: [], links: [link] });
+
+        activateLink(node, onode);
     }
 }
+
+function activateLink(node, onode) {
+    $("#from_label").append(node.data.id);
+    $("#to_label").append(onode.data.id);
+
+    $("#addLinkModal").show();
+
+    var from_interface_options = "";
+    var to_interface_options = "";
+
+    for (var i = 0; i < node.data.extra.networkCard.length; i++) {
+        from_interface_options += "<option>" + node.data.extra.networkCard[i].interface + "   " + node.data.extra.networkCard[i].IP + "   " + node.data.extra.networkCard[i].netmask + "</option>";
+    }
+    $("#from_interface").append(from_interface_options);
+
+    for (var i = 0; i < onode.data.extra.networkCard.length; i++) {
+        to_interface_options += "<option>" + onode.data.extra.networkCard[i].interface + "   " + onode.data.extra.networkCard[i].IP + "   " + onode.data.extra.networkCard[i].netmask + "</option>";
+    }
+    $("#to_interface").append(to_interface_options);
+}
+
+$('#saveAddLinkChanges').click(function () {
+    var from_interface_value = $("#from_interface").val();
+
+    var from_interface = "";
+    var i = 0;
+
+    while (from_interface_value[i] != " ") {
+        from_interface += from_interface_value[i];
+        i++;
+    }
+
+    var to_interface_value = $("#to_interface").val();
+
+    var to_interface = "";
+    var j = 0;
+
+    while (to_interface_value[j] != " ") {
+        to_interface += to_interface_value[j];
+        j++;
+    }
+
+    console.log(from_interface);
+    console.log(to_interface);
+
+    $("#addLinkModal").hide();
+
+    $("#from_label").html("");
+    $("#to_label").html("");
+    $("#from_label").append("From ");
+    $("#to_label").append("To ");
+
+    $('#from_interface').children().remove().end().append('<option selected>Select Interface</option>');
+    $('#to_interface').children().remove().end().append('<option selected>Select Interface</option>');
+});
+
 
 mdrouter.addEventListener('click', function () {
     mode_val = "R";
@@ -266,5 +324,13 @@ $("#closeAddDeviceModalCross").click(function () {
 
 $("#closeAddDeviceModalBtn").click(function () {
     $("#addDeviceModal").hide();
+})
+
+$("#closeAddLinkModalCross").click(function () {
+    $("#addLinkModal").hide();
+})
+
+$("#closeAddLinkModalBtn").click(function () {
+    $("#addLinkModal").hide();
 })
 
