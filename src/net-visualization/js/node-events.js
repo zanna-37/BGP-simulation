@@ -88,6 +88,21 @@ function modifyNodeNumbers(event) {
         eventAddNode = event;
     }
     if (event.clickNode) {
+        $.ajax({
+            url: "http://localhost:9080/removeNode",
+            dataType: 'json',
+            method: "POST",
+            contentType: 'application/json',
+            crossDomain: true,
+            async: true,
+            headers: {
+                "accept": "application/json",
+                "Access-Control-Allow-Origin": "*",
+            },
+            data: JSON.stringify({
+                "id": event.clickNode.id,
+            })
+        });
         event.chart.removeData({ nodes: [{ id: event.clickNode.id }] });
     } else if (event.clickLink) {
         var link = event.clickLink;
