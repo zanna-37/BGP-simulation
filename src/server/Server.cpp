@@ -29,6 +29,9 @@ void ApiEndpoint::setupRoutes() {
 
     Routes::Post(router, "/addNode", Routes::bind(&ApiEndpoint::addNode, this));
 
+    Routes::Post(
+        router, "/removeNode", Routes::bind(&ApiEndpoint::removeNode, this));
+
     // Routes for WebPage content
     Routes::Get(router,
                 "/showGUI/add-icon.png",
@@ -718,4 +721,86 @@ void ApiEndpoint::breakLink(const Rest::Request &request,
     response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
     response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
     response.send(Http::Code::Ok, "Link removed Successfully!");
+}
+
+void ApiEndpoint::removeNode(const Rest::Request &request,
+                             Http::ResponseWriter response) {
+    // TODO: add logic to remove node from devices array
+    StringBuffer               buf;
+    PrettyWriter<StringBuffer> writer(buf);
+
+    auto body = request.body();
+
+    Document postDoc;
+
+    L_DEBUG("Server", body);
+
+    postDoc.Parse(body.c_str());
+
+    if (!postDoc.HasParseError() && postDoc.HasMember("id")) {
+        std::string ID = postDoc["id"].GetString();
+        if (ID[0] == 'R') {
+            if (doc["routers"].Empty()) {
+                L_DEBUG("Server", "There are no routers in the network");
+
+                response.headers().add<Http::Header::AccessControlAllowOrigin>(
+                    "*");
+                response.send(Http::Code::Accepted,
+                              "There are no routers into the network!");
+            } else {
+                for (rapidjson::Value::ConstValueIterator itr =
+                         doc["routers"].GetArray().Begin();
+                     itr != doc["routers"].GetArray().End();
+                     ++itr) {
+                    if (itr->HasMember(postDoc["id"])) {
+                        doc["routers"].GetArray().Erase(itr);
+                    }
+                }
+            }
+        } else if (ID[0] == 'E') {
+            if (doc["endpoints"].Empty()) {
+                L_DEBUG("Server", "There are no endpoints in the network");
+
+                response.headers().add<Http::Header::AccessControlAllowOrigin>(
+                    "*");
+                response.send(Http::Code::Accepted,
+                              "There are no endpoints into the network!");
+            } else {
+                for (rapidjson::Value::ConstValueIterator itr =
+                         doc["endpoints"].GetArray().Begin();
+                     itr != doc["endpoints"].GetArray().End();
+                     ++itr) {
+                    if (itr->HasMember(postDoc["id"])) {
+                        doc["endpoints"].GetArray().Erase(itr);
+                    }
+                }
+            }
+        }
+    } else {
+        if (postDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)postDoc.GetErrorOffset()) +
+                          "): " + to_string((postDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"id\" : "
+                      "\"device_id\""
+                      "\n}");
+    }
+
+
+    // TODO Modify default reply
+    // postDoc.Accept(writer);
+
+
+    response.headers().add<Http::Header::ContentType>(MIME(Application, Json));
+    response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+    response.send(Http::Code::Ok, "Node removed Successfully!");
 }
