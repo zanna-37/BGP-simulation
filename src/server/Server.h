@@ -2,6 +2,7 @@
 #define BGP_SIMULATION_SERVER_SERVER_H
 
 #include <string>
+#include <vector>
 
 #include "../entities/EndPoint.h"
 #include "../entities/Router.h"
@@ -14,21 +15,17 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
 
-using namespace std;
-using namespace Pistache;
-using namespace rapidjson;
-
 class ApiEndpoint {
    public:
-    explicit ApiEndpoint(Address addr)
-        : httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {}
+    explicit ApiEndpoint(Pistache::Address addr)
+        : httpEndpoint(std::make_shared<Pistache::Http::Endpoint>(addr)) {}
 
     /**
      * @brief Initialize the number of wanted threads for the rest server
      *
      * @param thr Number of threads
      */
-    void init(size_t thr, vector<Device*>* devicesMain);
+    void init(size_t thr, std::vector<Device*>* devicesMain);
 
     /**
      * @brief Start servign the APIs
@@ -36,8 +33,8 @@ class ApiEndpoint {
      */
     void start();
 
-    vector<Device*>* devices = nullptr;
-    Document         doc;
+    std::vector<Device*>* devices = nullptr;
+    rapidjson::Document   doc;
 
    private:
     /**
@@ -51,8 +48,8 @@ class ApiEndpoint {
      *
      * @param response Handler used to send back the reply
      */
-    void getNetwork(const Rest::Request& request,
-                    Http::ResponseWriter response);
+    void getNetwork(const Pistache::Rest::Request& request,
+                    Pistache::Http::ResponseWriter response);
 
 
     /**
@@ -60,28 +57,40 @@ class ApiEndpoint {
      *
      * @param response Handler used to send back the reply
      */
-    void addNode(const Rest::Request& request, Http::ResponseWriter response);
+    void addNode(const Pistache::Rest::Request& request,
+                 Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Deactivate a link of the network
      *
      * @param response Handler used to send back the reply
      */
-    void breakLink(const Rest::Request& request, Http::ResponseWriter response);
+    void breakLink(const Pistache::Rest::Request& request,
+                   Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Remove a node from the Network
      *
      * @param response Handler used to send back the reply
      */
-    void removeNode(const Rest::Request& request,
-                    Http::ResponseWriter response);
+    void removeNode(const Pistache::Rest::Request& request,
+                    Pistache::Http::ResponseWriter response);
+
+    /**
+     * @brief Activate a link of the network
+     *
+     * @param response Handler used to send back the reply
+     */
+    void addLink(const Pistache::Rest::Request& request,
+                 Pistache::Http::ResponseWriter response);
+
     /**
      * @brief General reply with JSON without rapidjson object
      *
      * @param response Handler used to send back the reply
      */
-    void index(const Rest::Request& request, Http::ResponseWriter response);
+    void index(const Pistache::Rest::Request& request,
+               Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Initialize the document/Object with all the data information about
@@ -95,63 +104,64 @@ class ApiEndpoint {
      *
      * @param response Handler used to send back the reply
      */
-    void showGUI(const Rest::Request& request, Http::ResponseWriter response);
+    void showGUI(const Pistache::Rest::Request& request,
+                 Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Get image of 'plus' icon for GUI
      *
      * @param response Handler used to send back the reply
      */
-    void getAddIcon(const Rest::Request& request,
-                    Http::ResponseWriter response);
+    void getAddIcon(const Pistache::Rest::Request& request,
+                    Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Get image of 'endpoint' icon for GUI
      *
      * @param response Handler used to send back the reply
      */
-    void getEndpointIcon(const Rest::Request& request,
-                         Http::ResponseWriter response);
+    void getEndpointIcon(const Pistache::Rest::Request& request,
+                         Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Get image of 'packet' icon for GUI
      *
      * @param response Handler used to send back the reply
      */
-    void getPacketIcon(const Rest::Request& request,
-                       Http::ResponseWriter response);
+    void getPacketIcon(const Pistache::Rest::Request& request,
+                       Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Get image of 'router' icon for GUI
      *
      * @param response Handler used to send back the reply
      */
-    void getRouterIcon(const Rest::Request& request,
-                       Http::ResponseWriter response);
+    void getRouterIcon(const Pistache::Rest::Request& request,
+                       Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Get js file for events in the GUI
      *
      * @param response Handler used to send back the reply
      */
-    void getNodeEvents(const Rest::Request& request,
-                       Http::ResponseWriter response);
+    void getNodeEvents(const Pistache::Rest::Request& request,
+                       Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Get css file for style in the GUI
      *
      * @param response Handler used to send back the reply
      */
-    void getMainCSS(const Rest::Request& request,
-                    Http::ResponseWriter response);
+    void getMainCSS(const Pistache::Rest::Request& request,
+                    Pistache::Http::ResponseWriter response);
 
     using Lock  = std::mutex;
     using Guard = std::lock_guard<Lock>;
     Lock metricsLock;
 
 
-    std::shared_ptr<Http::Endpoint> httpEndpoint;
-    Rest::Router                    router;
+    std::shared_ptr<Pistache::Http::Endpoint> httpEndpoint;
+    Pistache::Rest::Router                    router;
 };
 
 #endif  // BGP_SIMULATION_SERVER_SERVER_H

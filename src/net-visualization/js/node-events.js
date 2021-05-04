@@ -5,6 +5,10 @@ var mode_val = 'R';
 
 var num_interface = 1;
 
+var from_node = undefined;
+var to_node = undefined;
+var new_link = undefined;
+
 var chart = new NetChart({
     container: document.getElementById("netchart"),
     area: { height: 400 },
@@ -240,14 +244,18 @@ function connectNodes(node, onodes) {
     for (var i = 0; i < onodes.length; i++) {
         var onode = onodes[i];
 
-        var link = { "id": "link_" + node.id + "-" + onode.id, "from": node.id, "to": onode.id, style: { "toDecoration": "arrow" } }
+        var link = { "id": "link_" + node.id + "-" + onode.id, "from": node.id, "to": onode.id, style: { "toDecoration": "arrow" }, extra: { "from_interface": " ", "to_interface": " " } }
         chart.addData({ nodes: [], links: [link] });
 
-        activateLink(node, onode);
+        activateLink(node, onode, link);
     }
 }
 
-function activateLink(node, onode) {
+function activateLink(node, onode, link) {
+    from_node = node;
+    to_node = onode;
+    new_link = link;
+
     $("#from_label").append(node.data.id);
     $("#to_label").append(onode.data.id);
 
@@ -265,31 +273,47 @@ function activateLink(node, onode) {
         to_interface_options += "<option>" + onode.data.extra.networkCard[i].interface + "   " + onode.data.extra.networkCard[i].IP + "   " + onode.data.extra.networkCard[i].netmask + "</option>";
     }
     $("#to_interface").append(to_interface_options);
+
 }
 
 $('#saveAddLinkChanges').click(function () {
     var from_interface_value = $("#from_interface").val();
-
     var from_interface = "";
     var i = 0;
-
     while (from_interface_value[i] != " ") {
         from_interface += from_interface_value[i];
-        i++;
+        i++
     }
 
     var to_interface_value = $("#to_interface").val();
-
     var to_interface = "";
     var j = 0;
-
     while (to_interface_value[j] != " ") {
         to_interface += to_interface_value[j];
-        j++;
+        j++
     }
 
-    console.log(from_interface);
-    console.log(to_interface);
+    new_link.extra.from_interface = from_interface;
+    new_link.extra.to_interface = to_interface;
+
+    $.ajax({
+        url: "http://localhost:9080/addLink",
+        dataType: 'json',
+        method: "POST",
+        contentType: 'application/json',
+        crossDomain: true,
+        async: true,
+        headers: {
+            "accept": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
+        data: JSON.stringify({
+            "from": from_node.data.id,
+            "to": to_node.data.id,
+            "from_interface": from_interface,
+            "to_interface": to_interface
+        })
+    });
 
     $("#addLinkModal").hide();
 
