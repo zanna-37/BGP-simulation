@@ -2,8 +2,9 @@
 
 
 void ApiEndpoint::init(size_t thr, std::vector<Device *> *devicesMain) {
-    auto opts = Pistache::Http::Endpoint::options().flags(Pistache::Tcp::Options::ReuseAddr);
-    opts      = Pistache::Http::Endpoint::options().threads(static_cast<int>(thr));
+    auto opts = Pistache::Http::Endpoint::options().flags(
+        Pistache::Tcp::Options::ReuseAddr);
+    opts = Pistache::Http::Endpoint::options().threads(static_cast<int>(thr));
     httpEndpoint->init(opts);
     devices = devicesMain;
     initDoc();
@@ -19,39 +20,61 @@ void ApiEndpoint::start() {
 void ApiEndpoint::setupRoutes() {
     L_DEBUG("Server", "Setting up routes");
 
-    Pistache::Rest::Routes::Get(router, "/", Pistache::Rest::Routes::bind(&ApiEndpoint::index, this));
-    Pistache::Rest::Routes::Get(router, "/showGUI", Pistache::Rest::Routes::bind(&ApiEndpoint::showGUI, this));
     Pistache::Rest::Routes::Get(
-        router, "/getNetwork", Pistache::Rest::Routes::bind(&ApiEndpoint::getNetwork, this));
+        router, "/", Pistache::Rest::Routes::bind(&ApiEndpoint::index, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/showGUI",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::showGUI, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/getNetwork",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getNetwork, this));
     Pistache::Rest::Routes::Post(
-        router, "/breakLink", Pistache::Rest::Routes::bind(&ApiEndpoint::breakLink, this));
-
-    Pistache::Rest::Routes::Post(router, "/addNode", Pistache::Rest::Routes::bind(&ApiEndpoint::addNode, this));
+        router,
+        "/breakLink",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::breakLink, this));
 
     Pistache::Rest::Routes::Post(
-        router, "/removeNode", Pistache::Rest::Routes::bind(&ApiEndpoint::removeNode, this));
+        router,
+        "/addNode",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::addNode, this));
 
-    Pistache::Rest::Routes::Post(router, "/addLink", Pistache::Rest::Routes::bind(&ApiEndpoint::addLink, this));
+    Pistache::Rest::Routes::Post(
+        router,
+        "/removeNode",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::removeNode, this));
+
+    Pistache::Rest::Routes::Post(
+        router,
+        "/addLink",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::addLink, this));
 
     // Routes for WebPage content
-    Pistache::Rest::Routes::Get(router,
-                "/showGUI/add-icon.png",
-                Pistache::Rest::Routes::bind(&ApiEndpoint::getAddIcon, this));
-    Pistache::Rest::Routes::Get(router,
-                "/showGUI/endpoint-icon.png",
-                Pistache::Rest::Routes::bind(&ApiEndpoint::getEndpointIcon, this));
-    Pistache::Rest::Routes::Get(router,
-                "/showGUI/packet-icon.png",
-                Pistache::Rest::Routes::bind(&ApiEndpoint::getPacketIcon, this));
-    Pistache::Rest::Routes::Get(router,
-                "/showGUI/router-icon.png",
-                Pistache::Rest::Routes::bind(&ApiEndpoint::getRouterIcon, this));
-    Pistache::Rest::Routes::Get(router,
-                "/showGUI/node-events.js",
-                Pistache::Rest::Routes::bind(&ApiEndpoint::getNodeEvents, this));
-    Pistache::Rest::Routes::Get(router,
-                "/showGUI/main.css",
-                Pistache::Rest::Routes::bind(&ApiEndpoint::getMainCSS, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/showGUI/add-icon.png",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getAddIcon, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/showGUI/endpoint-icon.png",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getEndpointIcon, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/showGUI/packet-icon.png",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getPacketIcon, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/showGUI/router-icon.png",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getRouterIcon, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/showGUI/node-events.js",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getNodeEvents, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/showGUI/main.css",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getMainCSS, this));
 }
 
 void ApiEndpoint::initDoc() {
@@ -110,7 +133,8 @@ void ApiEndpoint::initDoc() {
             networkCards.PushBack(netCard, allocator);
 
             if (!(net->link == nullptr)) {
-                rapidjson::Value link(rapidjson::kObjectType), link_reverse(rapidjson::kObjectType);
+                rapidjson::Value link(rapidjson::kObjectType),
+                    link_reverse(rapidjson::kObjectType);
                 rapidjson::Value dev1, dev2, interface1, interface2, con_status;
 
                 dev1.SetString(
@@ -136,14 +160,19 @@ void ApiEndpoint::initDoc() {
                 // Link is using copies of the values, Link_reverse is consuming
                 // the values.
 
-                link.AddMember("from", rapidjson::Value(dev1, allocator), allocator);
-                link.AddMember("to", rapidjson::Value(dev2, allocator), allocator);
                 link.AddMember(
-                    "from_interface", rapidjson::Value(interface1, allocator), allocator);
+                    "from", rapidjson::Value(dev1, allocator), allocator);
                 link.AddMember(
-                    "to_interface", rapidjson::Value(interface2, allocator), allocator);
-                link.AddMember(
-                    "con_status", rapidjson::Value(con_status, allocator), allocator);
+                    "to", rapidjson::Value(dev2, allocator), allocator);
+                link.AddMember("from_interface",
+                               rapidjson::Value(interface1, allocator),
+                               allocator);
+                link.AddMember("to_interface",
+                               rapidjson::Value(interface2, allocator),
+                               allocator);
+                link.AddMember("con_status",
+                               rapidjson::Value(con_status, allocator),
+                               allocator);
 
                 link_reverse.AddMember("from", dev2, allocator);
                 link_reverse.AddMember("to", dev1, allocator);
@@ -195,7 +224,7 @@ void ApiEndpoint::initDoc() {
 
 void ApiEndpoint::index(const Pistache::Rest::Request &request,
                         Pistache::Http::ResponseWriter response) {
-    rapidjson::StringBuffer               buf;
+    rapidjson::StringBuffer                          buf;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
 
 
@@ -423,29 +452,33 @@ void ApiEndpoint::index(const Pistache::Rest::Request &request,
 
     writer.EndObject();
 
-    response.headers().add<Pistache::Http::Header::ContentType>(MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
     response.send(Pistache::Http::Code::Ok, buf.GetString());
 }
 
 
 void ApiEndpoint::getNetwork(const Pistache::Rest::Request &request,
                              Pistache::Http::ResponseWriter response) {
-    rapidjson::StringBuffer               buf;
+    rapidjson::StringBuffer                          buf;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
 
     doc.Accept(writer);
 
-    response.headers().add<Pistache::Http::Header::ContentType>(MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
     response.send(Pistache::Http::Code::Ok, buf.GetString());
 }
 
 void ApiEndpoint::showGUI(const Pistache::Rest::Request &request,
                           Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(response,
-                        "src/net-visualization/bgp-visualization.html");
+        Pistache::Http::serveFile(
+            response, "src/net-visualization/bgp-visualization.html");
     }
 }
 
@@ -453,42 +486,47 @@ void ApiEndpoint::showGUI(const Pistache::Rest::Request &request,
 void ApiEndpoint::getAddIcon(const Pistache::Rest::Request &request,
                              Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(response, "src/net-visualization/img/add-icon.png");
+        Pistache::Http::serveFile(response,
+                                  "src/net-visualization/img/add-icon.png");
     }
 }
 
 void ApiEndpoint::getEndpointIcon(const Pistache::Rest::Request &request,
                                   Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(response,
-                        "src/net-visualization/img/endpoint-icon.png");
+        Pistache::Http::serveFile(
+            response, "src/net-visualization/img/endpoint-icon.png");
     }
 }
 
 void ApiEndpoint::getPacketIcon(const Pistache::Rest::Request &request,
                                 Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(response, "src/net-visualization/img/packet-icon.png");
+        Pistache::Http::serveFile(response,
+                                  "src/net-visualization/img/packet-icon.png");
     }
 }
 
 void ApiEndpoint::getRouterIcon(const Pistache::Rest::Request &request,
                                 Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(response, "src/net-visualization/img/router-icon.png");
+        Pistache::Http::serveFile(response,
+                                  "src/net-visualization/img/router-icon.png");
     }
 }
 
 void ApiEndpoint::getNodeEvents(const Pistache::Rest::Request &request,
                                 Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(response, "src/net-visualization/js/node-events.js");
+        Pistache::Http::serveFile(response,
+                                  "src/net-visualization/js/node-events.js");
     }
 }
 void ApiEndpoint::getMainCSS(const Pistache::Rest::Request &request,
                              Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(response, "src/net-visualization/css/main.css");
+        Pistache::Http::serveFile(response,
+                                  "src/net-visualization/css/main.css");
     }
 }
 
@@ -498,7 +536,7 @@ void ApiEndpoint::getMainCSS(const Pistache::Rest::Request &request,
 void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
                           Pistache::Http::ResponseWriter response) {
     // TODO: add logic to add new node to devices array
-    rapidjson::StringBuffer               buf;
+    rapidjson::StringBuffer                          buf;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
 
     auto body = request.body();
@@ -514,22 +552,37 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
         rapidjson::Value device(rapidjson::kObjectType);
         rapidjson::Value networkCards(rapidjson::kArrayType);
 
-        device.AddMember(
-            "id",
-            rapidjson::Value(postDoc.FindMember("id")->value, postDoc.GetAllocator()),
-            postDoc.GetAllocator());
+        Router *                    router;
+        EndPoint *                  endpoint;
+        std::vector<NetworkCard *> *networkCardsVector =
+            new std::vector<NetworkCard *>();
 
-        device.AddMember(
-            "gateway",
-            rapidjson::Value(postDoc.FindMember("gateway")->value, postDoc.GetAllocator()),
-            postDoc.GetAllocator());
+        std::string      ID = postDoc.FindMember("id")->value.GetString();
+        rapidjson::Value id;
+        id.SetString(ID.c_str(), ID.length(), doc.GetAllocator());
+        device.AddMember("ID", id, doc.GetAllocator());
+
+        pcpp::IPv4Address defaultGateway(
+            postDoc.FindMember("gateway")->value.GetString());
+        rapidjson::Value gateway;
+        gateway.SetString(defaultGateway.toString().c_str(),
+                          defaultGateway.toString().length(),
+                          doc.GetAllocator());
+        device.AddMember("defaultGateway", gateway, doc.GetAllocator());
+
 
         if (postDoc.HasMember("asNumber") &&
             postDoc.FindMember("asNumber")->value.GetString() != "undefined") {
-            device.AddMember("asNumber",
-                             rapidjson::Value(postDoc.FindMember("asNumber")->value,
-                                   postDoc.GetAllocator()),
-                             postDoc.GetAllocator());
+            std::string AS_number =
+                postDoc.FindMember("asNumber")->value.GetString();
+            rapidjson::Value asNumber;
+            asNumber.SetString(
+                AS_number.c_str(), AS_number.length(), doc.GetAllocator());
+            device.AddMember("asNumber", asNumber, doc.GetAllocator());
+
+            router = new Router(ID, AS_number, defaultGateway);
+        } else {
+            endpoint = new EndPoint(ID, defaultGateway);
         }
 
         for (int i = 0; i < postDoc["networkCards"].Size(); i++) {
@@ -538,42 +591,84 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
                 postDoc["networkCards"][i].HasMember("netmask")) {
                 rapidjson::Value networkCard(rapidjson::kObjectType);
 
-                string            interface;
-                pcpp::IPv4Address IP;
-                pcpp::IPv4Address netmask;
-
-                networkCard.AddMember("interface",
-                                      rapidjson::Value(postDoc["networkCards"][i]
-                                                .FindMember("interface")
-                                                ->value,
-                                            postDoc.GetAllocator()),
-                                      postDoc.GetAllocator());
-
+                std::string interface = postDoc["networkCards"][i]
+                                            .FindMember("interface")
+                                            ->value.GetString();
+                rapidjson::Value interface_val;
+                interface_val.SetString(
+                    interface.c_str(), interface.length(), doc.GetAllocator());
                 networkCard.AddMember(
-                    "IP",
-                    rapidjson::Value(postDoc["networkCards"][i].FindMember("IP")->value,
-                          postDoc.GetAllocator()),
-                    postDoc.GetAllocator());
+                    "interface", interface_val, doc.GetAllocator());
 
+
+                pcpp::IPv4Address IP(postDoc["networkCards"][i]
+                                         .FindMember("IP")
+                                         ->value.GetString());
+                rapidjson::Value  ip;
+                ip.SetString(IP.toString().c_str(),
+                             IP.toString().length(),
+                             doc.GetAllocator());
+                networkCard.AddMember("IP", ip, doc.GetAllocator());
+
+
+                pcpp::IPv4Address netmask(postDoc["networkCards"][i]
+                                              .FindMember("netmask")
+                                              ->value.GetString());
+                rapidjson::Value  netmask_val;
+                netmask_val.SetString(netmask.toString().c_str(),
+                                      netmask.toString().length(),
+                                      doc.GetAllocator());
                 networkCard.AddMember(
-                    "netmask",
-                    rapidjson::Value(
-                        postDoc["networkCards"][i].FindMember("netmask")->value,
-                        postDoc.GetAllocator()),
-                    postDoc.GetAllocator());
+                    "netmask", netmask_val, doc.GetAllocator());
 
 
-                networkCards.PushBack(networkCard, postDoc.GetAllocator());
+                networkCards.PushBack(networkCard, doc.GetAllocator());
+
+                if (device.HasMember("asNumber")) {
+                    NetworkCard *netCard = new NetworkCard(
+                        interface, IP, netmask, pcpp::MacAddress::Zero, router);
+                    networkCardsVector->push_back(netCard);
+                } else {
+                    NetworkCard *netCard =
+                        new NetworkCard(interface,
+                                        IP,
+                                        netmask,
+                                        pcpp::MacAddress::Zero,
+                                        endpoint);
+                    networkCardsVector->push_back(netCard);
+                }
             }
         }
 
-        device.AddMember("networkCards", networkCards, postDoc.GetAllocator());
+        device.AddMember("networkCards", networkCards, doc.GetAllocator());
 
         if (device.HasMember("asNumber")) {
-            doc["routers"].PushBack(device, postDoc.GetAllocator());
+            doc["routers"].PushBack(device, doc.GetAllocator());
+            L_DEBUG(
+                "Server",
+                "Routers doc size: " + std::to_string(doc["routers"].Size()));
+            router->addCards(networkCardsVector);
+            devices->push_back(router);
+            L_DEBUG("Server",
+                    "Devices vector size: " + std::to_string(devices->size()));
+            L_DEBUG("Server", "Router added. Router ID: " + router->ID);
         } else {
-            doc["endpoints"].PushBack(device, postDoc.GetAllocator());
+            doc["endpoints"].PushBack(device, doc.GetAllocator());
+            L_DEBUG("Server",
+                    "Endpoints doc size: " +
+                        std::to_string(doc["endpoints"].Size()));
+            endpoint->addCards(networkCardsVector);
+            devices->push_back(endpoint);
+            L_DEBUG("Server",
+                    "Devices vector size: " + std::to_string(devices->size()));
+            L_DEBUG("Server", "Endpoint added. Endpoint ID: " + endpoint->ID);
         }
+
+        response.headers().add<Pistache::Http::Header::ContentType>(
+            MIME(Application, Json));
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Pistache::Http::Code::Ok, "New Node Added");
 
     } else {
         if (postDoc.HasParseError()) {
@@ -586,7 +681,8 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
         }
 
 
-        response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
         response.send(Pistache::Http::Code::Bad_Request,
                       "Wrong POST request!\nThe request needs to have the "
                       "following JSON format:\n{\n\t\"id\" : "
@@ -595,15 +691,11 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
                       "\n\t\"networkCards\" : \"device_array_networks_cards\""
                       "\n}");
     }
-
-    response.headers().add<Pistache::Http::Header::ContentType>(MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
-    response.send(Pistache::Http::Code::Ok, "New Node Added");
 }
 
 void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
                             Pistache::Http::ResponseWriter response) {
-    rapidjson::StringBuffer               buf;
+    rapidjson::StringBuffer                          buf;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
 
     auto body = request.body();
@@ -621,32 +713,36 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
         if (doc["links"].Empty()) {
             L_DEBUG("Server", "There are no links in the network");
 
-            response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+            response.headers()
+                .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
             response.send(Pistache::Http::Code::Accepted,
                           "There are no links into the network!");
         } else {
             // Search for the link and change the value
-            rapidjson::Value link(rapidjson::kObjectType), link_reverse(rapidjson::kObjectType);
+            rapidjson::Value link(rapidjson::kObjectType),
+                link_reverse(rapidjson::kObjectType);
 
             // Link is using copies of the values, Link_reverse is consuming the
             // values.
 
             link.AddMember("from",
                            rapidjson::Value(postDoc.FindMember("from")->value,
-                                 postDoc.GetAllocator()),
+                                            postDoc.GetAllocator()),
+                           postDoc.GetAllocator());
+            link.AddMember("to",
+                           rapidjson::Value(postDoc.FindMember("to")->value,
+                                            postDoc.GetAllocator()),
                            postDoc.GetAllocator());
             link.AddMember(
-                "to",
-                rapidjson::Value(postDoc.FindMember("to")->value, postDoc.GetAllocator()),
+                "from_interface",
+                rapidjson::Value(postDoc.FindMember("from_interface")->value,
+                                 postDoc.GetAllocator()),
                 postDoc.GetAllocator());
-            link.AddMember("from_interface",
-                           rapidjson::Value(postDoc.FindMember("from_interface")->value,
+            link.AddMember(
+                "to_interface",
+                rapidjson::Value(postDoc.FindMember("to_interface")->value,
                                  postDoc.GetAllocator()),
-                           postDoc.GetAllocator());
-            link.AddMember("to_interface",
-                           rapidjson::Value(postDoc.FindMember("to_interface")->value,
-                                 postDoc.GetAllocator()),
-                           postDoc.GetAllocator());
+                postDoc.GetAllocator());
             link.AddMember("con_status", "active", postDoc.GetAllocator());
 
             link_reverse.AddMember("from",
@@ -666,7 +762,8 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
 
             for (auto &l : doc["links"].GetArray()) {
                 if ((l == link || l == link_reverse)) {
-                    rapidjson::Value::MemberIterator it = l.FindMember("con_status");
+                    rapidjson::Value::MemberIterator it =
+                        l.FindMember("con_status");
                     it->value.SetString("failed", postDoc.GetAllocator());
                     L_DEBUG("Server", "Value in the the RapidJSON doc changed");
 
@@ -703,7 +800,8 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
         }
 
 
-        response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
         response.send(Pistache::Http::Code::Bad_Request,
                       "Wrong POST request!\nThe request needs to have the "
                       "following JSON format:\n{\n\t\"from\" : "
@@ -719,15 +817,17 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
     // postDoc.Accept(writer);
 
 
-    response.headers().add<Pistache::Http::Header::ContentType>(MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
     response.send(Pistache::Http::Code::Ok, "Link removed Successfully!");
 }
 
 void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
                              Pistache::Http::ResponseWriter response) {
     // TODO: add logic to remove node from devices array
-    rapidjson::StringBuffer               buf;
+    rapidjson::StringBuffer                          buf;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
 
     auto body = request.body();
@@ -744,8 +844,8 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
             if (doc["routers"].Empty()) {
                 L_DEBUG("Server", "There are no routers in the network");
 
-                response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
-                    "*");
+                response.headers()
+                    .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
                 response.send(Pistache::Http::Code::Accepted,
                               "There are no routers into the network!");
             } else {
@@ -762,8 +862,8 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
             if (doc["endpoints"].Empty()) {
                 L_DEBUG("Server", "There are no endpoints in the network");
 
-                response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
-                    "*");
+                response.headers()
+                    .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
                 response.send(Pistache::Http::Code::Accepted,
                               "There are no endpoints into the network!");
             } else {
@@ -788,7 +888,8 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
         }
 
 
-        response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
         response.send(Pistache::Http::Code::Bad_Request,
                       "Wrong POST request!\nThe request needs to have the "
                       "following JSON format:\n{\n\t\"id\" : "
@@ -801,14 +902,16 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
     // postDoc.Accept(writer);
 
 
-    response.headers().add<Pistache::Http::Header::ContentType>(MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
     response.send(Pistache::Http::Code::Ok, "Node removed Successfully!");
 }
 
 void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
                           Pistache::Http::ResponseWriter response) {
-    rapidjson::StringBuffer               buf;
+    rapidjson::StringBuffer                          buf;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
 
     auto body = request.body();
@@ -823,27 +926,30 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
         postDoc.HasMember("to") && postDoc.HasMember("from_interface") &&
         postDoc.HasMember("to_interface")) {
         // Search for the link and change the value
-        rapidjson::Value link(rapidjson::kObjectType), link_reverse(rapidjson::kObjectType);
+        rapidjson::Value link(rapidjson::kObjectType),
+            link_reverse(rapidjson::kObjectType);
 
         // Link is using copies of the values, Link_reverse is consuming the
         // values.
 
+        link.AddMember("from",
+                       rapidjson::Value(postDoc.FindMember("from")->value,
+                                        postDoc.GetAllocator()),
+                       postDoc.GetAllocator());
+        link.AddMember("to",
+                       rapidjson::Value(postDoc.FindMember("to")->value,
+                                        postDoc.GetAllocator()),
+                       postDoc.GetAllocator());
         link.AddMember(
-            "from",
-            rapidjson::Value(postDoc.FindMember("from")->value, postDoc.GetAllocator()),
+            "from_interface",
+            rapidjson::Value(postDoc.FindMember("from_interface")->value,
+                             postDoc.GetAllocator()),
             postDoc.GetAllocator());
         link.AddMember(
-            "to",
-            rapidjson::Value(postDoc.FindMember("to")->value, postDoc.GetAllocator()),
+            "to_interface",
+            rapidjson::Value(postDoc.FindMember("to_interface")->value,
+                             postDoc.GetAllocator()),
             postDoc.GetAllocator());
-        link.AddMember("from_interface",
-                       rapidjson::Value(postDoc.FindMember("from_interface")->value,
-                             postDoc.GetAllocator()),
-                       postDoc.GetAllocator());
-        link.AddMember("to_interface",
-                       rapidjson::Value(postDoc.FindMember("to_interface")->value,
-                             postDoc.GetAllocator()),
-                       postDoc.GetAllocator());
         link.AddMember("con_status", "active", postDoc.GetAllocator());
 
         link_reverse.AddMember(
@@ -889,7 +995,8 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
         }
 
 
-        response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
         response.send(Pistache::Http::Code::Bad_Request,
                       "Wrong POST request!\nThe request needs to have the "
                       "following JSON format:\n{\n\t\"from\" : "
@@ -900,7 +1007,9 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
                       "\n}");
     }
 
-    response.headers().add<Pistache::Http::Header::ContentType>(MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
     response.send(Pistache::Http::Code::Ok, "Link added Successfully!");
 }
