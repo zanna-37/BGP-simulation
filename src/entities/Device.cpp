@@ -45,10 +45,15 @@ Device::~Device() {
     for (BGPConnection *connection : bgpConnections) {
         delete connection;
     }
+    delete bgpApplication;
 
-    std::map<std::size_t, TCPConnection *>::iterator it;
-    for (it = tcpConnections.begin(); it != tcpConnections.end(); ++it) {
-        delete it->second;
+    // std::map<std::size_t, TCPConnection *>::iterator it;
+    // for (it = tcpConnections.begin(); it != tcpConnections.end(); ++it) {
+    //     delete it->second;
+    // }
+
+    for (TCPConnection *connection : tcpConnections) {
+        delete connection;
     }
 }
 
@@ -118,12 +123,13 @@ void Device::start() {
     });
 }
 
-void Device::sendPacket(stack<pcpp::Layer *> *layers, std::string dstAddr_str) {
+void Device::sendPacket(stack<pcpp::Layer *> *   layers,
+                        const pcpp::IPv4Address &dstAddr) {
     pcpp::IPv4Layer *ipLayer = new pcpp::IPv4Layer();
-    ipLayer->setDstIPv4Address(pcpp::IPv4Address(dstAddr_str));
+    ipLayer->setDstIPv4Address(dstAddr);
     pcpp::IPv4Address dstAddr = ipLayer->getDstIPv4Address();
 
-    NetworkCard *nextHopNetworkCard = findNextHop(&dstAddr);
+    NetworkCard *nextHopNetworkCard = findNextHop(dstAddr);
     if (nextHopNetworkCard == nullptr) {
         L_ERROR(ID, "DESTINATION UNREACHABLE");
         // FIXME
@@ -132,6 +138,13 @@ void Device::sendPacket(stack<pcpp::Layer *> *layers, std::string dstAddr_str) {
     } else {
         L_DEBUG(ID, "Sending packet using " + nextHopNetworkCard->netInterface);
         ipLayer->setSrcIPv4Address(nextHopNetworkCard->IP);
+        // complete TCP connection details with srcAddr
+        for (TCPConnection *connection : tcpConnections) {
+            if (connection->srcAddr == pcpp::IPv4Address::Zero &&
+                connection->dstAddr == dstAddr) {
+                connection->srcAddr = nextHopNetworkCard->IP;
+            }
+        }
         layers->push(ipLayer);
         nextHopNetworkCard->sendPacket(layers);
     }
@@ -145,7 +158,7 @@ void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
         L_DEBUG(ID, "Processing message");
         processMessage(layers);
     } else {
-        NetworkCard *nextHopNetworkCard = findNextHop(&dstAddress);
+        NetworkCard *nextHopNetworkCard = findNextHop(dstAddress);
         if (nextHopNetworkCard == nullptr) {
             L_ERROR(ID, "DESTINATION UNREACHABLE");
         } else {
@@ -160,23 +173,16 @@ void Device::processMessage(stack<pcpp::Layer *> *layers) {
     pcpp::TcpLayer *tcpLayer = dynamic_cast<pcpp::TcpLayer *>(layers->top());
     layers->push(ipLayer);
 
-    TCPConnection *existingConnection = getExistingConnectionOrNull(
-        ipLayer->getSrcIPv4Address().toString(), tcpLayer->getSrcPort());
+    TCPConnection *existingConnection =
+        getExistingConnectionOrNull(ipLayer->getSrcIPv4Address(),
+                                    tcpLayer->getSrcPort(),
+                                    ipLayer->getDstIPv4Address(),
+                                    tcpLayer->getDstPort());
     if (existingConnection != nullptr) {
         L_DEBUG(ID, "Existing connection");
         existingConnection->processMessage(layers);
     } else {
-        if (listenConnection != nullptr &&
-            listenConnection->srcPort == tcpLayer->getDstPort()) {
-            L_DEBUG(ID, "Handling new TCP Connection");
-            // TODO not clear that we are creating a new connection with
-            // listenConnection
-            listenConnection->processMessage(layers);
-        } else {
-            L_INFO(ID, "PORT closed or server not listening");
-            resetConnection(ipLayer->getSrcIPv4Address().toString(),
-                            tcpLayer->getSrcPort());
-        }
+        L_INFO(ID, "PORT closed or server not listening");
     }
 }
 
@@ -197,90 +203,75 @@ void Device::listen() {
     listenConnection->srcPort = listenConnection->BGPPort;
     listenConnection->enqueueEvent(TCPEvent::PassiveOpen);
 }
-TCPConnection *Device::connect(std::string dstAddr, uint16_t dstPort) {
-    TCPConnection *connection = new TCPConnection(this);
+// FIXME
+// void Device::resetConnection(std::string dstAddr, uint16_t dstPort) {
+//     TCPConnection *existingConnection =
+//         getExistingConnectionOrNull(dstAddr, dstPort);
 
-    connection->dstAddr = new pcpp::IPv4Address(dstAddr);
-    connection->dstPort = dstPort;
+//     if (existingConnection == nullptr) {
+//         L_ERROR(ID, "Trying to close an non existing connection");
+//     } else {
+//         existingConnection->enqueueEvent(TCPEvent::SendRST);
+//     }
+// }
 
-    // FIXME
-    uint16_t randomPort = 12345;
-    connection->srcPort = randomPort;
-    addTCPConnection(connection);
-    connection->enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
-
-    return connection;
-}
-
-void Device::closeConnection(std::string dstAddr, uint16_t dstPort) {
-    TCPConnection *existingConnection =
-        getExistingConnectionOrNull(dstAddr, dstPort);
-
-    if (existingConnection == nullptr) {
-        L_ERROR(ID, "Trying to close an non existing connection");
-    } else {
-        existingConnection->enqueueEvent(TCPEvent::CloseSendFIN);
-    }
-}
-
-void Device::resetConnection(std::string dstAddr, uint16_t dstPort) {
-    TCPConnection *existingConnection =
-        getExistingConnectionOrNull(dstAddr, dstPort);
-
-    if (existingConnection == nullptr) {
-        L_ERROR(ID, "Trying to close an non existing connection");
-    } else {
-        existingConnection->enqueueEvent(TCPEvent::SendRST);
-    }
-}
-
-TCPConnection *Device::getExistingConnectionOrNull(std::string address,
-                                                   uint16_t    port) {
-    auto search = tcpConnections.find(tcpConnectionHash(address, port));
-
-    if (search != tcpConnections.end()) {
-        // The connection exists inside the hashmap but it was already closed
-        // before, so we delete it and we create a new one
-        if (search->second->stateMachine->getCurrentState()->name == "CLOSED") {
-            TCPConnection *to_remove = search->second;
-            removeTCPConnection(search->second);
-            delete to_remove;
+TCPConnection *Device::getExistingConnectionOrNull(
+    const pcpp::IPv4Address &srcAddr,
+    uint16_t                 srcPort,
+    const pcpp::IPv4Address &dstAddr,
+    uint16_t                 dstPort) {
+    for (TCPConnection *connection : tcpConnections) {
+        // garbage collector for already closed TCP connection
+        if (connection->stateMachine->getCurrentState()->name == "CLOSED") {
+            delete connection;
             return nullptr;
-        } else {
-            return search->second;
+        }
+
+        if (connection->srcAddr == srcAddr && connection->srcPort == srcPort &&
+            connection->dstAddr == dstAddr && connection->dstPort == dstPort) {
+            return connection;
+        }
+        // new TCP connection with unknown remote addresses
+        else if (connection->srcAddr == srcAddr &&
+                 connection->srcPort == srcPort &&
+                 connection->dstAddr == pcpp::IPv4Address::Zero &&
+                 connection->dstPort == 0) {
+            connection->dstAddr = dstAddr;
+            connection->dstPort == dstPort;
+            return connection;
         }
     }
-
     return nullptr;
 }
 // TODO modify the hash so that we are sure we will not have a collision
 // TODO be sure that addTCPConnection(...) do not overwrite another existing
 // connection with the same address and port
-void Device::addTCPConnection(TCPConnection *connection) {
-    tcpConnections[tcpConnectionHash(connection->dstAddr->toString(),
-                                     connection->dstPort)] = connection;
-}
+// void Device::addTCPConnection(TCPConnection *connection) {
+//     tcpConnections[tcpConnectionHash(connection->dstAddr->toString(),
+//                                      connection->dstPort)] = connection;
+// }
 
-void Device::removeTCPConnection(TCPConnection *connection) {
-    tcpConnections.erase(tcpConnectionHash(connection->dstAddr->toString(),
-                                           connection->dstPort));
-}
+// void Device::removeTCPConnection(TCPConnection *connection) {
+//     tcpConnections.erase(tcpConnectionHash(connection->dstAddr->toString(),
+//                                            connection->dstPort));
+// }
 
 
-std::size_t Device::tcpConnectionHash(std::string dstAddr, uint16_t dstPort) {
-    size_t returnHash;
+// std::size_t Device::tcpConnectionHash(std::string dstAddr, uint16_t dstPort)
+// {
+//     size_t returnHash;
 
-    size_t hash1 = std::hash<std::string>{}(dstAddr);
-    size_t hash2 = std::hash<std::string>{}(to_string(dstPort));
+//     size_t hash1 = std::hash<std::string>{}(dstAddr);
+//     size_t hash2 = std::hash<std::string>{}(to_string(dstPort));
 
-    return hash1 ^ hash2;
-}
+//     return hash1 ^ hash2;
+// }
 
-NetworkCard *Device::findNextHop(pcpp::IPv4Address *dstAddress) {
+NetworkCard *Device::findNextHop(const pcpp::IPv4Address &dstAddress) {
     int          longestMatch = -1;
     NetworkCard *result       = nullptr;
     for (TableRow *row : *routingTable) {
-        if (dstAddress->matchSubnet(row->networkIP, row->netmask) &&
+        if (dstAddress.matchSubnet(row->networkIP, row->netmask) &&
             row->toCIDR() > longestMatch) {
             longestMatch = row->toCIDR();
             result       = row->networkCard;
@@ -329,58 +320,136 @@ void Device::handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
     }
 }
 
-void Device::bgpConnect(std::string dstAddr) {
-    BGPConnection *connection = new BGPConnection(this);
-    connection->dstAddr       = dstAddr;
+// void Device::bgpConnect(std::string dstAddr) {
+//     BGPConnection *connection = new BGPConnection(this);
+//     connection->dstAddr       = dstAddr;
 
-    connection->enqueueEvent(BGPEvent::ManualStart);
+//     connection->enqueueEvent(BGPEvent::ManualStart);
 
-    bgpConnections.push_back(connection);
+//     bgpConnections.push_back(connection);
+// }
+
+// void Device::connectionConfirmed(TCPConnection *tcpConnection) {
+//     if (tcpConnection->srcPort == 179) {
+//         BGPConnection *connection = findBGPConnectionOrNull(tcpConnection);
+//         if (connection != nullptr) {
+//             connection->dstAddr = tcpConnection->srcAddr->toString();
+//             connection->enqueueEvent(BGPEvent::TcpConnectionConfirmed);
+//         }
+//     }
+// }
+
+// void Device::connectionAcked(TCPConnection *tcpConnection) {
+//     if (tcpConnection->dstPort == 179) {
+//         BGPConnection *bgpConnection =
+//         findBGPConnectionOrNull(tcpConnection); if (bgpConnection != nullptr)
+//         {
+//             bgpConnection->enqueueEvent(BGPEvent::Tcp_CR_Acked);
+//         }
+//     }
+// }
+
+// BGPConnection *Device::findBGPConnectionOrNull(TCPConnection *tcpConnection)
+// {
+//     for (BGPConnection *connection : bgpConnections) {
+//         if (connection->tcpConnection == tcpConnection) {
+//             return connection;
+//         }
+//     }
+//     return nullptr;
+// }
+
+// void Device::bgpListen() {
+//     BGPConnection *connection = new BGPConnection(this);
+
+//     connection->enqueueEvent(
+//         BGPEvent::ManualStart_with_PassiveTcpEstablishment);
+
+//     bgpConnections.push_back(connection);
+// }
+
+// void Device::tcpConnectionClosed(TCPConnection *tcpConnection) {
+//     if (tcpConnection->dstPort == 179) {
+//         BGPConnection *bgpConnection =
+//         findBGPConnectionOrNull(tcpConnection); if (bgpConnection != nullptr)
+//         {
+//             bgpConnection->enqueueEvent(BGPEvent::TcpConnectionFails);
+//         }
+//     }
+// }
+
+Socket *Device::getNewSocket(int type, int domain) {
+    Socket *socket = new Socket(type, domain);
+
+    socket->device = this;
+    listeningSockets.push_back(socket);
+
+    return socket;
 }
 
-void Device::connectionConfirmed(TCPConnection *tcpConnection) {
-    if (tcpConnection->srcPort == 179) {
-        BGPConnection *connection = findBGPConnectionOrNull(tcpConnection);
-        if (connection != nullptr) {
-            connection->dstAddr = tcpConnection->srcAddr->toString();
-            connection->enqueueEvent(BGPEvent::TcpConnectionConfirmed);
-        }
-    }
-}
 
-void Device::connectionAcked(TCPConnection *tcpConnection) {
-    if (tcpConnection->dstPort == 179) {
-        BGPConnection *bgpConnection = findBGPConnectionOrNull(tcpConnection);
-        if (bgpConnection != nullptr) {
-            bgpConnection->enqueueEvent(BGPEvent::Tcp_CR_Acked);
-        }
-    }
-}
-
-BGPConnection *Device::findBGPConnectionOrNull(TCPConnection *tcpConnection) {
-    for (BGPConnection *connection : bgpConnections) {
-        if (connection->tcpConnection == tcpConnection) {
-            return connection;
+Socket *Device::getAssociatedListeningSocketOrNull(
+    TCPConnection *tcpConnection) {
+    for (Socket *s : listeningSockets) {
+        if (tcpConnection->srcAddr == s->srcAddr &&
+            tcpConnection->srcPort == s->srcPort) {
+            return s;
         }
     }
     return nullptr;
 }
 
-void Device::bgpListen() {
-    BGPConnection *connection = new BGPConnection(this);
-
-    connection->enqueueEvent(
-        BGPEvent::ManualStart_with_PassiveTcpEstablishment);
-
-    bgpConnections.push_back(connection);
+Socket *Device::getAssociatedConnectedSocketOrNull(
+    TCPConnection *tcpConnection) {
+    for (Socket *s : connectedSockets) {
+        if (tcpConnection->srcAddr == s->srcAddr &&
+            tcpConnection->srcPort == s->srcPort &&
+            tcpConnection->dstAddr == s->dstAddr &&
+            tcpConnection->dstPort == s->dstPort) {
+            return s;
+        }
+    }
+    return nullptr;
 }
 
-void Device::tcpConnectionClosed(TCPConnection *tcpConnection) {
-    if (tcpConnection->dstPort == 179) {
-        BGPConnection *bgpConnection = findBGPConnectionOrNull(tcpConnection);
-        if (bgpConnection != nullptr) {
-            bgpConnection->enqueueEvent(BGPEvent::TcpConnectionFails);
+TCPConnection *Device::getAssociatedTCPconnectionOrNull(Socket *socket) {
+    for (TCPConnection *c : tcpConnections) {
+        if (c->srcAddr == socket->srcAddr && c->srcPort == socket->srcPort &&
+            c->dstAddr == socket->dstAddr && c->dstPort == socket->dstPort) {
+            return c;
         }
+    }
+
+    return nullptr;
+}
+
+TCPConnection *Device::getNewTCPConnection(const pcpp::IPv4Address &srcAddr,
+                                           uint16_t                 srcPort) {
+    TCPConnection *connection = new TCPConnection(this);
+
+    connection->srcAddr = srcAddr;
+    connection->srcPort = srcPort;
+
+    tcpConnections.push_back(connection);
+
+    return connection;
+}
+
+void Device::notifyListeningSocket(TCPConnection *connection) {
+    Socket *s = getAssociatedListeningSocketOrNull(connection);
+    if (s != nullptr) {
+        s->dataArrived();
+    } else {
+        L_FATAL(ID, "No listening socket associated with TCP connection");
+    }
+}
+
+void Device::notifyConnectedSocket(TCPConnection *connection) {
+    Socket *s = getAssociatedConnectedSocketOrNull(connection);
+    if (s != nullptr) {
+        s->dataArrived();
+    } else {
+        L_FATAL(ID, "No connected socket associated with TCP connection");
     }
 }
 

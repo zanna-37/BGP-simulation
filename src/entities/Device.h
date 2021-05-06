@@ -15,14 +15,18 @@
 #include <utility>
 #include <vector>
 
+#include "../bgp/BGPApplication.h"
 #include "../bgp/BGPConnection.h"
 #include "../ip/TableRow.h"
+#include "../socket/Socket.h"
 #include "../tcp/TCPConnection.h"
 #include "NetworkCard.h"
 
 // forward declarations
+#include "../bgp/BGPApplication.fwd.h"
 #include "../bgp/BGPConnection.fwd.h"
 #include "../ip/TableRow.fwd.h"
+#include "../socket/Socket.fwd.h"
 #include "../tcp/TCPConnection.fwd.h"
 #include "NetworkCard.fwd.h"
 
@@ -105,7 +109,8 @@ class Device {
      * connects or receives a SYN, it istanzitate a new TCP connection that is
      * stored here.
      */
-    std::map<std::size_t, TCPConnection *> tcpConnections;
+    // std::map<std::size_t, TCPConnection *> tcpConnections;
+    std::vector<TCPConnection *> tcpConnections;
 
 
     std::vector<BGPConnection *> bgpConnections;
@@ -117,6 +122,25 @@ class Device {
      * (// TODO change it to a list of connection, one for each open port)
      */
     TCPConnection *listenConnection = nullptr;
+
+    /**
+     * A list of listening socket in the device. According to the
+     * linux implementation, listening sockets are never used as connected
+     * sockets, since accept return a new socket. We gather all the listening
+     * sockets in this vector
+     */
+    std::vector<Socket *> listeningSockets;
+
+    /**
+     * List of the socket initialized by the device and used by
+     * Applications
+     * @warning the application connection takes care of deallocating these
+     * sockets
+     */
+    std::vector<Socket *> connectedSockets;
+
+
+    BGPApplication *bgpApplication = nullptr;
 
     Device(string ID, pcpp::IPv4Address defaultGateway);
 
@@ -176,7 +200,8 @@ class Device {
      * @param layers the std::stack simulating the packet
      * @param dstAddr the destination address of the packet
      */
-    void sendPacket(stack<pcpp::Layer *> *layers, std::string dstAddr);
+    void sendPacket(stack<pcpp::Layer *> *   layers,
+                    const pcpp::IPv4Address &dstAddr);
 
 
     /**
@@ -200,7 +225,7 @@ class Device {
      * @param dstPort the destination port the device wants to connect to
      * @return the TCP connection created
      */
-    TCPConnection *connect(std::string dstAddr, uint16_t dstPort);
+    TCPConnection *connect(const pcpp::IPv4Address &dstAddr, uint16_t dstPort);
 
     /**
      * Gently close the connection using 4-way closing mechanism, following TCP
@@ -226,8 +251,10 @@ class Device {
      * @param port the destination port of the connection
      * @return the existing TCPConnection or a \a nullptr
      */
-    TCPConnection *getExistingConnectionOrNull(std::string address,
-                                               uint16_t    port);
+    TCPConnection *getExistingConnectionOrNull(const pcpp::IPv4Address &srcAddr,
+                                               uint16_t                 srcPort,
+                                               const pcpp::IPv4Address &dstAddr,
+                                               uint16_t dstPort);
 
 
     /**
@@ -251,7 +278,7 @@ class Device {
      * nullptr is returned
      * @param dstAddress the destnation address of the packet
      */
-    NetworkCard *findNextHop(pcpp::IPv4Address *dstAddress);
+    NetworkCard *findNextHop(const pcpp::IPv4Address &dstAddress);
 
     /**
      * Print the routing table, using <iomanip> library
@@ -280,6 +307,62 @@ class Device {
 
     BGPConnection *findBGPConnectionOrNull(TCPConnection *tcpConnection);
 
+    /**
+     * return a newly created socket for a connection
+     * @param domain the network protocol, only AF_INET implemented
+     * @param type the type of socket, choose between SOCK_STREAM or
+     * SOCK_DGRAM, for BGP we use TCP so we will use SOCK_STREAM
+     * @return a pointer to the newly created socket
+     */
+    Socket *getNewSocket(int domain, int type);
+
+    /**
+     * Get the associated listening Socket based on a TCPConnection, or \a
+     * nullptr
+     * @param tcpConnection
+     * @return a poitner to the associated socket, or \a nullptr
+     */
+    Socket *getAssociatedListeningSocketOrNull(TCPConnection *);
+
+
+    /**
+     * Get the associated connected Socket based on a TCPConnection, or \a
+     * nullptr
+     * @param tcpConnection
+     * @return a poitner to the associated socket, or \a nullptr
+     */
+    Socket *getAssociatedConnectedSocketOrNull(TCPConnection *);
+
+    /**
+     * Get the associated TCPConnection based on a Socket, or \a nullptr
+     * @param socket
+     * @return a poitner to the associated tcpConnection, or \a nullptr
+     */
+    TCPConnection *getAssociatedTCPconnectionOrNull(Socket *);
+
+    /**
+     * Return a pointer to the newly created TCPConnection based on srcAddr and
+     *  srcPort
+     * @param srcAddr the source address
+     * @param srcPort the source port
+     * @return a pointer to the newly created TCPConnection
+     */
+    TCPConnection *getNewTCPConnection(const pcpp::IPv4Address &srcAddr,
+                                       uint16_t                 srcPort);
+
+    /**
+     * Notify the listening socket that data the TCP Connection is ready to be
+     * connected with the remote peer.
+     */
+    void notifyListeningSocket(TCPConnection *connection);
+
+    /**
+     * Notify the connected socket that the TCPConnection has completed its
+    handshake process and it is ready to send data
+     *
+     */
+    void notifyConnectedSocket(TCPConnection *connection);
+
    private:
     /**
      * private methd to print a single element in the routing table
@@ -306,6 +389,9 @@ class Device {
     void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
 
     friend class NetworkCard;
+
+   protected:
+    virtual void startInternal() = 0;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H
