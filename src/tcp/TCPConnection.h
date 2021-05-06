@@ -71,6 +71,14 @@ class TCPConnection {
     std::condition_variable               sendingQueue_wakeup;
     std::thread*                          sendingThread = nullptr;
 
+    // Application receiving queue
+    std::queue<std::stack<pcpp::Layer*>*> appReceivingQueue;
+    std::mutex                            appReceivingQueue_mutex;
+    std::condition_variable               appReceivingQueue_wakeup;
+
+    // We do not need an application sending queue, since we immediately push
+    // the packet into the TCP sending queue
+
     TCPConnection(Device* owner);
     ~TCPConnection();
     /**
@@ -130,6 +138,9 @@ class TCPConnection {
 
     void closeConnection();
 
+    std::stack<pcpp::Layer*>* waitForApplicationData();
+    void enqueueApplicationLayers(std::stack<pcpp::Layer*>* applicationLayers);
+    void sendApplicationData(std::stack<pcpp::Layer*>* layers);
 
    private:
     void stopThread();

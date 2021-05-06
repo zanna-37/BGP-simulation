@@ -70,17 +70,6 @@ uint8_t TCPConnection::parseTCPFlags(pcpp::tcphdr* tcpHeader) {
     return result;
 }
 
-
-void TCPConnection::sendPacket(std::stack<pcpp::Layer*>* layers) {
-    pcpp::TcpLayer* tcpLayer          = new pcpp::TcpLayer(srcPort, dstPort);
-    tcpLayer->getTcpHeader()->pshFlag = 1;
-    tcpLayer->getTcpHeader()->ackFlag = 1;
-
-    layers->push(tcpLayer);
-
-    owner->sendPacket(layers, dstAddr);
-}
-
 void TCPConnection::listen() {
     enqueueEvent(TCPEvent::PassiveOpen);
     start();
@@ -206,8 +195,7 @@ void TCPConnection::processFlags(uint8_t                   flags,
         layers->push(tcpLayer);
         sendPacket(layers);
         // Application layer will handle the message
-        owner->getAssociatedConnectedSocketOrNull(this)
-            ->enqueueApplicationLayers(applicationLayers);
+        enqueueApplicationLayers(applicationLayers);
         // socket.recv(applicationLayers)
     } else {
         L_ERROR(owner->ID, "TCP flag combination not handled");
@@ -292,4 +280,37 @@ void TCPConnection::closeConnection() {
     } else {
         L_FATAL(name, "No connected socket associated to the connection");
     }
+}
+
+std::stack<pcpp::Layer*>* TCPConnection::waitForApplicationData() {
+    std::unique_lock<std::mutex> appReceivingQueue_uniqueLock(
+        appReceivingQueue_mutex);
+
+    while (appReceivingQueue.empty() && running) {
+        appReceivingQueue_wakeup.wait(appReceivingQueue_uniqueLock);
+
+        if (appReceivingQueue.empty() && running) {
+            L_DEBUG(name, "Spurious wakeup");
+        }
+    }
+
+    std::stack<pcpp::Layer*>* layers = appReceivingQueue.front();
+    appReceivingQueue.pop();
+
+    return layers;
+}
+
+void TCPConnection::enqueueApplicationLayers(std::stack<pcpp::Layer*>* layers) {
+    std::unique_lock<std::mutex> appReceivingQueue_uniqueLock(
+        appReceivingQueue_mutex);
+
+    appReceivingQueue.push(layers);
+    appReceivingQueue_wakeup.notify_one();
+    appReceivingQueue_uniqueLock.unlock();
+}
+
+void TCPConnection::sendApplicationData(std::stack<pcpp::Layer*>* layers) {
+    pcpp::TcpLayer* tcpLayer = craftTCPLayer(srcPort, dstPort, PSH + ACK);
+    layers->push(tcpLayer);
+    sendPacket(layers);
 }

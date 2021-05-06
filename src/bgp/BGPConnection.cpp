@@ -39,6 +39,9 @@ void BGPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
             bgpLayer->getCommonHeaderOrNull();
         if (bgpHeader) {
             BGPOpenLayer* bgpOpenLayer = nullptr;
+
+            // here we will call sendData if we want to send back a packet to
+            // our peer
             switch (bgpHeader->type) {
                 case BGPLayer::BGPMessageType::OPEN:
                     L_DEBUG(owner->ID, "OPEN message arrived");
@@ -89,4 +92,8 @@ void BGPConnection::receiveData() {
             processMessage(layers);
         }
     });
+}
+
+void BGPConnection::sendData(std::stack<pcpp::Layer*>* layers) {
+    connectedSocket->send(layers);
 }

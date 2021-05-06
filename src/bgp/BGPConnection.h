@@ -59,6 +59,7 @@ class BGPConnection {
     void closeConnection();
 
     void receiveData();
+    void sendData(std::stack<pcpp::Layer*>* layers);
 };
 
 #endif

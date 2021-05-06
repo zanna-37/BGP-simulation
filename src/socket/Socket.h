@@ -40,12 +40,6 @@ class Socket {
     int     type;
     Device* device;
 
-    // application data receiving queue
-    std::queue<std::stack<pcpp::Layer*>*> receivingQueue;
-    std::mutex                            receivingQueue_mutex;
-    std::condition_variable               receivingQueue_wakeup;
-    std::thread*                          receivingThread = nullptr;
-
     bool         running      = false;
     std::thread* socketThread = nullptr;
     std::string  name         = "Socket";
@@ -76,7 +70,6 @@ class Socket {
     void                      send(std::stack<pcpp::Layer*>* applicationLayers);
     std::stack<pcpp::Layer*>* recv();
 
-    void enqueueApplicationLayers(std::stack<pcpp::Layer*>* layers);
 
     void dataArrived();
 };

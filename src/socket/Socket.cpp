@@ -2,42 +2,9 @@
 
 #include "../logger/Logger.h"
 
-Socket::Socket(int type, int domain) : type(type), domain(domain) {
-    running         = true;
-    receivingThread = new std::thread([&]() {
-        while (running) {
-            std::unique_lock<std::mutex> receivingQueue_uniquLock(
-                receivingQueue_mutex);
+Socket::Socket(int type, int domain) : type(type), domain(domain) {}
 
-            while (receivingQueue.empty() && running) {
-                receivingQueue_wakeup.wait(receivingQueue_uniquLock);
-
-                if (receivingQueue.empty() && running) {
-                    L_DEBUG(name, "Spurious wakeup");
-                }
-            }
-
-            if (running) {
-                std::stack<pcpp::Layer*>* applicationLayers =
-                    receivingQueue.front();
-                receivingQueue.pop();
-                applicationConnection->processMessage(applicationLayers);
-            } else {
-                L_DEBUG(name, "Shutting Down");
-            }
-        }
-    });
-}
-
-Socket::~Socket() {
-    running = false;
-
-    std::unique_lock<std::mutex> receivingQueue_uniqueLock(
-        receivingQueue_mutex);
-
-    receivingQueue_wakeup.notify_one();
-    receivingQueue_uniqueLock.unlock();
-}
+Socket::~Socket() { running = false; }
 int Socket::listen() {
     TCPConnection* tcpConnection =
         device->getNewTCPConnection(srcAddr, srcPort);
@@ -133,27 +100,14 @@ void Socket::dataArrived() {
 }
 
 std::stack<pcpp::Layer*>* Socket::recv() {
-    std::unique_lock<std::mutex> receivingQueue_uniqueLock(
-        receivingQueue_mutex);
-    while (receivingQueue.empty()) {
-        receivingQueue_wakeup.wait(receivingQueue_uniqueLock);
-
-        if (receivingQueue.empty()) {
-            L_DEBUG(name, "Spurious wakeup");
-        }
-    }
-
-    std::stack<pcpp::Layer*>* layers = receivingQueue.front();
-    receivingQueue.pop();
-
+    std::stack<pcpp::Layer*>* layers =
+        device->getAssociatedTCPconnectionOrNull(this)
+            ->waitForApplicationData();
     return layers;
 }
 
 
-void Socket::enqueueApplicationLayers(std::stack<pcpp::Layer*>* layers) {
-    std::unique_lock<std::mutex> receivingQueue_uniqueLock(
-        receivingQueue_mutex);
-    receivingQueue.push(layers);
-    receivingQueue_wakeup.notify_one();
-    receivingQueue_uniqueLock.unlock();
+void Socket::send(std::stack<pcpp::Layer*>* applicationLayers) {
+    device->getAssociatedTCPconnectionOrNull(this)->sendApplicationData(
+        applicationLayers);
 }
