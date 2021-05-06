@@ -3,32 +3,41 @@
 
 
 #include <cassert>
+#include <mutex>
+#include <thread>
 
-#include "../entities/Device.h"
+#include "../entities/Router.h"
+#include "../socket/Socket.h"
 #include "../tcp/TCPConnection.h"
 #include "BGPEvent.h"
 #include "fsm/BGPStateMachine.h"
 
-
 // forward declarations
-#include "../entities/Device.fwd.h"
+#include "../entities/Router.fwd.h"
+#include "../socket/Socket.fwd.h"
 #include "../tcp/TCPConnection.fwd.h"
 #include "fsm/BGPStateMachine.fwd.h"
 
 class BGPConnection {
-   public:
    private:
     BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
 
    public:
-    Device* owner;
+    Router*           owner   = nullptr;
+    std::string       name    = "BGPconnection";
+    bool              running = false;
+    pcpp::IPv4Address srcAddr = pcpp::IPv4Address::Zero;
+    pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;
 
-    std::string          dstAddr;
-    TCPConnection*       tcpConnection = nullptr;
-    std::chrono::seconds holdTime      = 0s;
+    std::chrono::seconds holdTime = 0s;
+
+    Socket* connectedSocket = nullptr;
+
+    std::thread* receivingThread = nullptr;
+
     // Constructors
-    BGPConnection(Device* owner);
+    BGPConnection(Router* owner);
 
     // Destructor
     ~BGPConnection();
@@ -44,6 +53,12 @@ class BGPConnection {
      * @param layers the BGP layers contained in the received message
      */
     void processMessage(std::stack<pcpp::Layer*>* layers);
+
+    void connect();
+
+    void closeConnection();
+
+    void receiveData();
 };
 
 #endif
