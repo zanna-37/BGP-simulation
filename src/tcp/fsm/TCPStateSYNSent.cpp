@@ -17,8 +17,8 @@ TCPStateSYNSent::TCPStateSYNSent(TCPStateMachine* stateMachine)
 }
 
 bool TCPStateSYNSent::onEvent(TCPEvent event) {
-    std::stack<pcpp::Layer*>* layers   = nullptr;
-    pcpp::TcpLayer*           tcpLayer = nullptr;
+    // std::stack<pcpp::Layer*>* layers   = nullptr;
+    // pcpp::TcpLayer*           tcpLayer = nullptr;
 
     bool handled = true;
     switch (event) {
@@ -27,14 +27,14 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
             // the other device but not an ACK for its own SYN, it acknowledges
             // the SYN it receives and then transitions to SYN-RECEIVED to wait
             // for the acknowledgment to its SYN.
-            layers   = new std::stack<pcpp::Layer*>();
-            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-                                     stateMachine->connection->dstPort,
-                                     ACK);
-            layers->push(tcpLayer);
-            stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr->toString());
-            delete layers;
+            // layers   = new std::stack<pcpp::Layer*>();
+            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+            //                          stateMachine->connection->dstPort,
+            //                          ACK);
+            // layers->push(tcpLayer);
+            // stateMachine->connection->owner->sendPacket(
+            //     layers, stateMachine->connection->dstAddr->toString());
+            // delete layers;
             stateMachine->changeState(new TCPStateSYNReceived(stateMachine));
 
 
@@ -45,33 +45,33 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
             // the SYN received and then moves straight to the ESTABLISHED
             // state.
 
-            layers   = new std::stack<pcpp::Layer*>();
-            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-                                     stateMachine->connection->dstPort,
-                                     ACK);
-            layers->push(tcpLayer);
-            stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr->toString());
-            delete layers;
+            // layers   = new std::stack<pcpp::Layer*>();
+            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+            //                          stateMachine->connection->dstPort,
+            //                          ACK);
+            // layers->push(tcpLayer);
+            // stateMachine->connection->owner->sendPacket(
+            //     layers, stateMachine->connection->dstAddr->toString());
+            // delete layers;
             // notify the socket
             stateMachine->connection->setConnected(true);
             stateMachine->connection->owner->notifyConnectedSocket(
                 stateMachine->connection);
             stateMachine->changeState(new TCPStateEnstablished(stateMachine));
 
-            stateMachine->connection->owner->connectionAcked(
-                stateMachine->connection);
+            // stateMachine->connection->owner->connectionAcked(
+            //     stateMachine->connection);
 
             break;
         case TCPEvent::SendRST:
-            layers   = new std::stack<pcpp::Layer*>();
-            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-                                     stateMachine->connection->dstPort,
-                                     RST);
-            layers->push(tcpLayer);
-            stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr->toString());
-            delete layers;
+            // layers   = new std::stack<pcpp::Layer*>();
+            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+            //                          stateMachine->connection->dstPort,
+            //                          RST);
+            // layers->push(tcpLayer);
+            // stateMachine->connection->owner->sendPacket(
+            //     layers, stateMachine->connection->dstAddr->toString());
+            // delete layers;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
         case TCPEvent::ReceiveRST:

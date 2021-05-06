@@ -15,15 +15,12 @@
 #include <utility>
 #include <vector>
 
-#include "../bgp/BGPApplication.h"
-#include "../bgp/BGPConnection.h"
 #include "../ip/TableRow.h"
 #include "../socket/Socket.h"
 #include "../tcp/TCPConnection.h"
 #include "NetworkCard.h"
 
 // forward declarations
-#include "../bgp/BGPApplication.fwd.h"
 #include "../bgp/BGPConnection.fwd.h"
 #include "../ip/TableRow.fwd.h"
 #include "../socket/Socket.fwd.h"
@@ -113,9 +110,6 @@ class Device {
     std::vector<TCPConnection *> tcpConnections;
 
 
-    std::vector<BGPConnection *> bgpConnections;
-
-
     /**
      * If a deivice has open ports and accept connections, this pointer is
      * initialized
@@ -140,12 +134,10 @@ class Device {
     std::vector<Socket *> connectedSockets;
 
 
-    BGPApplication *bgpApplication = nullptr;
-
     Device(string ID, pcpp::IPv4Address defaultGateway);
 
 
-    virtual ~Device();
+    ~Device();
 
     /**
      * Method used by the parser to populate the network cards vector. The
@@ -268,9 +260,9 @@ class Device {
      */
     void removeTCPConnection(TCPConnection *connection);
 
-    void addBGPConnection(BGPConnection connection);
+    // void addBGPConnection(BGPConnection connection);
 
-    void removeBGPConnection(BGPConnection connection);
+    // void removeBGPConnection(BGPConnection connection);
 
     /**
      * Search for the network card that have to send the packet, based on the IP
@@ -295,7 +287,7 @@ class Device {
                                 TCPConnection *            connection);
 
 
-    void bgpConnect(std::string dstAddr);
+    // void bgpConnect(std::string dstAddr);
 
     void bgpListen();
 
@@ -305,7 +297,7 @@ class Device {
 
     void tcpConnectionClosed(TCPConnection *connection);
 
-    BGPConnection *findBGPConnectionOrNull(TCPConnection *tcpConnection);
+    // BGPConnection *findBGPConnectionOrNull(TCPConnection *tcpConnection);
 
     /**
      * return a newly created socket for a connection
@@ -363,6 +355,8 @@ class Device {
      */
     void notifyConnectedSocket(TCPConnection *connection);
 
+    virtual void startInternal() = 0;
+
    private:
     /**
      * private methd to print a single element in the routing table
@@ -389,9 +383,6 @@ class Device {
     void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
 
     friend class NetworkCard;
-
-   protected:
-    virtual void startInternal() = 0;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H

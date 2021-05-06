@@ -14,11 +14,7 @@ TCPConnection ::TCPConnection(Device* owner) : owner(owner) {
     this->stateMachine->start();
 }
 
-TCPConnection::~TCPConnection() {
-    delete stateMachine;
-
-    stopThread();
-}
+TCPConnection::~TCPConnection() { delete stateMachine; }
 
 void TCPConnection::enqueueEvent(TCPEvent event) {
     stateMachine->enqueueEvent(event);
@@ -273,13 +269,16 @@ void TCPConnection::receivePacket(std::stack<pcpp::Layer*>* layers) {
 
 
 void TCPConnection::closeConnection() {
-    Socket* s = owner->getAssociatedConnectedSocketOrNull(this);
+    // TODO handle the notification to higher level that the TCP connection has
+    // been closed
 
-    if (s != nullptr) {
-        s->applicationConnection->closeConnection();
-    } else {
-        L_FATAL(name, "No connected socket associated to the connection");
-    }
+    // Socket* s = owner->getAssociatedConnectedSocketOrNull(this);
+
+    // if (s != nullptr) {
+    //     s->applicationConnection->closeConnection();
+    // } else {
+    //     L_FATAL(name, "No connected socket associated to the connection");
+    // }
 }
 
 std::stack<pcpp::Layer*>* TCPConnection::waitForApplicationData() {

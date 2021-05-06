@@ -54,9 +54,6 @@ class Socket {
     std::mutex              tcpConnection_mutex;
     std::condition_variable tcpConnection_wakeup;
 
-    // Application connection
-    BGPConnection* applicationConnection = nullptr;
-
 
     Socket(int domain, int type);
     ~Socket();

@@ -106,18 +106,18 @@ int main(int argc, char *argv[]) {
         device->start();
     }
 
-    devices->at(0)->listen();
-    std::string testAddress("90.36.25.1");
-    devices->at(2)->connect(testAddress, 179);
+    // devices->at(0)->listen();
+    // std::string testAddress("90.36.25.1");
+    // devices->at(2)->connect(testAddress, 179);
 
-    this_thread::sleep_for(5s);
-    devices->at(2)->resetConnection(testAddress, 179);
-    this_thread::sleep_for(5s);
-    devices->at(2)->closeConnection(testAddress, 179);
-    this_thread::sleep_for(2s);
-    testAddress = "90.36.25.123";
-    devices->at(0)->closeConnection(testAddress, 12345);
-    this_thread::sleep_for(5s);
+    // this_thread::sleep_for(5s);
+    // devices->at(2)->resetConnection(testAddress, 179);
+    // this_thread::sleep_for(5s);
+    // devices->at(2)->closeConnection(testAddress, 179);
+    // this_thread::sleep_for(2s);
+    // testAddress = "90.36.25.123";
+    // devices->at(0)->closeConnection(testAddress, 12345);
+    // this_thread::sleep_for(5s);
 
     // BGPConnection connection(devices->at(0));
     // connection.enqueueEvent(AutomaticStart);

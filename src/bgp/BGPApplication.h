@@ -6,11 +6,12 @@
 #include <thread>
 #include <vector>
 
-#include "../entities/Router.fwd.h"
+#include "../entities/Router.h"
 #include "../socket/Socket.h"
 #include "BGPConnection.h"
 
 // forward declarations
+#include "../entities/Router.fwd.h"
 #include "BGPConnection.fwd.h"
 
 

@@ -24,9 +24,9 @@ class BGPState {
      */
     virtual bool onEvent(BGPEvent) = 0;
 
-    void initiateTCPConnection();
+    // void initiateTCPConnection();
 
-    void dropTCPConnection();
+    // void dropTCPConnection();
 };
 
 #endif

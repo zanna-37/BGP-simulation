@@ -26,7 +26,7 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->connectRetryTimer->start();
 
             // TODO initiates a TCP connection to the other BGP peer,
-            initiateTCPConnection();
+            // initiateTCPConnection();
 
             // TODO listens for a connection that may be initiated by the
             // remote
@@ -51,9 +51,9 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             // TODO listens for a connection that may be initiated by the remote
             //   peer, and
-            stateMachine->connection->owner->listen();
-            stateMachine->connection->tcpConnection =
-                stateMachine->connection->owner->listenConnection;
+            // stateMachine->connection->owner->listen();
+            // stateMachine->connection->tcpConnection =
+            //     stateMachine->connection->owner->listenConnection;
 
             // - changes its state to Active.
             stateMachine->changeState(new BGPStateActive(stateMachine));

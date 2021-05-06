@@ -5,8 +5,12 @@
 
 #include <string>
 
+#include "../bgp/BGPApplication.h"
 #include "Device.h"
 #include "NetworkCard.h"
+
+// forward declarations
+#include "../bgp/BGPApplication.fwd.h"
 
 using namespace std;
 
@@ -22,6 +26,8 @@ class Router : public virtual Device {
     bool   running = false;
 
     std::vector<pcpp::IPv4Address> peerList;
+
+    BGPApplication *bgpApplication = nullptr;
     // TODO: announced_prefixes
     // TODO: local_preferences
     // TODO: trust
@@ -30,7 +36,7 @@ class Router : public virtual Device {
         : Device(std::move(ID), defaultGateway),
           AS_number(std::move(AS_number)) /*TODO add peer list*/ {}
 
-    ~Router() override = default;
+    ~Router();
 
     /**
      * It forward the message to the next hop, if the message is not of this
@@ -41,7 +47,7 @@ class Router : public virtual Device {
     void forwardMessage(stack<pcpp::Layer *> *layers,
                         NetworkCard *         networkCard) override;
 
-    void startInternal();
+    void startInternal() override;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_ROUTER_H

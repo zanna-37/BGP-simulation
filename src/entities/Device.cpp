@@ -42,10 +42,9 @@ Device::~Device() {
 
     delete listenConnection;
 
-    for (BGPConnection *connection : bgpConnections) {
-        delete connection;
-    }
-    delete bgpApplication;
+    // for (BGPConnection *connection : bgpConnections) {
+    //     delete connection;
+    // }
 
     // std::map<std::size_t, TCPConnection *>::iterator it;
     // for (it = tcpConnections.begin(); it != tcpConnections.end(); ++it) {
@@ -127,7 +126,7 @@ void Device::sendPacket(stack<pcpp::Layer *> *   layers,
                         const pcpp::IPv4Address &dstAddr) {
     pcpp::IPv4Layer *ipLayer = new pcpp::IPv4Layer();
     ipLayer->setDstIPv4Address(dstAddr);
-    pcpp::IPv4Address dstAddr = ipLayer->getDstIPv4Address();
+    // pcpp::IPv4Address dstAddr = ipLayer->getDstIPv4Address();
 
     NetworkCard *nextHopNetworkCard = findNextHop(dstAddr);
     if (nextHopNetworkCard == nullptr) {
@@ -304,21 +303,22 @@ void Device::printTable() {
 }
 
 
-void Device::handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
-                                    TCPConnection *            tcpConnection) {
-    // the device will call the proper connection callback
+// void Device::handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
+//                                     TCPConnection *            tcpConnection)
+//                                     {
+//     // the device will call the proper connection callback
 
-    if (tcpConnection->srcPort == 179) {
-        for (BGPConnection *connection : bgpConnections) {
-            if (connection->tcpConnection == tcpConnection) {
-                connection->processMessage(layers);
-                return;
-            }
-        }
+//     if (tcpConnection->srcPort == 179) {
+//         for (BGPConnection *connection : bgpConnections) {
+//             if (connection->tcpConnection == tcpConnection) {
+//                 connection->processMessage(layers);
+//                 return;
+//             }
+//         }
 
-        // handle new BGP connection
-    }
-}
+//         // handle new BGP connection
+//     }
+// }
 
 // void Device::bgpConnect(std::string dstAddr) {
 //     BGPConnection *connection = new BGPConnection(this);

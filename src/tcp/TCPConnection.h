@@ -107,9 +107,6 @@ class TCPConnection {
      */
     TCPState* getCurrentState();
 
-
-    void sendPacket(std::stack<pcpp::Layer*>* layers);
-
     void start();
 
     void listen();
@@ -141,9 +138,6 @@ class TCPConnection {
     std::stack<pcpp::Layer*>* waitForApplicationData();
     void enqueueApplicationLayers(std::stack<pcpp::Layer*>* applicationLayers);
     void sendApplicationData(std::stack<pcpp::Layer*>* layers);
-
-   private:
-    void stopThread();
 };
 
 #endif

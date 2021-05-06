@@ -12,8 +12,8 @@ TCPStateListen::TCPStateListen(TCPStateMachine *stateMachine)
             "State created: " + name);
 }
 bool TCPStateListen::onEvent(TCPEvent event) {
-    std::stack<pcpp::Layer *> *layers   = nullptr;
-    pcpp::TcpLayer *           tcpLayer = nullptr;
+    // std::stack<pcpp::Layer *> *layers   = nullptr;
+    // pcpp::TcpLayer *           tcpLayer = nullptr;
 
     bool handled = true;
     switch (event) {
@@ -22,25 +22,25 @@ bool TCPStateListen::onEvent(TCPEvent event) {
             // message that contains its own SYN and also acknowledges the one
             // it received. The server moves to the SYN-RECEIVED state.
 
-            layers   = new std::stack<pcpp::Layer *>();
-            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-                                     stateMachine->connection->dstPort,
-                                     SYN + ACK);
-            layers->push(tcpLayer);
-            stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr->toString());
-            delete layers;
+            // layers   = new std::stack<pcpp::Layer *>();
+            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+            //                          stateMachine->connection->dstPort,
+            //                          SYN + ACK);
+            // layers->push(tcpLayer);
+            // stateMachine->connection->owner->sendPacket(
+            //     layers, stateMachine->connection->dstAddr->toString());
+            // delete layers;
             stateMachine->changeState(new TCPStateSYNReceived(stateMachine));
             break;
         case TCPEvent::SendRST:
-            layers   = new std::stack<pcpp::Layer *>();
-            tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-                                     stateMachine->connection->dstPort,
-                                     RST);
-            layers->push(tcpLayer);
-            stateMachine->connection->owner->sendPacket(
-                layers, stateMachine->connection->dstAddr->toString());
-            delete layers;
+            // layers   = new std::stack<pcpp::Layer *>();
+            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
+            //                          stateMachine->connection->dstPort,
+            //                          RST);
+            // layers->push(tcpLayer);
+            // stateMachine->connection->owner->sendPacket(
+            //     layers, stateMachine->connection->dstAddr->toString());
+            // delete layers;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 
