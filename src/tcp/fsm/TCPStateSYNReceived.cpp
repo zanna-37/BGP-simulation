@@ -22,6 +22,10 @@ bool TCPStateSYNReceived::onEvent(TCPEvent event) {
         case TCPEvent::ReceiveACK:
             // When the device receives the ACK to the SYN it sent, it
             // transitions to the ESTABLISHED state.
+
+            stateMachine->connection->setConnected(true);
+            stateMachine->connection->owner->notifyListeningSocket(
+                stateMachine->connection);
             stateMachine->changeState(new TCPStateEnstablished(stateMachine));
 
             break;

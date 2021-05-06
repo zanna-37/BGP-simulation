@@ -53,6 +53,10 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
             stateMachine->connection->owner->sendPacket(
                 layers, stateMachine->connection->dstAddr->toString());
             delete layers;
+            // notify the socket
+            stateMachine->connection->setConnected(true);
+            stateMachine->connection->owner->notifyConnectedSocket(
+                stateMachine->connection);
             stateMachine->changeState(new TCPStateEnstablished(stateMachine));
 
             stateMachine->connection->owner->connectionAcked(
