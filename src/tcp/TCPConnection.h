@@ -4,7 +4,9 @@
 #include <IPv4Layer.h>
 #include <TcpLayer.h>
 
+#include <mutex>
 #include <stack>
+#include <thread>
 
 #include "../entities/Device.h"
 #include "TCPEvent.h"
@@ -18,6 +20,7 @@
 
 class TCPConnection {
    public:
+    std::string name = "TCPConnection";
     /**
      * The connection state machine. It is based on RFC 793
      */
@@ -30,7 +33,7 @@ class TCPConnection {
     /**
      * The connection source IP address
      */
-    pcpp::IPv4Address* srcAddr = nullptr;
+    pcpp::IPv4Address srcAddr = pcpp::IPv4Address::Zero;
     /**
      * The connection source port
      */
@@ -38,13 +41,35 @@ class TCPConnection {
     /**
      * The connection destination IP address
      */
-    pcpp::IPv4Address* dstAddr = nullptr;
+    pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;
     /**
      * The connection source port
      */
     uint16_t dstPort = 0;
     // TODO remove, we do not need it
     uint16_t BGPPort = 179;
+
+    bool         ready = false;
+    std::mutex   ready_mutex;
+    std::thread* listeningThread = nullptr;
+
+    bool       connected = false;
+    std::mutex connected_mutex;
+
+    bool running = false;
+
+
+    // TCP receiving queue
+    std::queue<std::stack<pcpp::Layer*>*> receivingQueue;
+    std::mutex                            receivingQueue_mutex;
+    std::condition_variable               receivingQueue_wakeup;
+    std::thread*                          receivingThread = nullptr;
+
+    // TCP sending queue
+    std::queue<std::stack<pcpp::Layer*>*> sendingQueue;
+    std::mutex                            sendingQueue_mutex;
+    std::condition_variable               sendingQueue_wakeup;
+    std::thread*                          sendingThread = nullptr;
 
     TCPConnection(Device* owner);
     ~TCPConnection();
@@ -76,6 +101,38 @@ class TCPConnection {
 
 
     void sendPacket(std::stack<pcpp::Layer*>* layers);
+
+    void start();
+
+    void listen();
+
+    bool isReady();
+
+    bool isConnected();
+
+    void setConnected(bool value);
+
+
+    void accept();
+
+    void connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort);
+
+    pcpp::TcpLayer* craftTCPLayer(uint16_t srcPort,
+                                  uint16_t dstPort,
+                                  int      flags);
+
+    void processFlags(uint8_t                   flags,
+                      std::stack<pcpp::Layer*>* applicationLayers);
+
+    void sendPacket(std::stack<pcpp::Layer*>* layers);
+
+    void receivePacket(std::stack<pcpp::Layer*>* layers);
+
+    void closeConnection();
+
+
+   private:
+    void stopThread();
 };
 
 #endif

@@ -1,5 +1,9 @@
 #include "TCPConnection.h"
 
+#include <TcpLayer.h>
+
+#include "../logger/Logger.h"
+#include "TCPEvent.h"
 #include "TCPFlag.h"
 #include "fsm/TCPStateClosed.h"
 
@@ -12,8 +16,8 @@ TCPConnection ::TCPConnection(Device* owner) : owner(owner) {
 
 TCPConnection::~TCPConnection() {
     delete stateMachine;
-    delete srcAddr;
-    delete dstAddr;
+
+    stopThread();
 }
 
 void TCPConnection::enqueueEvent(TCPEvent event) {
@@ -33,50 +37,8 @@ void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
 
     pcpp::tcphdr* tcpHeader = tcpLayer->getTcpHeader();
     uint8_t       flags     = parseTCPFlags(tcpHeader);
-    if (flags == SYN) {
-        srcAddr =
-            new pcpp::IPv4Address(ipLayer->getDstIPv4Address().toString());
-        srcPort = tcpLayer->getDstPort();
-        dstAddr =
-            new pcpp::IPv4Address(ipLayer->getSrcIPv4Address().toString());
-        dstPort = tcpLayer->getSrcPort();
 
-        owner->addTCPConnection(this);
-        enqueueEvent(TCPEvent::ReceiveClientSYN_SendSYNACK);
-
-        // create new listening connection (allocate TCB)
-        owner->listenConnection          = new TCPConnection(owner);
-        owner->listenConnection->srcPort = this->srcPort;
-    } else if (flags == SYN + ACK) {
-        enqueueEvent(TCPEvent::ReceiveSYNACKSendACK);
-    } else if (flags == ACK) {
-        enqueueEvent(TCPEvent::ReceiveACK);
-        // the TCP connection has been enstablished
-
-        owner->connectionConfirmed(this);
-
-    } else if (flags == FIN) {
-        enqueueEvent(TCPEvent::ReceiveFINSendACK);
-        owner->tcpConnectionClosed(this);
-    } else if (flags == FIN + ACK) {
-        enqueueEvent(TCPEvent::ReceiveACKforFIN);
-    } else if (flags == RST) {
-        enqueueEvent(TCPEvent::ReceiveRST);
-        owner->tcpConnectionClosed(this);
-    } else if (flags == PSH + ACK &&
-               stateMachine->getCurrentState()->name == "ENSTABLISHED") {
-        std::stack<pcpp::Layer*>* ackLayers = new std::stack<pcpp::Layer*>();
-        pcpp::TcpLayer*           ack = new pcpp::TcpLayer(srcPort, dstPort);
-        ack->getTcpHeader()->ackFlag  = 1;
-        ackLayers->push(ack);
-        owner->sendPacket(ackLayers, dstAddr->toString());
-        delete ackLayers;
-        // Application layer will handle the message
-        owner->handleApplicationLayer(layers, this);
-    } else {
-        L_ERROR(owner->ID, "TCP flag combination not handled");
-    }
-
+    processFlags(flags, layers);
 
     delete ipLayer;
     delete tcpLayer;
@@ -116,5 +78,218 @@ void TCPConnection::sendPacket(std::stack<pcpp::Layer*>* layers) {
 
     layers->push(tcpLayer);
 
-    owner->sendPacket(layers, dstAddr->toString());
+    owner->sendPacket(layers, dstAddr);
+}
+
+void TCPConnection::listen() {
+    enqueueEvent(TCPEvent::PassiveOpen);
+    start();
+}
+
+
+bool TCPConnection::isReady() {
+    bool result;
+    ready_mutex.lock();
+    result = ready;
+    ready_mutex.unlock();
+    return result;
+}
+
+bool TCPConnection::isConnected() {
+    bool result;
+    connected_mutex.lock();
+    result = connected;
+    connected_mutex.unlock();
+    return result;
+}
+
+void TCPConnection::setConnected(bool value) {
+    connected_mutex.lock();
+    connected = value;
+    connected_mutex.unlock();
+}
+
+void TCPConnection::accept() {
+    // connection is ready to be accepted
+    ready_mutex.lock();
+    ready = true;
+    ready_mutex.unlock();
+
+    std::unique_lock<std::mutex> receivingQueue_uniqueLock(
+        receivingQueue_mutex);
+    receivingQueue_wakeup.notify_one();
+    receivingQueue_uniqueLock.unlock();
+}
+
+void TCPConnection::connect(const pcpp::IPv4Address& dstAddr,
+                            uint16_t                 dstPort) {
+    this->dstAddr = dstAddr;
+    this->dstPort = dstPort;
+    running       = true;
+
+    pcpp::TcpLayer*           tcpLayer = craftTCPLayer(srcPort, 179, SYN);
+    std::stack<pcpp::Layer*>* layers   = new std::stack<pcpp::Layer*>();
+    layers->push(tcpLayer);
+    sendPacket(layers);
+    enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
+}
+
+
+pcpp::TcpLayer* TCPConnection::craftTCPLayer(uint16_t srcPort,
+                                             uint16_t dstPort,
+                                             int      flags) {
+    pcpp::TcpLayer* tcpLayer = new pcpp::TcpLayer(srcPort, dstPort);
+
+
+    switch (flags) {
+        case SYN:
+            tcpLayer->getTcpHeader()->synFlag = 1;
+            break;
+        case SYN + ACK:
+            tcpLayer->getTcpHeader()->synFlag = 1;
+            tcpLayer->getTcpHeader()->ackFlag = 1;
+            break;
+        case ACK:
+            tcpLayer->getTcpHeader()->ackFlag = 1;
+            break;
+        case FIN:
+            tcpLayer->getTcpHeader()->finFlag = 1;
+            break;
+        case FIN + ACK:
+            tcpLayer->getTcpHeader()->finFlag = 1;
+            tcpLayer->getTcpHeader()->ackFlag = 1;
+            break;
+        case RST:
+            tcpLayer->getTcpHeader()->rstFlag = 1;
+            break;
+        case PSH + ACK:
+            tcpLayer->getTcpHeader()->pshFlag = 1;
+            tcpLayer->getTcpHeader()->ackFlag = 1;
+            break;
+        default:
+            break;
+    }
+
+    return tcpLayer;
+}
+
+void TCPConnection::processFlags(uint8_t                   flags,
+                                 std::stack<pcpp::Layer*>* applicationLayers) {
+    std::stack<pcpp::Layer*>* layers   = new std::stack<pcpp::Layer*>();
+    pcpp::TcpLayer*           tcpLayer = nullptr;
+    if (flags == SYN) {
+        tcpLayer = craftTCPLayer(srcPort, dstPort, SYN + ACK);
+        layers->push(tcpLayer);
+        sendPacket(layers);
+        enqueueEvent(TCPEvent::ReceiveClientSYN_SendSYNACK);
+    } else if (flags == SYN + ACK) {
+        tcpLayer = craftTCPLayer(srcPort, dstPort, ACK);
+        layers->push(tcpLayer);
+        sendPacket(layers);
+        enqueueEvent(TCPEvent::ReceiveSYNACKSendACK);
+    } else if (flags == ACK) {
+        enqueueEvent(TCPEvent::ReceiveACK);
+    } else if (flags == FIN) {
+        tcpLayer = craftTCPLayer(srcPort, dstPort, FIN + ACK);
+        layers->push(tcpLayer);
+        sendPacket(layers);
+        enqueueEvent(TCPEvent::ReceiveFINSendACK);
+        // TODO, change it
+        closeConnection();
+    } else if (flags == FIN + ACK) {
+        enqueueEvent(TCPEvent::ReceiveACKforFIN);
+    } else if (flags == RST) {
+        enqueueEvent(TCPEvent::ReceiveRST);
+        closeConnection();
+    } else if (flags == PSH + ACK && isConnected()) {
+        tcpLayer = craftTCPLayer(srcPort, dstPort, ACK);
+        layers->push(tcpLayer);
+        sendPacket(layers);
+        // Application layer will handle the message
+        owner->getAssociatedConnectedSocketOrNull(this)
+            ->enqueueApplicationLayers(applicationLayers);
+        // socket.recv(applicationLayers)
+    } else {
+        L_ERROR(owner->ID, "TCP flag combination not handled");
+    }
+}
+
+void TCPConnection::start() {
+    running = true;
+
+
+    receivingThread = new std::thread([&]() {
+        while (running) {
+            std::unique_lock<std::mutex> receivingQueue_uniqueLock(
+                receivingQueue_mutex);
+            while ((receivingQueue.empty() || !isReady()) && running) {
+                receivingQueue_wakeup.wait(receivingQueue_uniqueLock);
+
+                if ((receivingQueue.empty() || !isReady()) && running) {
+                    L_DEBUG(name, "Spurious wakeup");
+                }
+            }
+
+            if (running) {
+                if (isReady()) {
+                    std::stack<pcpp::Layer*>* layers = receivingQueue.front();
+                    receivingQueue.pop();
+                    processMessage(layers);
+                } else {
+                    owner->notifyListeningSocket(this);
+                }
+            } else {
+                L_DEBUG(name, "Shutting Down receiving queue");
+            }
+        }
+    });
+
+    sendingThread = new std::thread([&]() {
+        while (running) {
+            std::unique_lock<std::mutex> sendingQueue_uniqueLock(
+                sendingQueue_mutex);
+            while (sendingQueue.empty() && running) {
+                sendingQueue_wakeup.wait(sendingQueue_uniqueLock);
+
+                if (sendingQueue.empty() && running) {
+                    L_DEBUG(name, "Spurious wakeup");
+                }
+            }
+
+            if (running) {
+                std::stack<pcpp::Layer*>* layers = sendingQueue.front();
+                sendingQueue.pop();
+                owner->sendPacket(layers, dstAddr);
+                delete layers;
+            } else {
+                L_DEBUG(name, "Shutting Down sending queue");
+            }
+        }
+    });
+}
+
+void TCPConnection::sendPacket(std::stack<pcpp::Layer*>* layers) {
+    std::unique_lock<std::mutex> sendingQueue_uniqueLock(sendingQueue_mutex);
+    sendingQueue.push(layers);
+    sendingQueue_wakeup.notify_one();
+    sendingQueue_uniqueLock.unlock();
+}
+
+void TCPConnection::receivePacket(std::stack<pcpp::Layer*>* layers) {
+    std::unique_lock<std::mutex> receivingQueue_uniqueLock(
+        receivingQueue_mutex);
+    receivingQueue.push(layers);
+    receivingQueue_wakeup.notify_one();
+    receivingQueue_uniqueLock.unlock();
+}
+
+
+void TCPConnection::closeConnection() {
+    Socket* s = owner->getAssociatedConnectedSocketOrNull(this);
+
+    if (s != nullptr) {
+        s->applicationConnection->closeConnection();
+    } else {
+        L_FATAL(name, "No connected socket associated to the connection");
+    }
 }
