@@ -22,13 +22,13 @@ routers:
         netmask: 255.255.0.0
 
 clients:
-  - id: C1
+  - id: E1
     default_gateway: 90.36.25.1
     networkCard:
       - interface: eth0
         IP: 90.36.25.123
         netmask: 255.255.0.0
-  - id: C2
+  - id: E2
     default_gateway: 26.37.3.2
     networkCard:
       - interface: eth0
@@ -36,10 +36,10 @@ clients:
         netmask: 255.255.0.0
 
 links:
-  - device_ids: [R1, C1]
+  - device_ids: [R1, E1]
     device_source_interfaces: [eth0, eth0]
     connection_status: active
-  - device_ids: [R2, C2]
+  - device_ids: [R2, E2]
     device_source_interfaces: [eth0, eth0]
     connection_status: active
   - device_ids: [R1, R2]
