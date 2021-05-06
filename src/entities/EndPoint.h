@@ -27,6 +27,8 @@ class EndPoint : public virtual Device {
      */
     void forwardMessage(stack<pcpp::Layer *> *layers,
                         NetworkCard *         networkCard) override;
+
+    void startInternal() {}
 };
 
 #endif  // BGP_SIMULATION_ENTITIES_ENDPOINT_H

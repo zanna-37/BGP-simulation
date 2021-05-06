@@ -1,6 +1,8 @@
 #ifndef BGPSIMULATION_ENTITIES_ROUTER_H
 #define BGPSIMULATION_ENTITIES_ROUTER_H
 
+#include <IPv4Layer.h>
+
 #include <string>
 
 #include "Device.h"
@@ -18,13 +20,15 @@ class Router : public virtual Device {
      */
     string AS_number;
     bool   running = false;
+
+    std::vector<pcpp::IPv4Address> peerList;
     // TODO: announced_prefixes
     // TODO: local_preferences
     // TODO: trust
 
     Router(string ID, string AS_number, pcpp::IPv4Address defaultGateway)
         : Device(std::move(ID), defaultGateway),
-          AS_number(std::move(AS_number)) {}
+          AS_number(std::move(AS_number)) /*TODO add peer list*/ {}
 
     ~Router() override = default;
 
@@ -36,6 +40,8 @@ class Router : public virtual Device {
      */
     void forwardMessage(stack<pcpp::Layer *> *layers,
                         NetworkCard *         networkCard) override;
+
+    void startInternal();
 };
 
 #endif  // BGPSIMULATION_ENTITIES_ROUTER_H
