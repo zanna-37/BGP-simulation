@@ -850,11 +850,30 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
                               "There are no routers into the network!");
             } else {
                 for (rapidjson::Value::ConstValueIterator itr =
-                         doc["routers"].GetArray().Begin();
-                     itr != doc["routers"].GetArray().End();
-                     ++itr) {
-                    if (itr->HasMember(postDoc["id"])) {
-                        doc["routers"].GetArray().Erase(itr);
+                         doc["routers"].Begin();
+                     itr != doc["routers"].End();) {
+                    std::string currentID =
+                        itr->FindMember("ID")->value.GetString();
+                    if (currentID == ID) {
+                        itr == doc["routers"].Erase(itr);
+                        L_DEBUG("Server",
+                                "Router removed from doc. Endpoint ID: " + ID);
+                        L_DEBUG("Server",
+                                "Routers doc size: " +
+                                    std::to_string(doc["routers"].Size()));
+                        for (auto it = devices->begin();
+                             it != devices->end();) {
+                            if ((*it)->ID == ID) {
+                                it = devices->erase(it);
+                                L_DEBUG("Server",
+                                        "Devices vector size: " +
+                                            std::to_string(devices->size()));
+                            } else {
+                                ++it;
+                            }
+                        }
+                    } else {
+                        ++itr;
                     }
                 }
             }
@@ -868,11 +887,31 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
                               "There are no endpoints into the network!");
             } else {
                 for (rapidjson::Value::ConstValueIterator itr =
-                         doc["endpoints"].GetArray().Begin();
-                     itr != doc["endpoints"].GetArray().End();
-                     ++itr) {
-                    if (itr->HasMember(postDoc["id"])) {
-                        doc["endpoints"].GetArray().Erase(itr);
+                         doc["endpoints"].Begin();
+                     itr != doc["endpoints"].End();) {
+                    std::string currentID =
+                        itr->FindMember("ID")->value.GetString();
+                    if (currentID == ID) {
+                        itr == doc["endpoints"].Erase(itr);
+                        L_DEBUG(
+                            "Server",
+                            "Endpoint removed from doc. Endpoint ID: " + ID);
+                        L_DEBUG("Server",
+                                "Endpoints doc size: " +
+                                    std::to_string(doc["endpoints"].Size()));
+                        for (auto it = devices->begin();
+                             it != devices->end();) {
+                            if ((*it)->ID == ID) {
+                                it = devices->erase(it);
+                                L_DEBUG("Server",
+                                        "Devices vector size: " +
+                                            std::to_string(devices->size()));
+                            } else {
+                                ++it;
+                            }
+                        }
+                    } else {
+                        ++itr;
                     }
                 }
             }
