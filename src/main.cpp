@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <signal.h>
 
+
 #include <iostream>
 #include <stack>
 #include <string>
@@ -35,7 +36,7 @@ volatile sig_atomic_t stop;
  * @param devices Vector of the Devices parsed for the configuration of the
  * program
  */
-void start_server(vector<Device *> *devices) {
+int start_server(vector<Device *> *devices) {
     Pistache::Port    port(9080);
     int               thr = 2;
     Pistache::Address addr(Pistache::Ipv4::any(), port);
@@ -47,7 +48,9 @@ void start_server(vector<Device *> *devices) {
     ApiEndpoint stats(addr);
 
     stats.init(thr, devices);
-    stats.start();
+    stats.start(&stop);
+
+    return 0;
 }
 
 /**
@@ -61,6 +64,7 @@ int main(int argc, char *argv[]) {
     srand(time(NULL) + getpid());
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
     L_VERBOSE("main", "START");
+    int rc = 1;
 
     // Tests
 
@@ -134,19 +138,30 @@ int main(int argc, char *argv[]) {
 
 
     thread *serverThread = new std::thread([&]() {
-        start_server(devices);
+        rc = start_server(devices);
+        if (rc == 0)
+        {
+            L_INFO("Server", "SIGINT received, Pistache shutdown correctly!");
+        }
+        else
+        {
+            L_ERROR("Server", "ShutDown Failed!");
+        }
+        
     });
 
     signal(SIGINT, inthand);
 
     while (!stop) {
         // TODO logic here
+        sleep(1);
     }
 
     L_INFO("Server", "SIGINT received, while loop exited");
 
     // Once the Ctrl+C is lounched all the threads stop (on my machine)
-
+    
+    
     serverThread->join();
     delete serverThread;
     serverThread = nullptr;

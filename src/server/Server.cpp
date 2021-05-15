@@ -11,10 +11,14 @@ void ApiEndpoint::init(size_t thr, std::vector<Device *> *devicesMain) {
     setupRoutes();
 }
 
-void ApiEndpoint::start() {
+void ApiEndpoint::start(volatile sig_atomic_t *stop) {
     L_VERBOSE("Server", "START");
     httpEndpoint->setHandler(router.handler());
-    httpEndpoint->serve();
+    httpEndpoint->serveThreaded();
+    while(!*stop){
+        sleep(1);
+    }
+    httpEndpoint->shutdown();
 }
 
 void ApiEndpoint::setupRoutes() {

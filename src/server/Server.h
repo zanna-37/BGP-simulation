@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <signal.h>
 
 #include "../entities/EndPoint.h"
 #include "../entities/Router.h"
@@ -31,7 +32,7 @@ class ApiEndpoint {
      * @brief Start servign the APIs
      *
      */
-    void start();
+    void start(volatile sig_atomic_t *stop);
 
     std::vector<Device*>* devices = nullptr;
     rapidjson::Document   doc;
