@@ -12,7 +12,7 @@ var new_link = undefined;
 var chart = new NetChart({
     container: document.getElementById("netchart"),
     area: { height: 400 },
-    data: { url: "http://localhost:9080/" },
+    data: { url: "http://localhost:9080/getNetZoomCharts" },
     info: {
         enabled: true,
         nodeContentsFunction: function (itemData, item) {

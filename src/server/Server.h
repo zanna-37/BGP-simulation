@@ -52,6 +52,14 @@ class ApiEndpoint {
     void getNetwork(const Pistache::Rest::Request& request,
                     Pistache::Http::ResponseWriter response);
 
+    /**
+     * @brief Get the status of the Network for ZoomCharts
+     *
+     * @param response Handler used to send back the reply
+     */
+    void getNetZoomCharts(const Pistache::Rest::Request& request,
+                    Pistache::Http::ResponseWriter response);
+
 
     /**
      * @brief Add a new device to the network

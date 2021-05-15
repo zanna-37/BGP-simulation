@@ -34,6 +34,10 @@ void ApiEndpoint::setupRoutes() {
         router,
         "/getNetwork",
         Pistache::Rest::Routes::bind(&ApiEndpoint::getNetwork, this));
+    Pistache::Rest::Routes::Get(
+        router,
+        "/getNetZoomCharts",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getNetZoomCharts, this));
     Pistache::Rest::Routes::Post(
         router,
         "/breakLink",
@@ -470,6 +474,118 @@ void ApiEndpoint::getNetwork(const Pistache::Rest::Request &request,
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
 
     doc.Accept(writer);
+
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
+    response.send(Pistache::Http::Code::Ok, buf.GetString());
+}
+
+void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
+                             Pistache::Http::ResponseWriter response) {
+    
+    using namespace rapidjson;
+    
+    StringBuffer                          buf;
+    PrettyWriter<rapidjson::StringBuffer> writer(buf);
+    
+    Document zoomDoc;
+    Document::AllocatorType &allocator = zoomDoc.GetAllocator();
+
+    zoomDoc.SetObject();
+
+    Value nodes(kArrayType);
+    Value links(kArrayType);
+
+    zoomDoc.AddMember("nodes", nodes, allocator);
+    zoomDoc.AddMember("links", links, allocator);
+
+    L_DEBUG("Server", "Creating nodes form endpoints");
+
+    for(auto &endpoint : doc["endpoints"].GetArray()){
+        Value node(kObjectType);
+        Value image;
+        Value loaded(true);
+        Value style(kObjectType);
+        Value extra(kObjectType);
+
+        node.AddMember("id", Value(endpoint["ID"], allocator), allocator);
+        node.AddMember("loaded", loaded, allocator);
+
+        image.SetString("showGUI/endpoint-icon.png", allocator);
+        style.AddMember("label", Value(endpoint["ID"], allocator), allocator);
+        style.AddMember("image", image, allocator);
+
+        Value netCards(endpoint["networkCards"], allocator);
+        extra.AddMember("default_gateway", Value(endpoint["defaultGateway"], allocator), allocator);
+        extra.AddMember("networkCard", netCards, allocator);
+
+        node.AddMember("style", style, allocator);
+        node.AddMember("extra", extra, allocator);
+
+        zoomDoc["nodes"].PushBack(node, allocator);
+    }
+
+    L_DEBUG("Server", "Creating nodes form routers");
+
+    for(auto &router : doc["routers"].GetArray()){
+        Value node(kObjectType);
+        Value image;
+        Value loaded(true);
+        Value style(kObjectType);
+        Value extra(kObjectType);
+
+        node.AddMember("id", Value(router["ID"], allocator), allocator);
+        node.AddMember("loaded", loaded, allocator);
+
+        image.SetString("showGUI/router-icon.png", allocator);
+        style.AddMember("label", Value(router["ID"], allocator), allocator);
+        style.AddMember("image", image, allocator);
+
+        extra.AddMember("AS_number", Value(router["asNumber"], allocator), allocator);
+        extra.AddMember("default_gateway", Value(router["defaultGateway"], allocator), allocator);
+        extra.AddMember("networkCard", Value(router["networkCards"], allocator), allocator);
+
+        node.AddMember("style", style, allocator);
+        node.AddMember("extra", extra, allocator);
+
+        zoomDoc["nodes"].PushBack(node, allocator);
+    }
+
+    L_DEBUG("Server", "Creating links");
+
+    for(auto &link_it : doc["links"].GetArray()){
+        Value link(kObjectType);
+        Value id;
+        Value loaded(true);
+        Value style(kObjectType);
+        Value extra(kObjectType);
+
+        char buffer[20];
+        int len = sprintf(buffer, "link_%s-%s", link_it["from"].GetString(), link_it["to"].GetString());
+
+        id.SetString(buffer, len, allocator);
+
+        link.AddMember("id", id, allocator);
+        link.AddMember("from", Value(link_it["from"], allocator), allocator);
+        link.AddMember("to", Value(link_it["to"], allocator), allocator);
+
+        style.AddMember("toDecoration", Value("arrow", allocator), allocator);
+        style.AddMember("fromDecoration", Value("arrow", allocator), allocator);
+
+        extra.AddMember("from_interface", Value(link_it["from_interface"], allocator), allocator);
+        extra.AddMember("to_interface", Value(link_it["to_interface"], allocator), allocator);
+
+        link.AddMember("style", style, allocator);
+        link.AddMember("extra", extra, allocator);
+
+        zoomDoc["links"].PushBack(link, allocator);
+    }
+
+    
+
+    zoomDoc.Accept(writer);
 
     response.headers().add<Pistache::Http::Header::ContentType>(
         MIME(Application, Json));
