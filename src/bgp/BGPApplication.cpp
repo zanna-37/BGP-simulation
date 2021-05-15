@@ -8,8 +8,9 @@
 BGPApplication::BGPApplication(Router* router) : router(router) {}
 
 BGPApplication::~BGPApplication() {
-    delete applicationThread;
-
+    for (std::thread* listeningThread : listeningThreads) {
+        delete listeningThread;
+    }
     for (BGPConnection* connection : bgpConnections) {
         delete connection;
     }
@@ -49,6 +50,7 @@ void BGPApplication::passiveOpen() {
                 }
             }
         });
+        listeningThreads.push_back(listeningThread);
     }
 }
 

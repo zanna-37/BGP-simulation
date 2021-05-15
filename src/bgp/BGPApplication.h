@@ -17,9 +17,15 @@
 
 class BGPApplication {
    public:
+    /**
+     * List of the bgp connections active when the application is running
+     */
     std::vector<BGPConnection*> bgpConnections;
 
-    std::vector<std::thread*> listeningThread;
+    /**
+     * A listening thread is created for each new connection, but it
+     */
+    std::vector<std::thread*> listeningThreads;
     bool                      running = false;
 
     // BGP Routing Table
@@ -27,8 +33,6 @@ class BGPApplication {
     std::string name = "BGPApplication";
 
     Router* router = nullptr;
-
-    std::thread* applicationThread;
 
     std::mutex runningMutex;
 
