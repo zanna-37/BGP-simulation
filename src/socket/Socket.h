@@ -40,13 +40,11 @@ class Socket {
     int     type;
     Device* device;
 
-    bool         running      = false;
-    std::thread* socketThread = nullptr;
-    std::string  name         = "Socket";
+    bool        running = false;
+    std::string name    = "Socket";
 
     pcpp::IPv4Address srcAddr = pcpp::IPv4Address::Zero;
     pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;
-
 
     uint16_t srcPort = 0;
     uint16_t dstPort = 0;
@@ -58,16 +56,54 @@ class Socket {
     Socket(int domain, int type);
     ~Socket();
 
-    int     bind(const pcpp::IPv4Address& srcAddr, uint16_t srcPort);
-    int     listen();
+    /**
+     * Bind the socket to a source address and a source port
+     * @param srcAddr the source address
+     * @param srcPort the source port
+     * @return 0 if the bind was successful
+     */
+    int bind(const pcpp::IPv4Address& srcAddr, uint16_t srcPort);
+
+    /**
+     * listen for incoming TCP connections
+     * @return 0 if there is a TCP connection pending
+     */
+    int listen();
+
+    /**
+     * Enstablish the TCP connection and return a new socket with the references
+     * of the new connection
+     * @return a socket with the properties of the newly enstablished connection
+     */
     Socket* accept();
 
+    /**
+     * Client active connection, accept a destination address and port and
+     * return 0 if the socket has been enstablished
+     * @param dstAddr the destination address
+     * @param dstPort the destination port
+     * @return 0 if the connection has been enstablished
+     */
     int connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort);
 
-    void                      send(std::stack<pcpp::Layer*>* applicationLayers);
+    /**
+     * send data the socket by using the TCP connection enstablished
+     * @param applicationLayers the applicaiton layers to be sent through the
+     * TCP connection
+     */
+    void send(std::stack<pcpp::Layer*>* applicationLayers);
+    /**
+     * Wait for new data to be received in the TCP connection queue and return
+     * the application layers, processed by the application
+     * @return a stack of application layers
+     */
     std::stack<pcpp::Layer*>* recv();
 
 
+    /**
+     * unlocks the condition variable and break out of the loop. It is used by
+     * the listening thread to return when a TCP connection is pending
+     */
     void dataArrived();
 };
 #endif

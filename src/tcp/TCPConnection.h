@@ -49,29 +49,44 @@ class TCPConnection {
     // TODO remove, we do not need it
     uint16_t BGPPort = 179;
 
-    bool         ready = false;
-    std::mutex   ready_mutex;
-    std::thread* listeningThread = nullptr;
 
-    bool       connected = false;
+    /**
+     * Mutex to access the ready variable
+     */
+    std::mutex ready_mutex;
+
+
+    /**
+     * Mutex to safely access the connected variable
+     */
     std::mutex connected_mutex;
 
     bool running = false;
 
 
     // TCP receiving queue
+
+    /**
+     * The queue of received messages
+     */
     std::queue<std::stack<pcpp::Layer*>*> receivingQueue;
     std::mutex                            receivingQueue_mutex;
     std::condition_variable               receivingQueue_wakeup;
     std::thread*                          receivingThread = nullptr;
 
     // TCP sending queue
+    /**
+     * The queue of messsages to be sent
+     */
     std::queue<std::stack<pcpp::Layer*>*> sendingQueue;
     std::mutex                            sendingQueue_mutex;
     std::condition_variable               sendingQueue_wakeup;
     std::thread*                          sendingThread = nullptr;
 
     // Application receiving queue
+    /**
+     * The application packets queue. It is filled through the socket
+     */
     std::queue<std::stack<pcpp::Layer*>*> appReceivingQueue;
     std::mutex                            appReceivingQueue_mutex;
     std::condition_variable               appReceivingQueue_wakeup;
@@ -107,37 +122,116 @@ class TCPConnection {
      */
     TCPState* getCurrentState();
 
+    /**
+     * Start TCP connection threads, used to send and receive messages
+     */
     void start();
 
+    /**
+     * Start the TCP connection in passive mode and listen for incoming
+     * connections
+     */
     void listen();
 
+    /**
+     * Return the value of the ready variable
+     * @return ready variable value
+     */
     bool isReady();
 
+    /**
+     * Return the value of the connected variable
+     * @return connected variable value
+     */
     bool isConnected();
 
+    /**
+     * Set the connected value
+     * @param value the new value of connected attribute
+     */
     void setConnected(bool value);
 
 
+    /**
+     * Accept the incoming TCP connection request from the remote peer
+     */
     void accept();
 
+    /**
+     * Connect to a remote TCP server
+     * @param dstAddr the destination address
+     * @param dstPort the destination port
+     */
     void connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort);
 
+    /**
+     * Craft a TCP layer with the header flags specified.
+     * @warning it should be called only inside the onEvent method
+     * @param srcPort the source port
+     * @param dstPort the destination port
+     * @param flags an integer indicating the TCP flag (bit notation, according
+     * to RFC)
+     * @return a pointer to the newly created TCP layer
+     */
     pcpp::TcpLayer* craftTCPLayer(uint16_t srcPort,
                                   uint16_t dstPort,
                                   int      flags);
 
+    /**
+     * read the flags of the incoming packet and based on that, notify the
+     * remote peer
+     * @param flags the flags to be processed
+     * @param applicationLayers the application layers
+     */
     void processFlags(uint8_t                   flags,
                       std::stack<pcpp::Layer*>* applicationLayers);
 
+
+    /**
+     * push the packet to the sending queue
+     * @param layers the stack abstraction of the packet layers
+     */
     void sendPacket(std::stack<pcpp::Layer*>* layers);
 
+    /**
+     * Push the TCP packet to the receiving queue
+     * @param layers the TCP packet abstraction layers
+     */
     void receivePacket(std::stack<pcpp::Layer*>* layers);
 
     void closeConnection();
 
+    /**
+     * Blocking function that waits for the receiving application queue to
+     * receive data
+     * @return the application layers
+     */
     std::stack<pcpp::Layer*>* waitForApplicationData();
+
+    /**
+     * Enquque the application layers to the application layers queue
+     * @param applicationLayers the application layers
+     */
     void enqueueApplicationLayers(std::stack<pcpp::Layer*>* applicationLayers);
+
+    /**
+     * craft the TCP header and send the packet (by pushing it to the
+     * sendingQueue)
+     * @param layers the stack abstraction of the packet with application data
+     * and TCP header
+     */
     void sendApplicationData(std::stack<pcpp::Layer*>* layers);
+
+   private:
+    /**
+     * When a TCP connection is pending this value is set to true
+     */
+    bool ready = false;
+
+    /**
+     * When the TCP connection is enstablished, this value is set to true
+     */
+    bool connected = false;
 };
 
 #endif

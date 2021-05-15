@@ -24,6 +24,9 @@ class BGPConnection {
     // other BGPConnection variables
 
    public:
+    /**
+     * The owner of the connection, necessary in simulation context
+     */
     Router*           owner   = nullptr;
     std::string       name    = "BGPconnection";
     bool              running = false;
@@ -32,8 +35,15 @@ class BGPConnection {
 
     std::chrono::seconds holdTime = 0s;
 
+    /**
+     * The newly created connected socket is assigned to this attribute, when
+     * the TCP connection is enstablished
+     */
     Socket* connectedSocket = nullptr;
 
+    /**
+     * The thread that manages any incoming application packet.
+     */
     std::thread* receivingThread = nullptr;
 
     // Constructors
@@ -54,11 +64,28 @@ class BGPConnection {
      */
     void processMessage(std::stack<pcpp::Layer*>* layers);
 
+    /**
+     * Client side connection of TCP, used by the router that wants to initiate
+     * the connection
+     */
     void connect();
 
+    /**
+     * Close the BGP connection and notifies the state machine
+     */
     void closeConnection();
 
+    /**
+     * Starts the receiving thread. This thread will wait for new messages
+     * incoming
+     */
     void receiveData();
+
+    /**
+     * Send BGP application data to the TCP layer through the socket
+     * @param layers the vector abstraction of the internet packet that is built
+     * from the application layer.
+     */
     void sendData(std::stack<pcpp::Layer*>* layers);
 };
 

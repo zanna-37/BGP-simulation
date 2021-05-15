@@ -47,6 +47,9 @@ class Router : public virtual Device {
     void forwardMessage(stack<pcpp::Layer *> *layers,
                         NetworkCard *         networkCard) override;
 
+    /**
+     * Start the BGP application in passive open mode
+     */
     void startInternal() override;
 };
 

@@ -289,6 +289,9 @@ class Device {
 
     // void bgpConnect(std::string dstAddr);
 
+
+    // TODO remote these methods, since they should not be necessary (used
+    // before socket implementation)
     void bgpListen();
 
     void connectionConfirmed(TCPConnection *connection);
@@ -355,6 +358,10 @@ class Device {
      */
     void notifyConnectedSocket(TCPConnection *connection);
 
+   protected:
+    /**
+     * Used by subclasses to start specific Applicatitions
+     */
     virtual void startInternal() = 0;
 
    private:

@@ -32,22 +32,49 @@ class BGPApplication {
 
     std::string name = "BGPApplication";
 
+    /**
+     * The router that started the application
+     */
     Router* router = nullptr;
-
-    std::mutex runningMutex;
 
 
     BGPApplication(Router* router);
     ~BGPApplication();
 
+    /**
+     * The BGP application start without immediately connecting to the peers,
+     * but waiting for the peer to connect
+     */
     void passiveOpen();
+
+    /**
+     * The BGP application starts by actively connecting to the remote peers
+     * // TODO implement it
+     */
     void activeOpen();
 
+    /**
+     * Find the BGPconnection related to the input socket and binds it to it. It
+     * is used when the listening socket receive an incoming connection and
+     * accept the connection. The resulting socket, crated by the accept method,
+     * needs to be bound to the respective BGP conection
+     * @param socket the connection to bind to the connection
+     */
     void bindSocketToBGPConnection(Socket* socket);
 
 
+    /**
+     * // TODO to implement. Stops all the application and all the BGP
+     * connections active
+     */
     void stop();
 
+    /**
+     * Check if a BGP connection will cause a collision with another connection
+     * already created and close the connection based on the decision method
+     * provided in RFC 4271
+     * @param connectionToCheck the BGP connection to be checked
+     */
     void collisionDetection(BGPConnection* connectionToCheck);
 };
 
