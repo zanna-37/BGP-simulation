@@ -11,10 +11,14 @@ void ApiEndpoint::init(size_t thr, std::vector<Device *> *devicesMain) {
     setupRoutes();
 }
 
-void ApiEndpoint::start() {
+void ApiEndpoint::start(volatile sig_atomic_t *stop) {
     L_VERBOSE("Server", "START");
     httpEndpoint->setHandler(router.handler());
-    httpEndpoint->serve();
+    httpEndpoint->serveThreaded();
+    while (!*stop) {
+        sleep(1);
+    }
+    httpEndpoint->shutdown();
 }
 
 void ApiEndpoint::setupRoutes() {
@@ -580,7 +584,8 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
                 AS_number.c_str(), AS_number.length(), doc.GetAllocator());
             device.AddMember("asNumber", asNumber, doc.GetAllocator());
 
-            router = new Router(ID, AS_number, defaultGateway);
+            router = new Router(
+                ID, AS_number, defaultGateway, std::vector<pcpp::IPv4Address>() /* TODO IMPORTANT ← placeholder put the read value*/);
         } else {
             endpoint = new EndPoint(ID, defaultGateway);
         }

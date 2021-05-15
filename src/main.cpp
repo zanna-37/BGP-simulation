@@ -33,7 +33,7 @@ volatile sig_atomic_t stop;
  * @param devices Vector of the Devices parsed for the configuration of the
  * program
  */
-void start_server(vector<Device *> *devices) {
+int start_server(vector<Device *> *devices) {
     Pistache::Port    port(9080);
     int               thr = 2;
     Pistache::Address addr(Pistache::Ipv4::any(), port);
@@ -45,7 +45,9 @@ void start_server(vector<Device *> *devices) {
     ApiEndpoint stats(addr);
 
     stats.init(thr, devices);
-    stats.start();
+    stats.start(&stop);
+
+    return 0;
 }
 
 /**
@@ -64,6 +66,7 @@ int main(int argc, char *argv[]) {
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
 
     L_VERBOSE("main", "START");
+    int rc = 1;
 
     // TODO REMOVE ME, just examples
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
@@ -134,13 +137,24 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
-        thread *serverThread =
-            new std::thread([&]() { start_server(devices); });
+
+        thread *serverThread = new std::thread([&]() {
+          rc = start_server(devices);
+          if (rc == 0)
+          {
+              L_INFO("Server", "SIGINT received, Pistache shutdown correctly!");
+          }
+          else
+          {
+              L_ERROR("Server", "ShutDown Failed!");
+          }
+        });
 
         signal(SIGINT, inthand);
 
         while (!stop) {
             // TODO logic here
+            sleep(1);
         }
 
         L_INFO("Server", "SIGINT received, while loop exited");
