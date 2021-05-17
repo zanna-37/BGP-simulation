@@ -1,6 +1,6 @@
 [submodule "lib/PcapPlusPlus"]
 	path = lib/PcapPlusPlus
-	url = https://github.com/seladb/PcapPlusPlus.git
+	url = https://github.com/zanna-37/PcapPlusPlus.git
 
 [submodule "lib/yaml-cpp"]
 	path = lib/yaml-cpp
