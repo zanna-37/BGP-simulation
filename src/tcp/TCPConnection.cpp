@@ -95,11 +95,6 @@ void TCPConnection::setConnected(bool value) {
 }
 
 void TCPConnection::accept() {
-    // connection is ready to be accepted
-    ready_mutex.lock();
-    ready = true;
-    ready_mutex.unlock();
-
     std::unique_lock<std::mutex> receivingQueue_uniqueLock(
         receivingQueue_mutex);
     receivingQueue_wakeup.notify_one();
@@ -220,6 +215,10 @@ void TCPConnection::start() {
                     receivingQueue.pop();
                     processMessage(layers);
                 } else {
+                    // connection is ready to be accepted
+                    ready_mutex.lock();
+                    ready = true;
+                    ready_mutex.unlock();
                     owner->notifyListeningSocket(this);
                 }
             } else {
