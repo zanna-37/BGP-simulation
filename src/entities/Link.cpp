@@ -55,14 +55,13 @@ void Link::receivePacket(pair<const uint8_t *, int> data,
                          NetworkCard *              destination) {
     assert(destination);
 
-
     pcpp::Packet *receivedPacket =
         deserialize((uint8_t *)data.first, data.second * sizeof(uint8_t));
     destination->receivePacket(receivedPacket);
 }
 
 pair<const uint8_t *, int> Link::serialize(pcpp::Packet *packet) {
-    uint8_t *rawData =
+    auto *rawData =
         new uint8_t[packet->getRawPacket()->getRawDataLen() * sizeof(uint8_t)];
     std::copy(packet->getRawPacket()->getRawData(),
               packet->getRawPacket()->getRawData() +

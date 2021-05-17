@@ -54,25 +54,25 @@ class Link {
     void sendPacket(pcpp::Packet *packet, NetworkCard *origin);
 
     /**
-     * The physical link receive a packet (istantaneusly, no network delay)
-     * @warning it should be called by the Link
-     * @param data the pair indicating the length and the array of bytes
-     * @param destination the networkcard where the packet arrived
+     * The physical link receive a packet (instantaneously, no network delay).
+     * @warning This should be called by the Link.
+     * @param data The pair indicating the length and the array of bytes.
+     * @param destination The networkCard where the packet arrived.
      */
     void receivePacket(pair<const uint8_t *, int> data,
                        NetworkCard *              destination);
     /**
-     * Transform a parsed packet to an array of bytes
-     * @param packet the packet to be parsed
-     * @return a pair with the data and data lenght
+     * Transform a parsed packet to an array of bytes.
+     * @param packet The packet to be parsed.
+     * @return A pair with the data and the data length.
      */
-    pair<const uint8_t *, int> serialize(pcpp::Packet *packet);
+    static pair<const uint8_t *, int> serialize(pcpp::Packet *packet);
 
     /**
-     * Transform a stream of bytes in a parsed packet
-     * @param rawdata the raw data
-     * @param rawDataLen the length of the stream
-     * @return a parsed packet
+     * Transform a stream of bytes in a parsed packet.
+     * @param rawdata The raw data.
+     * @param rawDataLen The length of the stream.
+     * @return A parsed packet.
      */
     pcpp::Packet *deserialize(uint8_t *rawData, int rawDataLen);
 

@@ -29,7 +29,6 @@ class NetworkCard {
    public:
     /**
      * Network interface.
-     * @example \a eth0, \a wlan1, ...
      */
     string netInterface;
 
@@ -48,22 +47,33 @@ class NetworkCard {
      * disconnected.
      */
     shared_ptr<Link> link = nullptr;
-    /**
-     * The owner of the network card, where the card is installed
-     */
-    Device* owner;
-    /**
-     * the mac address of the network card. If not defined in the parser, it is
-     * created randomly
-     */
-    pcpp::MacAddress mac = pcpp::MacAddress::Zero;
 
     /**
-     * A queue of packets that arrives at the network card
+     * The owner of the network card, where the card is installed.
+     */
+    Device* owner;
+
+    /**
+     * The mac address of the network card.
+     */
+    pcpp::MacAddress mac;
+
+    /**
+     * A queue of packets that arrives at the network card.
      */
     queue<pcpp::Packet*> receivedPacketsQueue;
 
 
+    /**
+     * Create a NetworkCard.
+     * @param netInterface The network interface name. For example: \a eth0, \a
+     * wlan1, ...
+     * @param IP The IP address associated to the networkCard.
+     * @param netmask The netmask address associated to the networkCard.
+     * @param mac The MAC address associated to the networkCard. If it is equal
+     * to \a pcpp::MacAddress::Zero if will be randomly generated.
+     * @param owner The device where the card is installed.
+     */
     NetworkCard(string            netInterface,
                 pcpp::IPv4Address IP,
                 pcpp::IPv4Address netmask,
@@ -92,20 +102,21 @@ class NetworkCard {
      */
     void disconnect(const shared_ptr<Link>& linkToDisconnect);
 
-
     /**
      * Send the packet packet to the lower layer after instantiating the MAC
      * layer. Here the layers are used to craft the packet
-     * @warning it should be called by the device
-     * @param layers the std::stack simulating the packet
+     * @warning This should be called by the \a Device.
+     * @param layers The \a std::stack simulating the packet.
      */
     void sendPacket(stack<pcpp::Layer*>* layers);
+
     /**
-     * The packet is arrived from the link and it is enqued in the packetQueue
+     * The packet is arrived from the link and it is enqueued in the packetQueue
      * @warning it should be called by the link
      * @param packet the parsed packet received by the link
      */
     void receivePacket(pcpp::Packet* packet);
+
     /**
      * Called when the device event queue is ready to handle a packet from this
      * network card. It takes the first packet in the queue and start creating

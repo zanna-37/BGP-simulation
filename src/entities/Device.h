@@ -80,10 +80,10 @@ class Device {
      * TableRow object
      */
     std::vector<TableRow *> *routingTable = nullptr;
+
     /**
-     * A bool indicating if the device is running or not. Device::start() start
-     * the deivce and sets it to true
-     *
+     * A bool indicating if the device is running or not. \a Device::bootUp()
+     * starts the device and sets it to true.
      */
     bool running;
 
@@ -160,13 +160,13 @@ class Device {
         const string &interfaceToSearch);
 
     /**
-     * Start the device. It simulate the turning on of the device, where the
+     * Boot up the device. It simulate the turning on of the device, where the
      * thread is created and the device waits for receiving packets. It creates
      * the Routing table by reading through the network cards vector. If the
      * network card has a valid default Gateway, it also create the default
-     * route TableRow
+     * route TableRow.
      */
-    void start();
+    void bootUp();
 
     /**
      * Process a packet (std::stack of layers) when it arrives. It handles new
@@ -202,10 +202,12 @@ class Device {
     void enqueueEvent(ReceivedPacketEvent *event);
 
     /**
-     * A server that wants to start listening open a port (// TODO not only 179)
-     * and instantiate a listening connection, waiting for messages to arrive.
+     * A server that wants to start listening open a port and instantiate a
+     * listening connection, waiting for messages to arrive.
+     *
+     * @param port The port to listen to.
      */
-    void listen();
+    void listen(uint16_t port);
 
     /**
      * Create a new TCP Connection and connect the device to the destination
@@ -241,10 +243,11 @@ class Device {
      * @param port the destination port of the connection
      * @return the existing TCPConnection or a \a nullptr
      */
-    TCPConnection *getExistingConnectionOrNull(const pcpp::IPv4Address &srcAddr,
-                                               uint16_t                 srcPort,
-                                               const pcpp::IPv4Address &dstAddr,
-                                               uint16_t dstPort);
+    TCPConnection *getExistingTcpConnectionOrNull(
+        const pcpp::IPv4Address &srcAddr,
+        uint16_t                 srcPort,
+        const pcpp::IPv4Address &dstAddr,
+        uint16_t                 dstPort);
 
 
     /**
@@ -268,12 +271,12 @@ class Device {
      * nullptr is returned
      * @param dstAddress the destnation address of the packet
      */
-    NetworkCard *findNextHop(const pcpp::IPv4Address &dstAddress);
+    NetworkCard *findNextHop(const pcpp::IPv4Address &dstAddress) const;
 
     /**
-     * Print the routing table, using <iomanip> library
+     * Print the routing table on stdout.
      */
-    void printTable();
+    void printRoutingTable() const;
 
     /**
      * Handle the application layer of the packet. It depends on the application
@@ -364,10 +367,10 @@ class Device {
 
    private:
     /**
-     * private methd to print a single element in the routing table
+     * Print a single element in the routing table
      * @param t the string to beautify print
      */
-    void printElement(std::string t);
+    static void printElement(const std::string &t);
 
     /**
      * Compute the hash of the connection based on the destination IP address

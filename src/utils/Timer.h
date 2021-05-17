@@ -111,12 +111,12 @@ class Timer {
                     timeToSleep = totalDuration;
                     L_DEBUG(stateMachine->connection->owner->ID,
                             "START " + name + ": " +
-                                to_string(timeToSleep.count()) + "ms");
+                                std::to_string(timeToSleep.count()) + "ms");
                 } else {
                     timeToSleep = duration;
                     L_DEBUG(stateMachine->connection->owner->ID,
                             "RESUME " + name + ": " +
-                                to_string(timeToSleep.count()) + "ms");
+                                std::to_string(timeToSleep.count()) + "ms");
                 }
 
                 sleepMutex.try_lock_for(timeToSleep);
@@ -139,9 +139,10 @@ class Timer {
                 L_DEBUG(
                     stateMachine->connection->owner->ID,
                     "END " + name + " after " +
-                        to_string(std::chrono::duration_cast<
-                                      std::chrono::milliseconds>(end - start)
-                                      .count()) +
+                            std::to_string(
+                                std::chrono::duration_cast<
+                                    std::chrono::milliseconds>(end - start)
+                                    .count()) +
                         "ms");
                 mutex.unlock();
             });

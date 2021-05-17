@@ -17,6 +17,8 @@
 
 class BGPApplication {
    public:
+    static const uint16_t BGPPort = 179;
+
     /**
      * List of the bgp connections active when the application is running
      */

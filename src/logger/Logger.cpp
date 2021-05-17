@@ -4,14 +4,12 @@
 #include <ctime>    // localtime
 #include <iomanip>  // put_time
 #include <iostream>
-#include <sstream>  // stringstream
-#include <string>
 
-shared_ptr<Logger> Logger::logger = nullptr;
+std::shared_ptr<Logger> Logger::logger = nullptr;
 
-shared_ptr<Logger> Logger::getInstance() {
+std::shared_ptr<Logger> Logger::getInstance() {
     if (logger == nullptr) {
-        logger = shared_ptr<Logger>(new Logger());
+        logger = std::shared_ptr<Logger>(new Logger());
     }
     return logger;
 }
@@ -44,9 +42,11 @@ void addPadAfterEndline(std::string&       data,
 }
 
 
-void Logger::log(LogLevel logLevel, string owner, string message) {
+void Logger::log(LogLevel           logLevel,
+                 const std::string& owner,
+                 std::string        message) {
     if (logLevel >= targetLevel) {
-        string             output;
+        std::string        output;
         std::ostringstream oss;
 
         if (enableColor) {
@@ -141,13 +141,14 @@ void Logger::log(LogLevel logLevel, string owner, string message) {
 
         mutex.lock();
         output = oss.str();
-        cout << output << endl;
+        std::cout << output << std::endl;
         mutex.unlock();
     }
 }
 
-string Logger::encloseInBrackets(const string& message, int padLenght) {
+std::string Logger::encloseInBrackets(const std::string& message,
+                                      int                padLenght) {
     std::ostringstream oss;
-    oss << "[" << left << setw(padLenght) << message << "] ";
+    oss << "[" << std::left << std::setw(padLenght) << message << "] ";
     return oss.str();
 }

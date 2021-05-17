@@ -46,9 +46,6 @@ class TCPConnection {
      * The connection source port
      */
     uint16_t dstPort = 0;
-    // TODO remove, we do not need it
-    uint16_t BGPPort = 179;
-
 
     /**
      * Mutex to access the ready variable

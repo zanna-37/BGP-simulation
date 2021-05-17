@@ -23,8 +23,9 @@ void BGPApplication::passiveOpen() {
     for (pcpp::IPv4Address peer : router->peer_addresses) {
         BGPConnection* connection = new BGPConnection(router);
 
-        connection->srcAddr = router->findNextHop(peer)->IP;
-        connection->dstAddr = peer;
+        NetworkCard* egressNetCard = router->findNextHop(peer);
+        connection->srcAddr        = egressNetCard->IP;  // Get egress IP
+        connection->dstAddr        = peer;
 
         bgpConnections.push_back(connection);
 

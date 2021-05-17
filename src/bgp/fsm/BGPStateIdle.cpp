@@ -29,15 +29,14 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             // initiateTCPConnection();
 
             // TODO listens for a connection that may be initiated by the
-            // remote
-            //   BGP peer, and
-            stateMachine->connection->owner->listen();
+            // remote BGP peer, and
+            stateMachine->connection->owner->listen(BGPApplication::BGPPort);
 
             // - changes its state to Connect.
             stateMachine->changeState(new BGPStateConnect(stateMachine));
 
-
             break;
+
         case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
         case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
 
@@ -59,6 +58,7 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateActive(stateMachine));
 
             break;
+
         case BGPEvent::AutomaticStart_with_DampPeerOscillations:
         case BGPEvent::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:

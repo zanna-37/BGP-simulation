@@ -13,7 +13,7 @@ class StateMachine {
     std::thread*            eventHandler = nullptr;
     std::mutex              eventQueue_mutex;
     std::condition_variable eventQueue_ready;
-    queue<Event>            eventQueue;
+    std::queue<Event>       eventQueue;
     bool                    running = false;
 
    public:
@@ -28,7 +28,7 @@ class StateMachine {
     ~StateMachine() {
         running = false;
 
-        unique_lock<std::mutex> stateMachineEventQueue_uniqueLock(
+        std::unique_lock<std::mutex> stateMachineEventQueue_uniqueLock(
             eventQueue_mutex);
         eventQueue_ready.notify_one();
         stateMachineEventQueue_uniqueLock.unlock();
