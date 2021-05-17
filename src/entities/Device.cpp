@@ -236,7 +236,7 @@ TCPConnection *Device::getExistingConnectionOrNull(
                  connection->dstAddr == pcpp::IPv4Address::Zero &&
                  connection->dstPort == 0) {
             connection->dstAddr = dstAddr;
-            connection->dstPort == dstPort;
+            connection->dstPort = dstPort;
             return connection;
         }
     }
