@@ -1,0 +1,29 @@
+name: Include what you use (IWYU)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: dependencies
+        run: git submodule update --init --recursive
+
+      - name: Generate compilation database
+        run: cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
+
+      - name: Run Include What You Use
+        uses: EmilGedda/include-what-you-use-action@v1.0
+        with:
+          compilation-database-path: '.'
+          output-format: 'iwyu' # Or 'clang'
+          no-error: 'true'
