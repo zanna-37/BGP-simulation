@@ -12,10 +12,11 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
     assertNodeType(routers_yaml, YAML::NodeType::value::Sequence);
 
     for (const auto &router_yaml : routers_yaml) {
-        string                 ID;
-        string                 AS_number;
-        pcpp::IPv4Address      defaultGateway;
-        vector<NetworkCard *> *networkCards = nullptr;
+        string                         ID;
+        string                         AS_number;
+        pcpp::IPv4Address              defaultGateway;
+        vector<NetworkCard *> *        networkCards = nullptr;
+        std::vector<pcpp::IPv4Address> peer_addresses;
 
         YAML::Node networkCards_yaml;
 
@@ -32,11 +33,19 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
                 defaultGateway = pcpp::IPv4Address(defaultGateway_str);
             } else if (property == "networkCard") {
                 networkCards_yaml = value;
+            } else if (property == "peers") {
+                auto peer_addresses_yaml = value;
+                assertNodeType(value, YAML::NodeType::value::Sequence);
+                for (const auto &peer_address_yaml : peer_addresses_yaml) {
+                    peer_addresses.emplace_back(
+                        peer_address_yaml.as<std::string>());
+                }
             } else {
                 throwInvalidKey(property, router_property_yaml.first);
             }
         }
-        Router *router = new Router(ID, AS_number, defaultGateway);
+        Router *router =
+            new Router(ID, AS_number, defaultGateway, peer_addresses);
 
         networkCards = ParserNetworkCard::parseAndBuildNetworkCards(
             networkCards_yaml, router);

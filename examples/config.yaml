@@ -9,6 +9,7 @@ routers:
       - interface: eth1
         IP: 85.90.20.1
         netmask: 255.255.0.0
+    peers: [ 85.90.20.2 ]
 
   - id: R2
     AS_number: AS_2
@@ -20,6 +21,7 @@ routers:
       - interface: eth5
         IP: 85.90.20.2
         netmask: 255.255.0.0
+    peers: [ 85.90.20.1 ]
 
 clients:
   - id: C1

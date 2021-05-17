@@ -20,7 +20,7 @@ BGPApplication::~BGPApplication() {
 void BGPApplication::passiveOpen() {
     running = true;
     /*each BGP peer in the BGP Rounting table*/
-    for (pcpp::IPv4Address peer : router->peerList) {
+    for (pcpp::IPv4Address peer : router->peer_addresses) {
         BGPConnection* connection = new BGPConnection(router);
 
         connection->srcAddr = router->findNextHop(peer)->IP;

@@ -25,16 +25,22 @@ class Router : public virtual Device {
     string AS_number;
     bool   running = false;
 
-    std::vector<pcpp::IPv4Address> peerList;
-
     BGPApplication *bgpApplication = nullptr;
     // TODO: announced_prefixes
     // TODO: local_preferences
     // TODO: trust
+    std::vector<pcpp::IPv4Address> peer_addresses;
 
-    Router(string ID, string AS_number, pcpp::IPv4Address defaultGateway)
+    Router(string                         ID,
+           string                         AS_number,
+           pcpp::IPv4Address              defaultGateway,
+           std::vector<pcpp::IPv4Address> peer_addresses)
         : Device(std::move(ID), defaultGateway),
-          AS_number(std::move(AS_number)) /*TODO add peer list*/ {}
+          AS_number(std::move(AS_number)) {
+        this->peer_addresses.insert(this->peer_addresses.end(),
+                                    peer_addresses.begin(),
+                                    peer_addresses.end());
+    }
 
     ~Router();
 
