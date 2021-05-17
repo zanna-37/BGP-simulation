@@ -133,11 +133,9 @@ class Device {
      */
     std::vector<Socket *> connectedSockets;
 
-
     Device(string ID, pcpp::IPv4Address defaultGateway);
 
-
-    ~Device();
+    virtual ~Device();
 
     /**
      * Method used by the parser to populate the network cards vector. The
