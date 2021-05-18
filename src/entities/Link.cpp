@@ -33,59 +33,29 @@ NetworkCard *Link::getPeerNetworkCardOrNull(
     }
 }
 
-void Link::sendPacket(const pcpp::Packet *packet,
-                      NetworkCard *       destination) const {
+void Link::sendPacketThroughWire(pair<const uint8_t *, int> data,
+                                 NetworkCard *              destination) const {
     assert(destination);
-    pair<const uint8_t *, int> data = serialize(packet);
+
     if (connection_status == Connection_status::ACTIVE) {
-        L_DEBUG(getPeerNetworkCardOrNull(destination)->owner->ID,
-                "Sending packet through link: " +
-                    getPeerNetworkCardOrNull(destination)->owner->ID + ":" +
-                    getPeerNetworkCardOrNull(destination)->netInterface +
-                    " -> " + destination->owner->ID + ":" +
-                    destination->netInterface);
-        receivePacket(data, destination);
+        L_DEBUG("link",
+                getLogLinkName(destination) + ": sending data through link");
+        destination->receivePacketFromWire(data);
     } else {
-        L_ERROR(getPeerNetworkCardOrNull(destination)->owner->ID,
-                "PHYSICAL LINK BROKEN: " +
-                    getPeerNetworkCardOrNull(destination)->netInterface +
-                    " -> " + destination->netInterface);
+        L_ERROR("link", getLogLinkName(destination) + ": physical link broken");
     }
 }
 
-void Link::receivePacket(pair<const uint8_t *, const int> receivedDataStream,
-                         NetworkCard *                    destination) {
-    assert(destination);
+string Link::getLogLinkName(NetworkCard *destination) const {
+    NetworkCard *source = getPeerNetworkCardOrNull(destination);
 
-    int      rawDataLen;
-    uint8_t *rawData;
+    string output;
 
-    {
-        const uint8_t *receivedData    = receivedDataStream.first;
-        const int      receivedDataLen = receivedDataStream.second;
+    output += source ? source->owner->ID + " " + source->netInterface : "null";
+    output += source && destination ? " -> " : " <-?-> ";
+    output += destination
+                  ? destination->owner->ID + " " + destination->netInterface
+                  : "null";
 
-        rawDataLen = receivedDataLen;
-        rawData    = new uint8_t[rawDataLen];
-
-        std::copy(receivedData, receivedData + receivedDataLen, rawData);
-    }
-
-    std::unique_ptr<pcpp::Packet> receivedPacket =
-        deserialize(rawData, rawDataLen);
-    destination->receivePacket(receivedPacket);
-}
-
-pair<const uint8_t *, const int> Link::serialize(const pcpp::Packet *packet) {
-    pcpp::RawPacket *rawPacket = packet->getRawPacketReadOnly();
-    return std::make_pair(rawPacket->getRawData(), rawPacket->getRawDataLen());
-}
-
-unique_ptr<pcpp::Packet> Link::deserialize(uint8_t *rawData, int rawDataLen) {
-    struct timespec timestamp;
-    timespec_get(&timestamp, TIME_UTC);
-
-    auto *rawPacket = new pcpp::RawPacket(rawData, rawDataLen, timestamp, true);
-    auto  packet    = make_unique<pcpp::Packet>(rawPacket, true);
-
-    return packet;
+    return output;
 }

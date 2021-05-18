@@ -46,11 +46,15 @@ void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
 }
 
 void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
-    if (link->connection_status == ACTIVE) {
+    NetworkCard* destination = link->getPeerNetworkCardOrNull(this);
+
+    if (destination == nullptr) {
+        L_ERROR(owner->ID,
+                "No destination for packets from from " + netInterface);
+    } else {
         L_DEBUG(owner->ID,
-                "Sending packet using " + netInterface + " through link");
-        NetworkCard* destination = link->getPeerNetworkCardOrNull(this);
-        // TODO check destination is not null
+                "Sending packet from " + netInterface + " through link");
+
         auto* ethLayer = new pcpp::EthLayer(mac, destination->mac);
         layers->push(ethLayer);
         auto* packet = new pcpp::Packet(100);
@@ -59,12 +63,31 @@ void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
             layers->pop();
         }
         packet->computeCalculateFields();
-        link->sendPacket(packet, destination);
+
+        pair<const uint8_t*, const int> data = serialize(packet);
+        link->sendPacketThroughWire(data, destination);
         delete packet;
     }
 }
 
-void NetworkCard::receivePacket(unique_ptr<pcpp::Packet>& receivedPacket) {
+void NetworkCard::receivePacketFromWire(
+    pair<const uint8_t*, const int> receivedDataStream) {
+    int      rawDataLen;
+    uint8_t* rawData;
+
+    {
+        const uint8_t* receivedData    = receivedDataStream.first;
+        const int      receivedDataLen = receivedDataStream.second;
+
+        rawDataLen = receivedDataLen;
+        rawData    = new uint8_t[rawDataLen];
+
+        std::copy(receivedData, receivedData + receivedDataLen, rawData);
+    }
+
+    std::unique_ptr<pcpp::Packet> receivedPacket =
+        NetworkCard::deserialize(rawData, rawDataLen);
+
     L_DEBUG(owner->ID, "Enqueueing packet in " + netInterface + " queue");
     receivedPacketsQueue.push(std::move(receivedPacket));
 
@@ -100,4 +123,21 @@ void NetworkCard::handleNextPacket() {
         delete layer;
     }
     delete layers;
+}
+
+pair<const uint8_t*, const int> NetworkCard::serialize(
+    const pcpp::Packet* packet) {
+    pcpp::RawPacket* rawPacket = packet->getRawPacketReadOnly();
+    return make_pair(rawPacket->getRawData(), rawPacket->getRawDataLen());
+}
+
+unique_ptr<pcpp::Packet> NetworkCard::deserialize(uint8_t*  rawData,
+                                                  const int rawDataLen) {
+    struct timespec timestamp;
+    timespec_get(&timestamp, TIME_UTC);
+
+    auto* rawPacket = new pcpp::RawPacket(rawData, rawDataLen, timestamp, true);
+    auto  packet    = make_unique<pcpp::Packet>(rawPacket, true);
+
+    return packet;
 }

@@ -5,6 +5,8 @@
 #include <IPv4Layer.h>
 #include <Packet.h>
 #include <ProtocolType.h>
+#include <assert.h>
+#include <time.h>
 
 #include <memory>
 #include <queue>
@@ -111,19 +113,50 @@ class NetworkCard {
     void sendPacket(stack<pcpp::Layer*>* layers);
 
     /**
-     * The packet is arrived from the link and it is enqueued in the packetQueue
-     * @warning it should be called by the link
-     * @param packet the parsed packet received by the link
-     */
-    void receivePacket(unique_ptr<pcpp::Packet>& packet);
-
-    /**
      * Called when the device event queue is ready to handle a packet from this
      * network card. It takes the first packet in the queue and start creating
      * the layers for upper protocols.
      * @warning It should be called by the device when the message is handled
      */
     void handleNextPacket();
+
+   private:
+    /**
+     * The packet is arrived from the link and it is enqueued in the
+     * packetQueue.
+     *
+     * It copies the content of the received packet and notify the upper layers
+     * that it is ready for processing.
+     *
+     * @warning it should be called by the link
+     * @param receivedDataStream The pair indicating the length and the array of
+     * bytes.
+     */
+    void receivePacketFromWire(
+        pair<const uint8_t*, const int> receivedDataStream);
+
+    /**
+     * Get the read-only array-of-bytes representation of the parsed packet.
+     * @param packet The packet to be serialized.
+     * @return A pair with the data and the data length.
+     */
+    static pair<const uint8_t*, const int> serialize(
+        const pcpp::Packet* packet);
+
+    /**
+     * Put the stream of bytes in a parsed packet.
+     *
+     * The newly created packet will be in charge of deallocating the rawData on
+     * destruction.
+     *
+     * @param rawData The raw data to wrap.
+     * @param rawDataLen The length of the stream.
+     * @return A parsed packet.
+     */
+    static unique_ptr<pcpp::Packet> deserialize(uint8_t*  rawData,
+                                                const int rawDataLen);
+
+    friend class Link;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_NET_DETAILS_H
