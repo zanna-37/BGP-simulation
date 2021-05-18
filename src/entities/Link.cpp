@@ -22,7 +22,8 @@ void Link::connect(NetworkCard *networkCard) {
     }
 }
 
-NetworkCard *Link::getPeerNetworkCardOrNull(NetworkCard *networkCard) {
+NetworkCard *Link::getPeerNetworkCardOrNull(
+    const NetworkCard *networkCard) const {
     if (device_source_networkCards.first == networkCard) {
         return device_source_networkCards.second;
     } else if (device_source_networkCards.second == networkCard) {
@@ -32,7 +33,8 @@ NetworkCard *Link::getPeerNetworkCardOrNull(NetworkCard *networkCard) {
     }
 }
 
-void Link::sendPacket(pcpp::Packet *packet, NetworkCard *destination) {
+void Link::sendPacket(const pcpp::Packet *packet,
+                      NetworkCard *       destination) const {
     assert(destination);
     pair<const uint8_t *, int> data = serialize(packet);
     if (connection_status == Connection_status::ACTIVE) {
@@ -51,34 +53,39 @@ void Link::sendPacket(pcpp::Packet *packet, NetworkCard *destination) {
     }
 }
 
-void Link::receivePacket(pair<const uint8_t *, int> data,
-                         NetworkCard *              destination) {
+void Link::receivePacket(pair<const uint8_t *, const int> receivedDataStream,
+                         NetworkCard *                    destination) {
     assert(destination);
 
-    pcpp::Packet *receivedPacket =
-        deserialize((uint8_t *)data.first, data.second * sizeof(uint8_t));
+    int      rawDataLen;
+    uint8_t *rawData;
+
+    {
+        const uint8_t *receivedData    = receivedDataStream.first;
+        const int      receivedDataLen = receivedDataStream.second;
+
+        rawDataLen = receivedDataLen;
+        rawData    = new uint8_t[rawDataLen];
+
+        std::copy(receivedData, receivedData + receivedDataLen, rawData);
+    }
+
+    std::unique_ptr<pcpp::Packet> receivedPacket =
+        deserialize(rawData, rawDataLen);
     destination->receivePacket(receivedPacket);
 }
 
-pair<const uint8_t *, int> Link::serialize(pcpp::Packet *packet) {
-    auto *rawData =
-        new uint8_t[packet->getRawPacket()->getRawDataLen() * sizeof(uint8_t)];
-    std::copy(packet->getRawPacket()->getRawData(),
-              packet->getRawPacket()->getRawData() +
-                  packet->getRawPacket()->getRawDataLen() * sizeof(uint8_t),
-              rawData);
-    int rawDataLen = packet->getRawPacket()->getRawDataLen();
-
-    return std::make_pair(rawData, rawDataLen);
+pair<const uint8_t *, const int> Link::serialize(const pcpp::Packet *packet) {
+    pcpp::RawPacket *rawPacket = packet->getRawPacketReadOnly();
+    return std::make_pair(rawPacket->getRawData(), rawPacket->getRawDataLen());
 }
 
-pcpp::Packet *Link::deserialize(uint8_t *rawData, int rawDataLen) {
+unique_ptr<pcpp::Packet> Link::deserialize(uint8_t *rawData, int rawDataLen) {
     struct timespec timestamp;
     timespec_get(&timestamp, TIME_UTC);
-    pcpp::RawPacket *rawPacket =
-        new pcpp::RawPacket(rawData, rawDataLen, timestamp, true);
 
-    pcpp::Packet *packet = new pcpp::Packet(rawPacket, true);
+    auto *rawPacket = new pcpp::RawPacket(rawData, rawDataLen, timestamp, true);
+    auto  packet    = make_unique<pcpp::Packet>(rawPacket, true);
 
     return packet;
 }

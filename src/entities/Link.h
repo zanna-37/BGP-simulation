@@ -42,39 +42,47 @@ class Link {
      * nullptr if there is not such endpoint connected or if the specified
      * networkCard is not connected to the link.
      */
-    NetworkCard *getPeerNetworkCardOrNull(NetworkCard *networkCard);
+    NetworkCard *getPeerNetworkCardOrNull(const NetworkCard *networkCard) const;
 
     /**
      * Send a packet through the physical link. The packet is serialized, so it
      * is a stream of bytes
      * @warning it should be called by the Network card
      * @param packet the packet to send
-     * @param origin the source network card
+     * @param destination the source network card
      */
-    void sendPacket(pcpp::Packet *packet, NetworkCard *origin);
+    void sendPacket(const pcpp::Packet *packet, NetworkCard *destination) const;
 
     /**
      * The physical link receive a packet (instantaneously, no network delay).
      * @warning This should be called by the Link.
-     * @param data The pair indicating the length and the array of bytes.
+     * @param receivedDataStream The pair indicating the length and the array of
+     * bytes.
      * @param destination The networkCard where the packet arrived.
      */
-    void receivePacket(pair<const uint8_t *, int> data,
-                       NetworkCard *              destination);
+    static void receivePacket(
+        pair<const uint8_t *, const int> receivedDataStream,
+        NetworkCard *                    destination);
     /**
-     * Transform a parsed packet to an array of bytes.
-     * @param packet The packet to be parsed.
+     * Get the read-only array-of-bytes representation of the parsed packet.
+     * @param packet The packet to be serialized.
      * @return A pair with the data and the data length.
      */
-    static pair<const uint8_t *, int> serialize(pcpp::Packet *packet);
+    static pair<const uint8_t *, const int> serialize(
+        const pcpp::Packet *packet);
 
     /**
-     * Transform a stream of bytes in a parsed packet.
-     * @param rawdata The raw data.
+     * Put the stream of bytes in a parsed packet.
+     *
+     * The newly created packet will be in charge of deallocating the rawData on
+     * destruction.
+     *
+     * @param rawdata The raw data to wrap.
      * @param rawDataLen The length of the stream.
      * @return A parsed packet.
      */
-    pcpp::Packet *deserialize(uint8_t *rawData, int rawDataLen);
+    static unique_ptr<pcpp::Packet> deserialize(uint8_t *rawData,
+                                                int      rawDataLen);
 
    private:
     /**

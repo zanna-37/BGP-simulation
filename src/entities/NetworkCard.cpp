@@ -64,16 +64,18 @@ void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
     }
 }
 
-void NetworkCard::receivePacket(pcpp::Packet* receivedPacket) {
+void NetworkCard::receivePacket(unique_ptr<pcpp::Packet>& receivedPacket) {
     L_DEBUG(owner->ID, "Enqueueing packet in " + netInterface + " queue");
-    receivedPacketsQueue.push(receivedPacket);
-    ReceivedPacketEvent* event = new ReceivedPacketEvent(
+    receivedPacketsQueue.push(std::move(receivedPacket));
+
+    auto* event = new ReceivedPacketEvent(
         this, ReceivedPacketEvent::Description::PACKET_ARRIVED);
     owner->enqueueEvent(event);
 }
 
 void NetworkCard::handleNextPacket() {
-    pcpp::Packet* receivedPacket = receivedPacketsQueue.front();
+    unique_ptr<pcpp::Packet> receivedPacket =
+        std::move(receivedPacketsQueue.front());
     receivedPacketsQueue.pop();
     auto* layers = new stack<pcpp::Layer*>();
 
@@ -83,9 +85,6 @@ void NetworkCard::handleNextPacket() {
         layers->push(receivedPacket->detachLayer(protocol));
         currentLayer = receivedPacket->getLastLayer();
     }
-
-    delete receivedPacket;
-
 
     auto* ethLayer = dynamic_cast<pcpp::EthLayer*>(layers->top());
     layers->pop();

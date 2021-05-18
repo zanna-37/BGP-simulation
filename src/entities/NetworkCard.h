@@ -61,7 +61,7 @@ class NetworkCard {
     /**
      * A queue of packets that arrives at the network card.
      */
-    queue<pcpp::Packet*> receivedPacketsQueue;
+    queue<unique_ptr<pcpp::Packet>> receivedPacketsQueue;
 
 
     /**
@@ -115,7 +115,7 @@ class NetworkCard {
      * @warning it should be called by the link
      * @param packet the parsed packet received by the link
      */
-    void receivePacket(pcpp::Packet* packet);
+    void receivePacket(unique_ptr<pcpp::Packet>& packet);
 
     /**
      * Called when the device event queue is ready to handle a packet from this
