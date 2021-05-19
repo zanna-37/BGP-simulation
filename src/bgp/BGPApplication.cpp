@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "../ip/IpManager.h"
 #include "../logger/Logger.h"
 #include "BGPEvent.h"
 
@@ -23,9 +24,10 @@ void BGPApplication::passiveOpen() {
     for (pcpp::IPv4Address peer : router->peer_addresses) {
         BGPConnection* connection = new BGPConnection(router);
 
-        NetworkCard* egressNetCard = router->findNextHop(peer);
-        connection->srcAddr        = egressNetCard->IP;  // Get egress IP
-        connection->dstAddr        = peer;
+        NetworkCard* egressNetCard =
+            IpManager::findExitingNetworkCard(peer, router->routingTable);
+        connection->srcAddr = egressNetCard->IP;  // Get egress IP
+        connection->dstAddr = peer;
 
         bgpConnections.push_back(connection);
 

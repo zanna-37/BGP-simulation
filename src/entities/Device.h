@@ -79,13 +79,14 @@ class Device {
      * A std::vector used to implement the ip routing table. Each row is a
      * TableRow object
      */
-    std::vector<TableRow *> *routingTable = nullptr;
+    std::vector<TableRow> routingTable = vector<TableRow>();
 
     /**
      * A bool indicating if the device is running or not. \a Device::bootUp()
-     * starts the device and sets it to true.
+     * starts the device and sets it to \a true. \a Device::~Device() set it to
+     * \a false.
      */
-    bool running;
+    bool running = false;
 
     /**
      * Mutex to lock the queue
@@ -157,7 +158,7 @@ class Device {
      * or \a nullptr if the interface is not found on the device.
      */
     NetworkCard *getNetworkCardByInterfaceOrNull(
-        const string &interfaceToSearch);
+        const string &interfaceToSearch) const;
 
     /**
      * Boot up the device. It simulate the turning on of the device, where the
@@ -266,19 +267,6 @@ class Device {
     // void removeBGPConnection(BGPConnection connection);
 
     /**
-     * Search for the network card that have to send the packet, based on the IP
-     * destination address. If no network card can handle the message, a \a
-     * nullptr is returned
-     * @param dstAddress the destnation address of the packet
-     */
-    NetworkCard *findNextHop(const pcpp::IPv4Address &dstAddress) const;
-
-    /**
-     * Print the routing table on stdout.
-     */
-    void printRoutingTable() const;
-
-    /**
      * Handle the application layer of the packet. It depends on the application
      * ports open
      * @param layers the stack containing the application layers
@@ -366,12 +354,6 @@ class Device {
     virtual void startInternal() = 0;
 
    private:
-    /**
-     * Print a single element in the routing table
-     * @param t the string to beautify print
-     */
-    static void printElement(const std::string &t);
-
     /**
      * Compute the hash of the connection based on the destination IP address
      * and the destination port

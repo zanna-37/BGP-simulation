@@ -26,7 +26,7 @@ class TableRow {
      * Transform the netmask in CIDR format
      * @return CIDR value of the netmask
      */
-    int toCIDR();
+    int toCIDR() const;
 };
 
 #endif  // TABLEROW_H

@@ -5,14 +5,14 @@
 
 #include "../bgp/BGPEvent.h"
 #include "../bgp/packets/BGPLayer.h"
+#include "../ip/IpManager.h"
 #include "../logger/Logger.h"
 
 Device::Device(string ID, pcpp::IPv4Address defaultGateway)
     : ID(std::move(ID)), defaultGateway(defaultGateway) {}
 
 NetworkCard *Device::getNetworkCardByInterfaceOrNull(
-
-    const string &interfaceToSearch) {
+    const string &interfaceToSearch) const {
     for (const auto &networkCard : *networkCards) {
         if (networkCard->netInterface == interfaceToSearch) {
             return networkCard;
@@ -32,10 +32,6 @@ Device::~Device() {
     deviceThread->join();
     delete deviceThread;
 
-    for (TableRow *row : *routingTable) {
-        delete row;
-    }
-    delete routingTable;
     for (NetworkCard *networkCard : *networkCards) {
         delete networkCard;
     }
@@ -61,36 +57,14 @@ void Device::addCards(vector<NetworkCard *> *networkCards) {
     this->networkCards = networkCards;
 }
 
-
 void Device::bootUp() {
     L_VERBOSE(ID, "Booting up");
 
-    routingTable = new std::vector<TableRow *>();
-    for (NetworkCard *networkCard : *networkCards) {
-        pcpp::IPv4Address networkIP(networkCard->IP.toInt() &
-                                    networkCard->netmask.toInt());
+    IpManager::buildRoutingTable(routingTable, networkCards, defaultGateway);
 
-        routingTable->push_back(
-            new TableRow(networkIP,
-                         pcpp::IPv4Address(networkCard->netmask),
-                         pcpp::IPv4Address::Zero,
-                         networkCard->netInterface,
-                         networkCard));
-
-        // Set the default gateway
-        if (defaultGateway.isValid() &&
-            defaultGateway.matchSubnet(networkIP, networkCard->netmask)) {
-            routingTable->push_back(
-                new TableRow(pcpp::IPv4Address::Zero,
-                             pcpp::IPv4Address::Zero,
-                             pcpp::IPv4Address(defaultGateway),
-                             networkCard->netInterface,
-                             networkCard));
-        }
-    }
-
-    printRoutingTable();  // TODO make it return a string and print it with the
-                          // logger
+    string routingTableAsString =
+        IpManager::getRoutingTableAsString(routingTable);
+    L_VERBOSE(ID, "Routing table:\n" + routingTableAsString);
 
     running      = true;
     deviceThread = new std::thread([&]() {
@@ -129,7 +103,8 @@ void Device::sendPacket(stack<pcpp::Layer *> *   layers,
     auto *ipLayer = new pcpp::IPv4Layer();
     ipLayer->setDstIPv4Address(dstAddr);
 
-    NetworkCard *nextHopNetworkCard = findNextHop(dstAddr);
+    NetworkCard *nextHopNetworkCard =
+        IpManager::findExitingNetworkCard(dstAddr, routingTable);
     if (nextHopNetworkCard == nullptr) {
         L_ERROR(ID, dstAddr.toString() + ": Destination unreachable");
         // FIXME
@@ -160,7 +135,8 @@ void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
         processMessage(layers);
     } else {
         L_DEBUG(ID, logMessage + "forward chain, forwarding message");
-        NetworkCard *nextHopNetworkCard = findNextHop(dstAddress);
+        NetworkCard *nextHopNetworkCard =
+            IpManager::findExitingNetworkCard(dstAddress, routingTable);
         if (nextHopNetworkCard == nullptr) {
             L_ERROR(ID, dstAddress.toString() + ": Destination unreachable");
         } else {
@@ -270,42 +246,6 @@ TCPConnection *Device::getExistingTcpConnectionOrNull(
 
 //     return hash1 ^ hash2;
 // }
-
-NetworkCard *Device::findNextHop(const pcpp::IPv4Address &dstAddress) const {
-    int          longestMatch = -1;
-    NetworkCard *result       = nullptr;
-    for (TableRow *row : *routingTable) {
-        if (dstAddress.matchSubnet(row->networkIP, row->netmask) &&
-            row->toCIDR() > longestMatch) {
-            longestMatch = row->toCIDR();
-            result       = row->networkCard;
-        }
-    }
-
-    return result;
-}
-
-void Device::printElement(const std::string &t) {
-    const char separator = ' ';
-    const int  width     = 16;
-    std::cout << left << setw(width) << setfill(separator) << t;
-}
-
-void Device::printRoutingTable() const {
-    printElement("Destination");
-    printElement("Gateway");
-    printElement("Genmask");
-    printElement("Iface");
-    std::cout << std::endl;
-    for (TableRow *row : *routingTable) {
-        printElement(row->networkIP.toString());
-        printElement(row->defaultGateway.toString());
-        printElement(row->netmask.toString());
-        printElement(row->netInterface);
-        cout << std::endl;
-    }
-    std::cout << std::endl;
-}
 
 
 // void Device::handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
