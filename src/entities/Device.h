@@ -314,9 +314,10 @@ class Device {
 
    protected:
     /**
-     * Used by subclasses to start specific Applicatitions
+     * Subclasses hook to perform initialization logic.
+     * This is called at the end of \a Device::bootUp().
      */
-    virtual void startInternal() = 0;
+    virtual void bootUpInternal() = 0;
 
    private:
     /**

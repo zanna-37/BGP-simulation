@@ -9,36 +9,44 @@
 BGPApplication::BGPApplication(Router* router) : router(router) {}
 
 BGPApplication::~BGPApplication() {
-    for (std::thread* listeningThread : listeningThreads) {
-        delete listeningThread;
+    running = false;
+    for (Socket* listeningSocket : listeningSockets) {
+        listeningSocket->close();
+    }
+    for (thread& listeningThread : listeningThreads) {
+        listeningThread.join();
     }
     for (BGPConnection* connection : bgpConnections) {
         delete connection;
+    }
+    for (Socket* listeningSocket : listeningSockets) {
+        delete listeningSocket;
     }
 }
 
 
 void BGPApplication::passiveOpen() {
     running = true;
-    /*each BGP peer in the BGP Rounting table*/
+    // Foreach BGP peer in the BGP Routing table
     for (pcpp::IPv4Address peer : router->peer_addresses) {
-        BGPConnection* connection = new BGPConnection(router);
+        auto* connection = new BGPConnection(router);
+        bgpConnections.push_back(connection);
 
         NetworkCard* egressNetCard =
             IpManager::findExitingNetworkCard(peer, router->routingTable);
         connection->srcAddr = egressNetCard->IP;  // Get egress IP
         connection->dstAddr = peer;
 
-        bgpConnections.push_back(connection);
-
         connection->enqueueEvent(
             BGPEvent::ManualStart_with_PassiveTcpEstablishment);
 
+        Socket* socketListen = router->getNewSocket(Socket::Domain::AF_INET,
+                                                    Socket::Type::SOCK_STREAM);
+        listeningSockets.push_back(socketListen);
 
-        std::thread* listeningThread = new std::thread([&]() {
-            Socket* socketListen = router->getNewSocket(
-                Socket::Domain::AF_INET, Socket::Type::SOCK_STREAM);
-            socketListen->bind(connection->srcAddr, 179);
+        listeningThreads.emplace_back([&, connection, socketListen]() {
+            socketListen->bind(connection->srcAddr,
+                               BGPApplication::BGPDefaultPort);
 
             while (running) {
                 // wait for the socket to have TCP connection pending
@@ -49,11 +57,10 @@ void BGPApplication::passiveOpen() {
                     bindSocketToBGPConnection(tempSocket);
 
                 } else {
-                    L_DEBUG(name, "Shutting Down");
+                    L_DEBUG(name + " LTh", "Shutting Down");
                 }
             }
         });
-        listeningThreads.push_back(listeningThread);
     }
 }
 

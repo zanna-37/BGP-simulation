@@ -8,7 +8,7 @@ void Router::forwardMessage(
     networkCard->sendPacket(std::move(layers));
 }
 
-void Router::startInternal() {
+void Router::bootUpInternal() {
     bgpApplication = new BGPApplication(this);
     bgpApplication->passiveOpen();
 }

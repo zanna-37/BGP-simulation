@@ -111,6 +111,8 @@ void Device::bootUp() {
             }
         });
     }
+
+    bootUpInternal();
 }
 
 void Device::sendPacket(
@@ -163,6 +165,8 @@ void Device::processMessage(
                 "No TCP service listening on " +
                     ipLayer_weak->getDstIPv4Address().toString() + " port " +
                     std::to_string(tcpLayer_weak->getDstPort()));
+
+        // TODO send reset
     }
 }
 

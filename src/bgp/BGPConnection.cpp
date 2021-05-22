@@ -14,15 +14,14 @@ BGPConnection::BGPConnection(Router* owner) : owner(owner) {
 }
 BGPConnection::~BGPConnection() {
     running = false;
-    Socket* s =
-        owner->getNewSocket(Socket::Domain::AF_INET, Socket::Type::SOCK_STREAM);
-    enqueueEvent(BGPEvent::ManualStop);
-    // create fake connection to stop the
-    s->connect(pcpp::IPv4Address::Zero, 179);
-    delete connectedSocket;
 
+    if (connectedSocket) {
+        connectedSocket->close();
+    }
 
     delete stateMachine;
+
+    delete connectedSocket;
 }
 
 void BGPConnection::enqueueEvent(BGPEvent event) {
@@ -76,7 +75,7 @@ void BGPConnection::connect() {
     connectedSocket =
         owner->getNewSocket(Socket::Domain::AF_INET, Socket::Type::SOCK_STREAM);
 
-    connectedSocket->connect(dstAddr, 179);
+    connectedSocket->connect(dstAddr, BGPApplication::BGPDefaultPort);
 
     enqueueEvent(BGPEvent::TcpConnection_Valid);
 }

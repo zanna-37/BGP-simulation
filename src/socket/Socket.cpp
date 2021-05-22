@@ -4,22 +4,21 @@
 
 Socket::Socket(int type, int domain) : type(type), domain(domain) {}
 
-Socket::~Socket() { running = false; }
+void Socket::close() {
+    running = false;
+    tcpConnection_wakeup.notify_one();
+}
+
 int Socket::listen() {
     TCPConnection* tcpConnection =
         device->getNewTCPConnection(srcAddr, srcPort);
 
     std::unique_lock<std::mutex> tcpConnection_uniqueLock(tcpConnection_mutex);
 
-
     tcpConnection->listen();
     // waiting for a pending SYN packet
-    while (!tcpConnection->isReady()) {
+    while (!tcpConnection->isReady() && running) {
         tcpConnection_wakeup.wait(tcpConnection_uniqueLock);
-
-        if (!tcpConnection->isReady()) {
-            L_DEBUG(name, "Spurious wakeup");
-        }
     }
 
     if (running) {
@@ -47,12 +46,8 @@ Socket* Socket::accept() {
         std::unique_lock<std::mutex> tcpConnection_uniqueLock(
             tcpConnection_mutex);
         connection->accept();
-        while (!connection->isConnected()) {
+        while (!connection->isConnected() && running) {
             tcpConnection_wakeup.wait(tcpConnection_uniqueLock);
-
-            if (!connection->isConnected()) {
-                L_DEBUG(name, "Spurious wakeup");
-            }
         }
 
         Socket* connectedSocket =
@@ -66,10 +61,9 @@ Socket* Socket::accept() {
 
         return connectedSocket;
     } else {
-        L_FATAL(name, "No TCPConnection associated with the socket");
+        L_ERROR(name, "No TCPConnection associated with the socket");
+        return nullptr;
     }
-
-    return nullptr;
 }
 
 int Socket::connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort) {
@@ -80,7 +74,9 @@ int Socket::connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort) {
     std::unique_lock<std::mutex> tcpConnection_uniqueLock(tcpConnection_mutex);
     connection->connect(dstAddr, dstPort);
     while (!connection->isConnected()) {
-        tcpConnection_wakeup.wait(tcpConnection_uniqueLock);
+        tcpConnection_wakeup.wait(
+            tcpConnection_uniqueLock);  // TODO implement a timeout to stop
+                                        // waiting
 
         if (!connection->isConnected()) {
             L_DEBUG(name, "Spurious wakeup");

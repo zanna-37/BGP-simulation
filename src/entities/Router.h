@@ -57,7 +57,7 @@ class Router : public virtual Device {
     /**
      * Start the BGP application in passive open mode
      */
-    void startInternal() override;
+    void bootUpInternal() override;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_ROUTER_H

@@ -17,7 +17,7 @@
 
 class BGPApplication {
    public:
-    static const uint16_t BGPPort = 179;
+    static const uint16_t BGPDefaultPort = 179;
 
     /**
      * List of the bgp connections active when the application is running
@@ -27,12 +27,15 @@ class BGPApplication {
     /**
      * A listening thread is created for each new connection, but it
      */
-    std::vector<std::thread*> listeningThreads;
-    bool                      running = false;
+    std::vector<std::thread> listeningThreads;
+
+    std::vector<Socket*> listeningSockets;
+
+    bool running = false;
 
     // BGP Routing Table
 
-    std::string name = "BGPApplication";
+    std::string name = "BGPApp";
 
     /**
      * The router that started the application

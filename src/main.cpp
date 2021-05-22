@@ -124,10 +124,10 @@ int main(int argc, char *argv[]) {
         // devices->at(0)->closeConnection(testAddress, 12345);
         // this_thread::sleep_for(5s);
 
-        // BGPConnection connection(devices->at(0));
-        // connection.enqueueEvent(AutomaticStart);
-        // this_thread::sleep_for(10s);
-        // connection.enqueueEvent(ManualStop);
+        //         BGPConnection connection(dynamic_cast<Router
+        //         *>(devices->at(0))); connection.enqueueEvent(AutomaticStart);
+        std::this_thread::sleep_for(10s);
+        //         connection.enqueueEvent(ManualStop);
 
         L_DEBUG("main", "DELETING OBJECTS");
         for (auto device : *devices) {

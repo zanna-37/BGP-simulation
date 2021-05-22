@@ -36,7 +36,9 @@ void TCPConnection::processMessage(
         parseTCPFlags(receivedTcpLayer_weak->getTcpHeader());
 
     // Preparing the response
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layersToSend;
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layersToSend =
+        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+    ;
 
     if (receivedFlags == SYN) {
         layersToSend->push(craftTCPLayer(srcPort, dstPort, SYN + ACK));
@@ -145,8 +147,10 @@ void TCPConnection::connect(const pcpp::IPv4Address& dstAddr,
     this->dstPort = dstPort;
     running       = true;
 
-    std::unique_ptr<pcpp::Layer> tcpLayer = craftTCPLayer(srcPort, 179, SYN);
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
+    std::unique_ptr<pcpp::Layer> tcpLayer =
+        craftTCPLayer(srcPort, dstPort, SYN);
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
     layers->push(std::move(tcpLayer));
     sendPacket(std::move(layers));
     enqueueEvent(TCPEvent::ActiveOpen_SendSYN);

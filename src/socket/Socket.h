@@ -54,7 +54,8 @@ class Socket {
 
 
     Socket(int domain, int type);
-    ~Socket();
+
+    ~Socket() = default;
 
     /**
      * Bind the socket to a source address and a source port
@@ -106,5 +107,6 @@ class Socket {
      * the listening thread to return when a TCP connection is pending
      */
     void dataArrived();
+    void close();
 };
 #endif

@@ -30,7 +30,8 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             // TODO listens for a connection that may be initiated by the
             // remote BGP peer, and
-            stateMachine->connection->owner->listen(BGPApplication::BGPPort);
+            stateMachine->connection->owner->listen(
+                BGPApplication::BGPDefaultPort);
 
             // - changes its state to Connect.
             stateMachine->changeState(new BGPStateConnect(stateMachine));

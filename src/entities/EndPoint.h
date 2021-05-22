@@ -29,7 +29,7 @@ class EndPoint : public virtual Device {
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
         NetworkCard* networkCard) override;
 
-    void startInternal() {}
+    void bootUpInternal() {}
 };
 
 #endif  // BGP_SIMULATION_ENTITIES_ENDPOINT_H
