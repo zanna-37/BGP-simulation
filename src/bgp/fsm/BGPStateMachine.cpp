@@ -17,7 +17,7 @@ void BGPStateMachine::incrementConnectRetryCounter() {
     connectRetryCounter += 1;
     L_DEBUG(connection->owner->ID,
             "connectRetryCounter incremented. Current value: " +
-                to_string(connectRetryCounter));
+                std::to_string(connectRetryCounter));
 }
 
 void BGPStateMachine::resetConnectRetryTimer() {

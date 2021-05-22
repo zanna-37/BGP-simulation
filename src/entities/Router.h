@@ -22,8 +22,8 @@ class Router : public virtual Device {
     /**
      * The Autonomous System number this router belongs to.
      */
-    string AS_number;
-    bool   running = false;
+    std::string AS_number;
+    bool        running = false;
 
     BGPApplication *bgpApplication = nullptr;
     // TODO: announced_prefixes
@@ -31,8 +31,8 @@ class Router : public virtual Device {
     // TODO: trust
     std::vector<pcpp::IPv4Address> peer_addresses;
 
-    Router(string                         ID,
-           string                         AS_number,
+    Router(std::string                    ID,
+           std::string                    AS_number,
            pcpp::IPv4Address              defaultGateway,
            std::vector<pcpp::IPv4Address> peer_addresses)
         : Device(std::move(ID), defaultGateway),

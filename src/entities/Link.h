@@ -54,8 +54,8 @@ class Link {
      * @param data The packet to send.
      * @param destination The source network card. Must not be \a nullptr.
      */
-    void sendPacketThroughWire(pair<const uint8_t *, int> data,
-                               NetworkCard *              destination) const;
+    void sendPacketThroughWire(std::pair<const uint8_t *, int> data,
+                               NetworkCard *destination) const;
 
    private:
     /**
@@ -68,7 +68,7 @@ class Link {
      * class. For this reason this pair should be used as a convenient reference
      * but the ground truth is always the state inside the \a NetworkCards.
      */
-    pair<NetworkCard *, NetworkCard *> device_source_networkCards;
+    std::pair<NetworkCard *, NetworkCard *> device_source_networkCards;
 
     /**
      * Disassociate the specified networkCard.
@@ -94,7 +94,7 @@ class Link {
      */
     void connect(NetworkCard *networkCard);
 
-    string getLogLinkName(NetworkCard *destination) const;
+    std::string getLogLinkName(NetworkCard *destination) const;
 
     friend class NetworkCard;
 };

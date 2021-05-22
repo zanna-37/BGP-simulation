@@ -7,14 +7,15 @@
 #include "TableRow.h"
 class IpManager {
    public:
-    static void buildRoutingTable(vector<TableRow> &       routingTable,
-                                  vector<NetworkCard *> *  networkCards,
-                                  const pcpp::IPv4Address &defaultGateway);
+    static void buildRoutingTable(std::vector<TableRow> &     routingTable,
+                                  std::vector<NetworkCard *> *networkCards,
+                                  const pcpp::IPv4Address &   defaultGateway);
 
     /**
      * Get the formatted routing table as string.
      */
-    static string getRoutingTableAsString(const vector<TableRow> &routingTable);
+    static std::string getRoutingTableAsString(
+        const std::vector<TableRow> &routingTable);
 
     /**
      * Search for the network card that have to send the packet, based on the IP
@@ -23,7 +24,8 @@ class IpManager {
      * @param dstAddress the destnation address of the packet
      */
     static NetworkCard *findExitingNetworkCard(
-        const pcpp::IPv4Address &dstAddress, vector<TableRow> &routingTable);
+        const pcpp::IPv4Address &dstAddress,
+        std::vector<TableRow> &  routingTable);
 
    private:
     /**
@@ -31,7 +33,7 @@ class IpManager {
      *
      * @param s the string to format.
      */
-    static string getTableCellAsString(const std::string &s);
+    static std::string getTableCellAsString(const std::string &s);
 };
 
 #endif  // BGPSIMULATION_ENTITIES_IP_IPMANAGER_H

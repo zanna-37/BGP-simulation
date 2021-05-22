@@ -14,7 +14,7 @@ using namespace std;
  */
 class EndPoint : public virtual Device {
    public:
-    EndPoint(string ID, pcpp::IPv4Address defaultGateway)
+    EndPoint(std::string ID, pcpp::IPv4Address defaultGateway)
         : Device(std::move(ID), defaultGateway) {}
 
     ~EndPoint() {}

@@ -32,7 +32,7 @@ class NetworkCard {
     /**
      * Network interface.
      */
-    string netInterface;
+    std::string netInterface;
 
     /**
      * The IP associated with this network interface.
@@ -48,7 +48,7 @@ class NetworkCard {
      * The link this network card is attached to, or \a nullptr when
      * disconnected.
      */
-    shared_ptr<Link> link = nullptr;
+    std::shared_ptr<Link> link = nullptr;
 
     /**
      * The owner of the network card, where the card is installed.
@@ -76,7 +76,7 @@ class NetworkCard {
      * to \a pcpp::MacAddress::Zero if will be randomly generated.
      * @param owner The device where the card is installed.
      */
-    NetworkCard(string            netInterface,
+    NetworkCard(std::string       netInterface,
                 pcpp::IPv4Address IP,
                 pcpp::IPv4Address netmask,
                 pcpp::MacAddress  mac,
@@ -93,7 +93,7 @@ class NetworkCard {
      * the behavior is undefined.
      * @param linkToConnect The link to connect to.
      */
-    void connect(const shared_ptr<Link>& linkToConnect);
+    void connect(const std::shared_ptr<Link>& linkToConnect);
 
     /**
      * Disconnect the networkCard from the specified link.
@@ -102,7 +102,7 @@ class NetworkCard {
      * or no link at all.
      * @param linkToConnect The link to disconnect from.
      */
-    void disconnect(const shared_ptr<Link>& linkToDisconnect);
+    void disconnect(const std::shared_ptr<Link>& linkToDisconnect);
 
     /**
      * Send the packet packet to the lower layer after instantiating the MAC
@@ -133,14 +133,14 @@ class NetworkCard {
      * bytes.
      */
     void receivePacketFromWire(
-        pair<const uint8_t*, const int> receivedDataStream);
+        std::pair<const uint8_t*, const int> receivedDataStream);
 
     /**
      * Get the read-only array-of-bytes representation of the parsed packet.
      * @param packet The packet to be serialized.
      * @return A pair with the data and the data length.
      */
-    static pair<const uint8_t*, const int> serialize(
+    static std::pair<const uint8_t*, const int> serialize(
         const pcpp::Packet* packet);
 
     /**
@@ -153,8 +153,8 @@ class NetworkCard {
      * @param rawDataLen The length of the stream.
      * @return A parsed packet.
      */
-    static unique_ptr<pcpp::Packet> deserialize(uint8_t*  rawData,
-                                                const int rawDataLen);
+    static std::unique_ptr<pcpp::Packet> deserialize(uint8_t*  rawData,
+                                                     const int rawDataLen);
 
     friend class Link;
 };

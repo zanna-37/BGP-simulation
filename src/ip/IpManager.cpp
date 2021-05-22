@@ -5,9 +5,9 @@
 #include "../bgp/packets/BGPLayer.h"
 
 
-void IpManager::buildRoutingTable(vector<TableRow> &       routingTable,
-                                  vector<NetworkCard *> *  networkCards,
-                                  const pcpp::IPv4Address &defaultGateway) {
+void IpManager::buildRoutingTable(std::vector<TableRow> &     routingTable,
+                                  std::vector<NetworkCard *> *networkCards,
+                                  const pcpp::IPv4Address &   defaultGateway) {
     for (NetworkCard *networkCard : *networkCards) {
         pcpp::IPv4Address networkIP(networkCard->IP.toInt() &
                                     networkCard->netmask.toInt());
@@ -30,18 +30,18 @@ void IpManager::buildRoutingTable(vector<TableRow> &       routingTable,
     }
 }
 
-string IpManager::getTableCellAsString(const string &s) {
+std::string IpManager::getTableCellAsString(const std::string &s) {
     const char         separator = ' ';
     const int          width     = 16;
     std::ostringstream oss;
 
-    oss << left << setw(width) << setfill(separator) << s;
+    oss << std::left << std::setw(width) << std::setfill(separator) << s;
     return oss.str();
 }
 
-string IpManager::getRoutingTableAsString(
-    const vector<TableRow> &routingTable) {
-    string output;
+std::string IpManager::getRoutingTableAsString(
+    const std::vector<TableRow> &routingTable) {
+    std::string output;
 
     output += getTableCellAsString("Destination");
     output += getTableCellAsString("Gateway");
@@ -60,7 +60,7 @@ string IpManager::getRoutingTableAsString(
 }
 
 NetworkCard *IpManager::findExitingNetworkCard(
-    const pcpp::IPv4Address &dstAddress, vector<TableRow> &routingTable) {
+    const pcpp::IPv4Address &dstAddress, std::vector<TableRow> &routingTable) {
     int          longestMatch = -1;
     NetworkCard *result       = nullptr;
     for (const TableRow &row : routingTable) {

@@ -9,8 +9,8 @@
 
 class ParserLink : public virtual Parser {
    public:
-    static void parseAndAddBuiltLinks(const YAML::Node &links_yaml,
-                                      vector<Device *> *devices_ptr);
+    static void parseAndAddBuiltLinks(const YAML::Node &     links_yaml,
+                                      std::vector<Device *> *devices_ptr);
 
    private:
     ParserLink() = delete;

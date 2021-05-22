@@ -58,7 +58,7 @@ class Device {
      * Internal reference that uniquely identifies a component in the
      * simulation.
      */
-    string ID;
+    std::string ID;
 
     /**
      * The default gateway of a device. It can be unset, it that case its
@@ -69,7 +69,7 @@ class Device {
     /**
      * A list of all the network interfaces of a device.
      */
-    vector<NetworkCard *> *networkCards = nullptr;
+    std::vector<NetworkCard *> *networkCards = nullptr;
     /**
      * the pointer to the device thread. Each device works on a separate thread
      * that handle the packet received and send packets to other devices
@@ -79,7 +79,7 @@ class Device {
      * A std::vector used to implement the ip routing table. Each row is a
      * TableRow object
      */
-    std::vector<TableRow> routingTable = vector<TableRow>();
+    std::vector<TableRow> routingTable = std::vector<TableRow>();
 
     /**
      * A bool indicating if the device is running or not. \a Device::bootUp()
@@ -134,7 +134,7 @@ class Device {
      */
     std::vector<Socket *> connectedSockets;
 
-    Device(string ID, pcpp::IPv4Address defaultGateway);
+    Device(std::string ID, pcpp::IPv4Address defaultGateway);
 
     virtual ~Device();
 
@@ -146,7 +146,7 @@ class Device {
      * vector is populated
      * @param networkCards the network cards vector
      */
-    void addCards(vector<NetworkCard *> *networkCards);
+    void addCards(std::vector<NetworkCard *> *networkCards);
 
     /**
      * Get the networkCard associated with the specified interface.
@@ -158,7 +158,7 @@ class Device {
      * or \a nullptr if the interface is not found on the device.
      */
     NetworkCard *getNetworkCardByInterfaceOrNull(
-        const string &interfaceToSearch) const;
+        const std::string &interfaceToSearch) const;
 
     /**
      * Boot up the device. It simulate the turning on of the device, where the
@@ -370,7 +370,7 @@ class Device {
      * @param layers the std::stack simulating the packet.
      * @param origin the network card that received the packet
      */
-    void receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin);
+    void receivePacket(std::stack<pcpp::Layer *> *layers, NetworkCard *origin);
 
     friend class NetworkCard;
 };

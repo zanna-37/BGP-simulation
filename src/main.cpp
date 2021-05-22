@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
     BGPUpdateLayer bgpUpdate =
         BGPUpdateLayer(withdrawnRoutes, pathAttributes, nlri);
     bgpUpdate.computeCalculateFields();
-    cout << bgpUpdate.toString() << endl;
+    std::cout << bgpUpdate.toString() << std::endl;
 
     // BGP Keepalive
     BGPKeepaliveLayer bgpKeepalive = BGPKeepaliveLayer();
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
     // END: REMOVE ME just examples
 
     if (argc > 1) {
-        vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
+        std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
         for (auto device : *devices) {
             /* TODO REMOVE ME, just an example

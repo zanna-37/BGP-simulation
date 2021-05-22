@@ -2,7 +2,7 @@
 
 #include "../logger/Logger.h"
 
-NetworkCard::NetworkCard(string            netInterface,
+NetworkCard::NetworkCard(std::string       netInterface,
                          pcpp::IPv4Address IP,
                          pcpp::IPv4Address netmask,
                          pcpp::MacAddress  mac,
@@ -20,7 +20,7 @@ NetworkCard::NetworkCard(string            netInterface,
 
 NetworkCard::~NetworkCard() = default;
 
-void NetworkCard::connect(const shared_ptr<Link>& linkToConnect) {
+void NetworkCard::connect(const std::shared_ptr<Link>& linkToConnect) {
     if (link == nullptr) {
         linkToConnect->connect(this);
         link = linkToConnect;
@@ -30,7 +30,7 @@ void NetworkCard::connect(const shared_ptr<Link>& linkToConnect) {
     }
 }
 
-void NetworkCard::disconnect(const shared_ptr<Link>& linkToDisconnect) {
+void NetworkCard::disconnect(const std::shared_ptr<Link>& linkToDisconnect) {
     if (link.get() == linkToDisconnect.get()) {
         linkToDisconnect->disconnect(this);
         link = nullptr;
@@ -64,14 +64,14 @@ void NetworkCard::sendPacket(stack<pcpp::Layer*>* layers) {
         }
         packet->computeCalculateFields();
 
-        pair<const uint8_t*, const int> data = serialize(packet);
+        std::pair<const uint8_t*, const int> data = serialize(packet);
         link->sendPacketThroughWire(data, destination);
         delete packet;
     }
 }
 
 void NetworkCard::receivePacketFromWire(
-    pair<const uint8_t*, const int> receivedDataStream) {
+    std::pair<const uint8_t*, const int> receivedDataStream) {
     int      rawDataLen;
     uint8_t* rawData;
 
@@ -128,16 +128,16 @@ void NetworkCard::handleNextPacket() {
 pair<const uint8_t*, const int> NetworkCard::serialize(
     const pcpp::Packet* packet) {
     pcpp::RawPacket* rawPacket = packet->getRawPacketReadOnly();
-    return make_pair(rawPacket->getRawData(), rawPacket->getRawDataLen());
+    return std::make_pair(rawPacket->getRawData(), rawPacket->getRawDataLen());
 }
 
-unique_ptr<pcpp::Packet> NetworkCard::deserialize(uint8_t*  rawData,
-                                                  const int rawDataLen) {
+std::unique_ptr<pcpp::Packet> NetworkCard::deserialize(uint8_t*  rawData,
+                                                       const int rawDataLen) {
     struct timespec timestamp;
     timespec_get(&timestamp, TIME_UTC);
 
     auto* rawPacket = new pcpp::RawPacket(rawData, rawDataLen, timestamp, true);
-    auto  packet    = make_unique<pcpp::Packet>(rawPacket, true);
+    auto  packet    = std::make_unique<pcpp::Packet>(rawPacket, true);
 
     return packet;
 }

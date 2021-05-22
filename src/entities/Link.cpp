@@ -33,8 +33,8 @@ NetworkCard *Link::getPeerNetworkCardOrNull(
     }
 }
 
-void Link::sendPacketThroughWire(pair<const uint8_t *, int> data,
-                                 NetworkCard *              destination) const {
+void Link::sendPacketThroughWire(std::pair<const uint8_t *, int> data,
+                                 NetworkCard *destination) const {
     assert(destination);
 
     if (connection_status == Connection_status::ACTIVE) {
@@ -46,10 +46,10 @@ void Link::sendPacketThroughWire(pair<const uint8_t *, int> data,
     }
 }
 
-string Link::getLogLinkName(NetworkCard *destination) const {
+std::string Link::getLogLinkName(NetworkCard *destination) const {
     NetworkCard *source = getPeerNetworkCardOrNull(destination);
 
-    string output;
+    std::string output;
 
     output += source ? source->owner->ID + " " + source->netInterface : "null";
     output += source && destination ? " -> " : " <-?-> ";

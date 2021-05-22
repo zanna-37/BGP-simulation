@@ -8,11 +8,11 @@
 #include "../ip/IpManager.h"
 #include "../logger/Logger.h"
 
-Device::Device(string ID, pcpp::IPv4Address defaultGateway)
+Device::Device(std::string ID, pcpp::IPv4Address defaultGateway)
     : ID(std::move(ID)), defaultGateway(defaultGateway) {}
 
 NetworkCard *Device::getNetworkCardByInterfaceOrNull(
-    const string &interfaceToSearch) const {
+    const std::string &interfaceToSearch) const {
     for (const auto &networkCard : *networkCards) {
         if (networkCard->netInterface == interfaceToSearch) {
             return networkCard;
@@ -53,7 +53,7 @@ Device::~Device() {
     }
 }
 
-void Device::addCards(vector<NetworkCard *> *networkCards) {
+void Device::addCards(std::vector<NetworkCard *> *networkCards) {
     this->networkCards = networkCards;
 }
 
@@ -62,7 +62,7 @@ void Device::bootUp() {
 
     IpManager::buildRoutingTable(routingTable, networkCards, defaultGateway);
 
-    string routingTableAsString =
+    std::string routingTableAsString =
         IpManager::getRoutingTableAsString(routingTable);
     L_VERBOSE(ID, "Routing table:\n" + routingTableAsString);
 
