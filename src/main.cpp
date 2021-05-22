@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
         }
         delete devices;
     } else {
-        L_ERROR("main",
+        L_FATAL("main",
                 "Too few arguments. Did you specify the configuration file?");
     }
 

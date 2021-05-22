@@ -8,7 +8,7 @@
 #include "fsm/TCPStateClosed.h"
 
 
-TCPConnection ::TCPConnection(Device* owner) : owner(owner) {
+TCPConnection::TCPConnection(Device* owner) : owner(owner) {
     this->stateMachine = new TCPStateMachine(this);
     this->stateMachine->changeState(new TCPStateClosed(this->stateMachine));
     this->stateMachine->start();
@@ -27,14 +27,10 @@ TCPState* TCPConnection::getCurrentState() {
 
 void TCPConnection::processMessage(
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> receivedLayers) {
-    auto lastLayer =
-        std::move(receivedLayers->top());  // TODO remove ip layer in the caller
-    receivedLayers->pop();
-    auto secondToLastLayer = std::move(receivedLayers->top());
+    auto layer = std::move(receivedLayers->top());
     receivedLayers->pop();
 
-    auto* receivedTcpLayer_weak =
-        dynamic_cast<pcpp::TcpLayer*>(secondToLastLayer.get());
+    auto* receivedTcpLayer_weak = dynamic_cast<pcpp::TcpLayer*>(layer.get());
 
     uint8_t receivedFlags =
         parseTCPFlags(receivedTcpLayer_weak->getTcpHeader());

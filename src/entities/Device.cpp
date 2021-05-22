@@ -140,17 +140,15 @@ void Device::sendPacket(
 
 void Device::processMessage(
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
-    auto lastLayer = std::move(layers->top());
+    auto ipLayer = std::move(layers->top());
     layers->pop();
-    auto secondToLastLayer = std::move(layers->top());
+    auto tcpLayer = std::move(layers->top());
     layers->pop();
 
-    auto *ipLayer_weak = dynamic_cast<pcpp::IPv4Layer *>(lastLayer.get());
-    auto *tcpLayer_weak =
-        dynamic_cast<pcpp::TcpLayer *>(secondToLastLayer.get());
+    auto *ipLayer_weak  = dynamic_cast<pcpp::IPv4Layer *>(ipLayer.get());
+    auto *tcpLayer_weak = dynamic_cast<pcpp::TcpLayer *>(tcpLayer.get());
 
-    layers->push(std::move(secondToLastLayer));
-    layers->push(std::move(lastLayer));
+    layers->push(std::move(tcpLayer));
 
     TCPConnection *existingTcpConnection =
         getExistingTcpConnectionOrNull(ipLayer_weak->getSrcIPv4Address(),
@@ -200,13 +198,14 @@ TCPConnection *Device::getExistingTcpConnectionOrNull(
 
         if (connection->srcAddr == srcAddr && connection->srcPort == srcPort &&
             connection->dstAddr == dstAddr && connection->dstPort == dstPort) {
+            // Return an existing connection
             return connection;
-        }
-        // new TCP connection with unknown remote addresses
-        else if (connection->srcAddr == srcAddr &&
-                 connection->srcPort == srcPort &&
-                 connection->dstAddr == pcpp::IPv4Address::Zero &&
-                 connection->dstPort == 0) {
+        } else if (connection->srcAddr == srcAddr &&
+                   connection->srcPort == srcPort &&
+                   connection->dstAddr == pcpp::IPv4Address::Zero &&
+                   connection->dstPort == 0) {
+            // Create a new TCP connection by assigning remote addresses to a
+            // currently listening TCP connection
             connection->dstAddr = dstAddr;
             connection->dstPort = dstPort;
             return connection;
@@ -388,9 +387,3 @@ void Device::notifyConnectedSocket(TCPConnection *connection) {
         L_FATAL(ID, "No connected socket associated with TCP connection");
     }
 }
-
-// ### ReceivedPacketEvent methods
-
-ReceivedPacketEvent::ReceivedPacketEvent(NetworkCard *networkCard,
-                                         Description  description)
-    : networkCard(networkCard), description(description) {}

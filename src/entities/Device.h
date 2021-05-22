@@ -30,16 +30,6 @@
 
 using namespace std;
 
-class ReceivedPacketEvent {
-   public:
-    NetworkCard *networkCard;
-
-    enum Description { PACKET_ARRIVED };
-    Description description;
-    ReceivedPacketEvent(NetworkCard *networkCard, Description description);
-    ~ReceivedPacketEvent() {}
-};
-
 /**
  * This class abstracts the concept of a general network device
  * \verbatim
@@ -71,23 +61,12 @@ class Device {
      * A list of all the network interfaces of a device.
      */
     std::vector<NetworkCard *> *networkCards = nullptr;
-    /**
-     * the pointer to the device thread. Each device works on a separate thread
-     * that handle the packet received and send packets to other devices
-     */
-    std::thread *deviceThread = nullptr;
+
     /**
      * A std::vector used to implement the ip routing table. Each row is a
      * TableRow object
      */
     std::vector<TableRow> routingTable = std::vector<TableRow>();
-
-    /**
-     * A bool indicating if the device is running or not. \a Device::bootUp()
-     * starts the device and sets it to \a true. \a Device::~Device() set it to
-     * \a false.
-     */
-    std::atomic<bool> running{false};
 
     /**
      * The hashmap containing the existing TCPConnections. When a device
@@ -101,7 +80,6 @@ class Device {
      * Threads that manage inbound network communication.
      */
     std::vector<std::thread> netInputThreads;
-
 
     /**
      * If a deivice has open ports and accept connections, this pointer is
@@ -188,14 +166,6 @@ class Device {
     void sendPacket(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
         const pcpp::IPv4Address &                                 dstAddr);
-
-
-    /**
-     * Enqueue an receivedPacket event. It is used to handle different network
-     * cards packets queue in an organized manner.
-     * @param event a packet has arrivet at one of the device's network card
-     */
-    void enqueueEvent(ReceivedPacketEvent *event);
 
     /**
      * A server that wants to start listening open a port and instantiate a
@@ -350,6 +320,13 @@ class Device {
 
    private:
     /**
+     * A bool indicating if the device is running or not. \a Device::bootUp()
+     * starts the device and sets it to \a true. \a Device::~Device() set it to
+     * \a false.
+     */
+    std::atomic<bool> running{false};
+
+    /**
      * Compute the hash of the connection based on the destination IP address
      * and the destination port
      * @param dstAddr string of the IP address
@@ -357,17 +334,6 @@ class Device {
      * @return the hash
      */
     std::size_t tcpConnectionHash(std::string dstAddr, uint16_t dstPort);
-
-    /**
-     * Receive a packet from one of its network cards. It checks if the message
-     * if for this router or it must forward (or drop) it
-     * @warning it should be called by the network card
-     * @param layers the std::stack simulating the packet.
-     * @param origin the network card that received the packet
-     */
-    void receivePacket(std::stack<pcpp::Layer *> *layers, NetworkCard *origin);
-
-    friend class NetworkCard;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H
