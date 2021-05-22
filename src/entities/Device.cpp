@@ -25,12 +25,13 @@ Device::~Device() {
     L_VERBOSE(ID, "Shutting down");
     running = false;
 
-    unique_lock<std::mutex> receivedPacketsEventQueue_uniqueLock(
-        receivedPacketsEventQueue_mutex);
-    receivedPacketsEventQueue_wakeup.notify_one();
-    receivedPacketsEventQueue_uniqueLock.unlock();
-    deviceThread->join();
-    delete deviceThread;
+    for (NetworkCard *networkCard : *networkCards) {
+        networkCard->shutdown();
+    }
+
+    for (std::thread &netInputThread : netInputThreads) {
+        netInputThread.join();
+    }
 
     for (NetworkCard *networkCard : *networkCards) {
         delete networkCard;
@@ -66,50 +67,62 @@ void Device::bootUp() {
         IpManager::getRoutingTableAsString(routingTable);
     L_VERBOSE(ID, "Routing table:\n" + routingTableAsString);
 
-    running      = true;
-    deviceThread = new std::thread([&]() {
-        while (running) {
-            unique_lock<std::mutex> receivedPacketsEventQueue_uniqueLock(
-                receivedPacketsEventQueue_mutex);
+    running = true;
 
-            while (receivedPacketsEventQueue.empty() && running) {
-                receivedPacketsEventQueue_wakeup.wait(
-                    receivedPacketsEventQueue_uniqueLock);
+    for (NetworkCard *networkCard : *networkCards) {
+        netInputThreads.emplace_back([&, networkCard]() {
+            while (running) {
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers = networkCard->waitForL3Packet();
 
-                if (receivedPacketsEventQueue.empty() && running) {
-                    L_DEBUG(ID, "Spurious Wakeup");
+                if (running && layers) {
+                    auto layer = std::move(layers->top());
+                    layers->pop();
+                    auto *ipLayer =
+                        dynamic_cast<pcpp::IPv4Layer *>(layer.get());
+                    pcpp::IPv4Address dstAddress = ipLayer->getDstIPv4Address();
+                    ipLayer                      = nullptr;
+                    layer.reset();
+
+
+                    std::string logMessage = "Received packet from " +
+                                             networkCard->netInterface + ": ";
+                    if (dstAddress == networkCard->IP) {
+                        L_DEBUG(ID,
+                                logMessage + "input chain, processing message");
+                        processMessage(std::move(layers));
+                    } else {
+                        L_DEBUG(
+                            ID,
+                            logMessage + "forward chain, forwarding message");
+                        NetworkCard *nextHopNetworkCard =
+                            IpManager::findExitingNetworkCard(dstAddress,
+                                                              routingTable);
+                        if (nextHopNetworkCard == nullptr) {
+                            L_ERROR(ID,
+                                    dstAddress.toString() +
+                                        ": Destination unreachable");
+                        } else {
+                            forwardMessage(std::move(layers),
+                                           nextHopNetworkCard);
+                        }
+                    }
                 }
             }
-
-            if (running) {
-                ReceivedPacketEvent *event = receivedPacketsEventQueue.front();
-                L_DEBUG(ID,
-                        "Packet arrived through " +
-                            event->networkCard->netInterface);
-                receivedPacketsEventQueue.pop();
-                receivedPacketsEventQueue_uniqueLock.unlock();
-
-                event->networkCard->handleNextPacket();
-                delete event;
-            } else {
-                receivedPacketsEventQueue_uniqueLock.unlock();
-            }
-        }
-    });
+        });
+    }
 }
 
-void Device::sendPacket(stack<pcpp::Layer *> *   layers,
-                        const pcpp::IPv4Address &dstAddr) {
-    auto *ipLayer = new pcpp::IPv4Layer();
+void Device::sendPacket(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
+    const pcpp::IPv4Address &                                 dstAddr) {
+    auto ipLayer = std::make_unique<pcpp::IPv4Layer>();
     ipLayer->setDstIPv4Address(dstAddr);
 
     NetworkCard *nextHopNetworkCard =
         IpManager::findExitingNetworkCard(dstAddr, routingTable);
     if (nextHopNetworkCard == nullptr) {
         L_ERROR(ID, dstAddr.toString() + ": Destination unreachable");
-        // FIXME
-        delete ipLayer;
-
     } else {
         L_DEBUG(ID, "Sending packet using " + nextHopNetworkCard->netInterface);
         ipLayer->setSrcIPv4Address(nextHopNetworkCard->IP);
@@ -120,61 +133,39 @@ void Device::sendPacket(stack<pcpp::Layer *> *   layers,
                 connection->srcAddr = nextHopNetworkCard->IP;
             }
         }
-        layers->push(ipLayer);
-        nextHopNetworkCard->sendPacket(layers);
+        layers->push(std::move(ipLayer));
+        nextHopNetworkCard->sendPacket(std::move(layers));
     }
 }
 
-void Device::receivePacket(stack<pcpp::Layer *> *layers, NetworkCard *origin) {
-    pcpp::IPv4Layer * ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
-    pcpp::IPv4Address dstAddress = ipLayer->getDstIPv4Address();
-
-    string logMessage = "Received packet from " + origin->netInterface + ": ";
-    if (dstAddress == origin->IP) {
-        L_DEBUG(ID, logMessage + "input chain, processing message");
-        processMessage(layers);
-    } else {
-        L_DEBUG(ID, logMessage + "forward chain, forwarding message");
-        NetworkCard *nextHopNetworkCard =
-            IpManager::findExitingNetworkCard(dstAddress, routingTable);
-        if (nextHopNetworkCard == nullptr) {
-            L_ERROR(ID, dstAddress.toString() + ": Destination unreachable");
-        } else {
-            forwardMessage(layers, nextHopNetworkCard);
-        }
-    }
-}
-
-void Device::processMessage(stack<pcpp::Layer *> *layers) {
-    pcpp::IPv4Layer *ipLayer = dynamic_cast<pcpp::IPv4Layer *>(layers->top());
+void Device::processMessage(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
+    auto lastLayer = std::move(layers->top());
     layers->pop();
-    pcpp::TcpLayer *tcpLayer = dynamic_cast<pcpp::TcpLayer *>(layers->top());
-    layers->push(ipLayer);
+    auto secondToLastLayer = std::move(layers->top());
+    layers->pop();
+
+    auto *ipLayer_weak = dynamic_cast<pcpp::IPv4Layer *>(lastLayer.get());
+    auto *tcpLayer_weak =
+        dynamic_cast<pcpp::TcpLayer *>(secondToLastLayer.get());
+
+    layers->push(std::move(secondToLastLayer));
+    layers->push(std::move(lastLayer));
 
     TCPConnection *existingTcpConnection =
-        getExistingTcpConnectionOrNull(ipLayer->getSrcIPv4Address(),
-                                       tcpLayer->getSrcPort(),
-                                       ipLayer->getDstIPv4Address(),
-                                       tcpLayer->getDstPort());
+        getExistingTcpConnectionOrNull(ipLayer_weak->getSrcIPv4Address(),
+                                       tcpLayer_weak->getSrcPort(),
+                                       ipLayer_weak->getDstIPv4Address(),
+                                       tcpLayer_weak->getDstPort());
+
     if (existingTcpConnection != nullptr) {
-        existingTcpConnection->processMessage(layers);
+        existingTcpConnection->processMessage(std::move(layers));
     } else {
         L_ERROR(ID,
                 "No TCP service listening on " +
-                    ipLayer->getDstIPv4Address().toString() + " port " +
-                    to_string(tcpLayer->getDstPort()));
+                    ipLayer_weak->getDstIPv4Address().toString() + " port " +
+                    std::to_string(tcpLayer_weak->getDstPort()));
     }
-}
-
-void Device::enqueueEvent(ReceivedPacketEvent *event) {
-    L_DEBUG(ID, "Enqueueing event in receivedPacketEventQueue");
-    unique_lock<std::mutex> receivedPacketsEventQueue_uniqueLock(
-        receivedPacketsEventQueue_mutex);
-
-    receivedPacketsEventQueue.push(event);
-    receivedPacketsEventQueue_wakeup.notify_one();
-
-    receivedPacketsEventQueue_uniqueLock.unlock();
 }
 
 void Device::listen(uint16_t port) {

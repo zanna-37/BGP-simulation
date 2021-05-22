@@ -91,13 +91,14 @@ class Socket {
      * @param applicationLayers the applicaiton layers to be sent through the
      * TCP connection
      */
-    void send(std::stack<pcpp::Layer*>* applicationLayers);
+    void send(std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                  applicationLayers);
     /**
      * Wait for new data to be received in the TCP connection queue and return
      * the application layers, processed by the application
      * @return a stack of application layers
      */
-    std::stack<pcpp::Layer*>* recv();
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> recv();
 
 
     /**

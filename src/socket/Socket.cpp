@@ -99,15 +99,16 @@ void Socket::dataArrived() {
     tcpConnection_uniqueLock.unlock();
 }
 
-std::stack<pcpp::Layer*>* Socket::recv() {
-    std::stack<pcpp::Layer*>* layers =
+std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> Socket::recv() {
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
         device->getAssociatedTCPconnectionOrNull(this)
             ->waitForApplicationData();
     return layers;
 }
 
 
-void Socket::send(std::stack<pcpp::Layer*>* applicationLayers) {
+void Socket::send(std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                      applicationLayers) {
     device->getAssociatedTCPconnectionOrNull(this)->sendApplicationData(
-        applicationLayers);
+        std::move(applicationLayers));
 }

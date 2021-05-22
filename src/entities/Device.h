@@ -5,6 +5,7 @@
 #include <Packet.h>
 #include <TcpLayer.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <map>
 #include <mutex>
@@ -86,21 +87,7 @@ class Device {
      * starts the device and sets it to \a true. \a Device::~Device() set it to
      * \a false.
      */
-    bool running = false;
-
-    /**
-     * Mutex to lock the queue
-     */
-    std::mutex receivedPacketsEventQueue_mutex;
-    /**
-     * condition variable set when the queue is not empty
-     */
-    std::condition_variable receivedPacketsEventQueue_wakeup;
-    /**
-     * Queue of events. An event is enqueued when a packet arrives at the
-     * network card packet queue
-     */
-    queue<ReceivedPacketEvent *> receivedPacketsEventQueue;
+    std::atomic<bool> running{false};
 
     /**
      * The hashmap containing the existing TCPConnections. When a device
@@ -109,6 +96,11 @@ class Device {
      */
     // std::map<std::size_t, TCPConnection *> tcpConnections;
     std::vector<TCPConnection *> tcpConnections;
+
+    /**
+     * Threads that manage inbound network communication.
+     */
+    std::vector<std::thread> netInputThreads;
 
 
     /**
@@ -174,7 +166,8 @@ class Device {
      * and existing TCPConnections.
      * @param layers the std::stack simulating the packet (TCP and IP layers)
      */
-    void processMessage(stack<pcpp::Layer *> *layers);
+    void processMessage(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
     /**
      * Forward the message to the next destination, if the device is a router,
@@ -182,8 +175,9 @@ class Device {
      * @param layers the std::stack simulating the packet
      * @param networkCard the network card responsible to forward the message
      */
-    virtual void forwardMessage(stack<pcpp::Layer *> *layers,
-                                NetworkCard *         networkCard) = 0;
+    virtual void forwardMessage(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
+        NetworkCard *networkCard) = 0;
 
     /**
      * Creates the IP layer, find the next hop and send the packet to the layer
@@ -191,8 +185,9 @@ class Device {
      * @param layers the std::stack simulating the packet
      * @param dstAddr the destination address of the packet
      */
-    void sendPacket(stack<pcpp::Layer *> *   layers,
-                    const pcpp::IPv4Address &dstAddr);
+    void sendPacket(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
+        const pcpp::IPv4Address &                                 dstAddr);
 
 
     /**

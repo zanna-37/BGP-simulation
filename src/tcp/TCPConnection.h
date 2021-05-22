@@ -66,7 +66,8 @@ class TCPConnection {
     /**
      * The queue of received messages
      */
-    std::queue<std::stack<pcpp::Layer*>*> receivingQueue;
+    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+                                          receivingQueue;
     std::mutex                            receivingQueue_mutex;
     std::condition_variable               receivingQueue_wakeup;
     std::thread*                          receivingThread = nullptr;
@@ -75,7 +76,8 @@ class TCPConnection {
     /**
      * The queue of messsages to be sent
      */
-    std::queue<std::stack<pcpp::Layer*>*> sendingQueue;
+    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+                                          sendingQueue;
     std::mutex                            sendingQueue_mutex;
     std::condition_variable               sendingQueue_wakeup;
     std::thread*                          sendingThread = nullptr;
@@ -84,8 +86,9 @@ class TCPConnection {
     /**
      * The application packets queue. It is filled through the socket
      */
-    std::queue<std::stack<pcpp::Layer*>*> appReceivingQueue;
-    std::mutex                            appReceivingQueue_mutex;
+    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+                            appReceivingQueue;
+    std::mutex              appReceivingQueue_mutex;
     std::condition_variable               appReceivingQueue_wakeup;
 
     // We do not need an application sending queue, since we immediately push
@@ -104,14 +107,16 @@ class TCPConnection {
      * @param tcpHeader the TCP header
      * @return a \a uint8_t value indicating what flags are set in the header
      */
-    uint8_t parseTCPFlags(pcpp::tcphdr* tcpHeader);
+    static uint8_t parseTCPFlags(pcpp::tcphdr* tcpHeader);
 
     /**
      * Process a newly arrived packet at the TCP layer, based on the flags int
      * the TCP header. It enqueues event accordingly, based on TCPStateMachine
      * defined in RFC 793
      */
-    void processMessage(std::stack<pcpp::Layer*>* layers);
+    void processMessage(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+            receivedLayers);
 
     /**
      * Return a pointer to the current state of the connection
@@ -170,31 +175,23 @@ class TCPConnection {
      * to RFC)
      * @return a pointer to the newly created TCP layer
      */
-    pcpp::TcpLayer* craftTCPLayer(uint16_t srcPort,
-                                  uint16_t dstPort,
-                                  int      flags);
-
-    /**
-     * read the flags of the incoming packet and based on that, notify the
-     * remote peer
-     * @param flags the flags to be processed
-     * @param applicationLayers the application layers
-     */
-    void processFlags(uint8_t                   flags,
-                      std::stack<pcpp::Layer*>* applicationLayers);
-
+    static std::unique_ptr<pcpp::TcpLayer> craftTCPLayer(uint16_t srcPort,
+                                                         uint16_t dstPort,
+                                                         int      flags);
 
     /**
      * push the packet to the sending queue
      * @param layers the stack abstraction of the packet layers
      */
-    void sendPacket(std::stack<pcpp::Layer*>* layers);
+    void sendPacket(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
     /**
      * Push the TCP packet to the receiving queue
      * @param layers the TCP packet abstraction layers
      */
-    void receivePacket(std::stack<pcpp::Layer*>* layers);
+    void receivePacket(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
     void closeConnection();
 
@@ -203,13 +200,15 @@ class TCPConnection {
      * receive data
      * @return the application layers
      */
-    std::stack<pcpp::Layer*>* waitForApplicationData();
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+    waitForApplicationData();
 
     /**
      * Enquque the application layers to the application layers queue
-     * @param applicationLayers the application layers
+     * @param layers the application layers
      */
-    void enqueueApplicationLayers(std::stack<pcpp::Layer*>* applicationLayers);
+    void enqueueApplicationLayers(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
     /**
      * craft the TCP header and send the packet (by pushing it to the
@@ -217,7 +216,8 @@ class TCPConnection {
      * @param layers the stack abstraction of the packet with application data
      * and TCP header
      */
-    void sendApplicationData(std::stack<pcpp::Layer*>* layers);
+    void sendApplicationData(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
    private:
     /**

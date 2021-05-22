@@ -25,8 +25,9 @@ class EndPoint : public virtual Device {
      * @param networkCard the network card to forward. It should be null for the
      * enpoint case
      */
-    void forwardMessage(stack<pcpp::Layer *> *layers,
-                        NetworkCard *         networkCard) override;
+    void forwardMessage(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
+        NetworkCard* networkCard) override;
 
     void startInternal() {}
 };

@@ -62,7 +62,8 @@ class BGPConnection {
      * Handle BGP message
      * @param layers the BGP layers contained in the received message
      */
-    void processMessage(std::stack<pcpp::Layer*>* layers);
+    void processMessage(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
     /**
      * Client side connection of TCP, used by the router that wants to initiate
@@ -86,7 +87,8 @@ class BGPConnection {
      * @param layers the vector abstraction of the internet packet that is built
      * from the application layer.
      */
-    void sendData(std::stack<pcpp::Layer*>* layers);
+    void sendData(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 };
 
 #endif

@@ -16,9 +16,8 @@ BGPStateConnect ::~BGPStateConnect() {}
 bool BGPStateConnect ::onEvent(BGPEvent event) {
     bool handled = true;
 
-    std::stack<pcpp::Layer*>* layers = nullptr;
-
-    BGPOpenLayer* bgpOpenLayer = nullptr;
+    std::unique_ptr<BGPLayer>                                 bgpOpenLayer;
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
 
     switch (event) {
         case BGPEvent::ManualStop:
@@ -94,21 +93,19 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 // TODO completes BGP initialization
 
                 // TODO sends an OPEN message to its peer,
-                layers = new std::stack<pcpp::Layer*>();
 
                 // FIXME
                 // dynamic_cast<Router*>(stateMachine->connection->owner)->AS_number
-                bgpOpenLayer = new BGPOpenLayer(
+                bgpOpenLayer = std::make_unique<BGPOpenLayer>(
                     1111,
                     (uint16_t)(stateMachine->getHoldTime().count()),
                     pcpp::IPv4Address("1.1.1.1"));
                 bgpOpenLayer->computeCalculateFields();
 
-                layers->push(bgpOpenLayer);
+                layers->push(std::move(bgpOpenLayer));
 
-                stateMachine->connection->sendData(layers);
+                stateMachine->connection->sendData(std::move(layers));
 
-                delete layers;
                 // - NOT_SURE sets the HoldTimer to a large value, and
                 stateMachine->setHoldTime(240s);
                 stateMachine->holdTimer->start();

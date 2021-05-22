@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <time.h>
 
+#include <atomic>
 #include <memory>
 #include <queue>
 #include <stack>
@@ -61,9 +62,21 @@ class NetworkCard {
     pcpp::MacAddress mac;
 
     /**
-     * A queue of packets that arrives at the network card.
+     * Mutex to lock the queue.
      */
-    queue<unique_ptr<pcpp::Packet>> receivedPacketsQueue;
+    std::mutex receivedPacketsQueue_mutex;
+    /**
+     * condition variable set when the queue is not empty.
+     */
+    std::condition_variable receivedPacketsQueue_wakeup;
+
+    /**
+     * A queue of packets ready to be consumed by upper layers.
+     */
+    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+        receivedPacketsQueue;
+
+    std::atomic<bool> running = {true};
 
 
     /**
@@ -110,15 +123,26 @@ class NetworkCard {
      * @warning This should be called by the \a Device.
      * @param layers The \a std::stack simulating the packet.
      */
-    void sendPacket(stack<pcpp::Layer*>* layers);
+    void sendPacket(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
     /**
-     * Called when the device event queue is ready to handle a packet from this
-     * network card. It takes the first packet in the queue and start creating
-     * the layers for upper protocols.
-     * @warning It should be called by the device when the message is handled
+     * Synchronously wait for a new packet to arrive.
+     *
+     * It waits for a ISO-OSI level 3 packet (Network layer). It therefore
+     * contains all the layers but the ones below the network.
+     * Note: to forcefully stop the waiting, call \a NetworkCard::shutdown()
+     *
+     * @return A new packet arrived, or null in case the network card is
+     * shutting down.
      */
-    void handleNextPacket();
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> waitForL3Packet();
+
+    /**
+     * Force the exit from \a NetworkCard::waitForL3Packet() even if no packets
+     * are present in the queue.
+     */
+    void shutdown();
 
    private:
     /**

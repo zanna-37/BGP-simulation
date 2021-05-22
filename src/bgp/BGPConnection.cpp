@@ -30,24 +30,28 @@ void BGPConnection::enqueueEvent(BGPEvent event) {
 }
 
 
-void BGPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
+void BGPConnection::processMessage(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
     L_DEBUG(owner->ID, "Processing BGP Message");
     while (!layers->empty()) {
-        BGPLayer* bgpLayer = dynamic_cast<BGPLayer*>(layers->top());
+        std::unique_ptr<pcpp::Layer> layer = std::move(layers->top());
         layers->pop();
+        auto* bgpLayer_weak = dynamic_cast<BGPLayer*>(layer.get());
+
         BGPLayer::BGPCommonHeader* bgpHeader =
-            bgpLayer->getCommonHeaderOrNull();
+            bgpLayer_weak->getCommonHeaderOrNull();
         if (bgpHeader) {
-            BGPOpenLayer* bgpOpenLayer = nullptr;
+            BGPOpenLayer* bgpOpenLayer_weak;
 
             // here we will call sendData if we want to send back a packet to
             // our peer
             switch (bgpHeader->type) {
                 case BGPLayer::BGPMessageType::OPEN:
                     L_DEBUG(owner->ID, "OPEN message arrived");
-                    bgpOpenLayer = dynamic_cast<BGPOpenLayer*>(bgpLayer);
-                    holdTime     = std::chrono::seconds(be16toh(
-                        bgpOpenLayer->getOpenHeaderOrNull()->holdTime_be));
+                    bgpOpenLayer_weak =
+                        dynamic_cast<BGPOpenLayer*>(bgpLayer_weak);
+                    holdTime = std::chrono::seconds(be16toh(
+                        bgpOpenLayer_weak->getOpenHeaderOrNull()->holdTime_be));
                     owner->bgpApplication->collisionDetection(this);
                     enqueueEvent(BGPEvent::BGPOpen);
                     break;
@@ -65,11 +69,8 @@ void BGPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
                     break;
             }
         }
-
-        delete bgpLayer;
     }
 }
-
 
 void BGPConnection::connect() {
     connectedSocket =
@@ -87,13 +88,15 @@ void BGPConnection::closeConnection() {
 void BGPConnection::receiveData() {
     receivingThread = new std::thread([&]() {
         while (running) {
-            std::stack<pcpp::Layer*>* layers = connectedSocket->recv();
+            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+                connectedSocket->recv();
 
-            processMessage(layers);
+            processMessage(std::move(layers));
         }
     });
 }
 
-void BGPConnection::sendData(std::stack<pcpp::Layer*>* layers) {
-    connectedSocket->send(layers);
+void BGPConnection::sendData(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
+    connectedSocket->send(std::move(layers));
 }

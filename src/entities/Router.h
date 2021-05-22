@@ -50,8 +50,9 @@ class Router : public virtual Device {
      * @param layers the std::stack simulation of the packet
      * @param networkCard the network card that will send the packet
      */
-    void forwardMessage(stack<pcpp::Layer *> *layers,
-                        NetworkCard *         networkCard) override;
+    void forwardMessage(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
+        NetworkCard *networkCard) override;
 
     /**
      * Start the BGP application in passive open mode
