@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 
     // TODO REMOVE ME, just examples
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
-                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
+                                    pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
     pcpp::IPv4Layer newIPLayer(pcpp::IPv4Address(std::string("192.168.1.1")),
                                pcpp::IPv4Address(std::string("10.0.0.1")));
     newIPLayer.getIPv4Header()->ipId       = pcpp::hostToNet16(2000);
@@ -137,34 +137,16 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
-
-        thread *serverThread = new std::thread([&]() {
-          rc = start_server(devices);
-          if (rc == 0)
-          {
-              L_INFO("Server", "SIGINT received, Pistache shutdown correctly!");
-          }
-          else
-          {
-              L_ERROR("Server", "ShutDown Failed!");
-          }
+        auto *serverThread = new std::thread([&]() {
+            rc = start_server(devices);
+            if (rc == 0) {
+                L_INFO("Server",
+                       "SIGINT received, Pistache shutdown correctly!");
+            } else {
+                L_ERROR("Server", "ShutDown Failed!");
+            }
         });
-
         signal(SIGINT, inthand);
-
-        while (!stop) {
-            // TODO logic here
-            sleep(1);
-        }
-
-        L_INFO("Server", "SIGINT received, while loop exited");
-
-        // Once the Ctrl+C is pressed all the threads stop (on my machine)
-
-        serverThread->join();
-        delete serverThread;
-        serverThread = nullptr;
-
 
         for (auto device : *devices) {
             /* TODO REMOVE ME, just an example
@@ -178,25 +160,18 @@ int main(int argc, char *argv[]) {
             std::this_thread::sleep_for(500ms);  // TODO remove me
         }
 
-        // devices->at(0)->listen();
-        // std::string testAddress("90.36.25.1");
-        // devices->at(2)->connect(testAddress, 179);
+        while (!stop) {
+            sleep(1);  // TODO change from polling to wait
+        }
 
-        // this_thread::sleep_for(5s);
-        // devices->at(2)->resetConnection(testAddress, 179);
-        // this_thread::sleep_for(5s);
-        // devices->at(2)->closeConnection(testAddress, 179);
-        // this_thread::sleep_for(2s);
-        // testAddress = "90.36.25.123";
-        // devices->at(0)->closeConnection(testAddress, 12345);
-        // this_thread::sleep_for(5s);
+        L_VERBOSE("main", "SIGINT (Ctrl+C) received. Exiting...");
 
-        //         BGPConnection connection(dynamic_cast<Router
-        //         *>(devices->at(0))); connection.enqueueEvent(AutomaticStart);
-        std::this_thread::sleep_for(20s);
-        //         connection.enqueueEvent(ManualStop);
+        // Once the Ctrl+C is pressed all the threads stop
+        serverThread->join();
+        delete serverThread;
+        serverThread = nullptr;
 
-        L_INFO("main", "SHUTTING DOWN SIMULATION");
+        L_INFO("main", "SHUTTING DOWN DEVICES");
         for (auto device : *devices) {
             delete device;
         }

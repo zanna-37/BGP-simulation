@@ -27,8 +27,9 @@ jobs:
             bash -c " \
               make dbuild; \
               valgrind \
-              --leak-check=full \
-              --show-leak-kinds=all \
-              --track-origins=yes \
-              --track-fds=yes \
-              ./cmake-debug/BGP_simulation ./examples/config.yaml"
+                --leak-check=full \
+                --show-leak-kinds=all \
+                --track-origins=yes \
+                --track-fds=yes \
+                ./cmake-debug/BGP_simulation ./examples/config.yaml & \
+              ( sleep 60; echo 'Simulating SIGINT (Ctrl+C)'; kill -SIGINT $! )"

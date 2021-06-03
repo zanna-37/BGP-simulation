@@ -16,7 +16,7 @@ void ApiEndpoint::start(volatile sig_atomic_t *stop) {
     httpEndpoint->setHandler(router.handler());
     httpEndpoint->serveThreaded();
     while (!*stop) {
-        sleep(1);
+        sleep(1);  // TODO change from polling to wait
     }
     httpEndpoint->shutdown();
 }
