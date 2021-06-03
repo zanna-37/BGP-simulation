@@ -3,20 +3,20 @@
 #include "../../logger/Logger.h"
 
 
-void ParserLink::parseAndAddBuiltLinks(const YAML::Node &links_yaml,
-                                       vector<Device *> *devices_ptr) {
+void ParserLink::parseAndAddBuiltLinks(const YAML::Node &     links_yaml,
+                                       std::vector<Device *> *devices_ptr) {
     L_DEBUG("Parser", "Parsing Links");
 
     assertNodeType(links_yaml, YAML::NodeType::value::Sequence);
 
     for (const auto &link_yaml : links_yaml) {
-        pair<string, string> device_ids;
-        pair<string, string> device_source_interfaces;
-        Connection_status    connection_status;
+        std::pair<std::string, std::string> device_ids;
+        std::pair<std::string, std::string> device_source_interfaces;
+        Connection_status                   connection_status;
 
         for (const auto &link_property_yaml : link_yaml) {
-            string     property = link_property_yaml.first.as<std::string>();
-            YAML::Node value    = link_property_yaml.second;
+            std::string property = link_property_yaml.first.as<std::string>();
+            YAML::Node  value    = link_property_yaml.second;
 
             if (property == "device_ids") {
                 auto iterator     = value.begin();
@@ -56,7 +56,7 @@ void ParserLink::parseAndAddBuiltLinks(const YAML::Node &links_yaml,
         networkCard2 = device2->getNetworkCardByInterfaceOrNull(
             device_source_interfaces.second);
 
-        shared_ptr<Link> link(new Link(connection_status));
+        std::shared_ptr<Link> link(new Link(connection_status));
         networkCard1->connect(link);
         networkCard2->connect(link);
     }

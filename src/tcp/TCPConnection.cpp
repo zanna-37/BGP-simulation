@@ -6,40 +6,52 @@
 #include "TCPEvent.h"
 #include "TCPFlag.h"
 #include "fsm/TCPStateClosed.h"
+#include "fsm/TCPStateEnstablished.h"
+#include "fsm/TCPStateListen.h"
 
 
-TCPConnection ::TCPConnection(Device* owner) : owner(owner) {
+TCPConnection::TCPConnection(Device* owner) : owner(owner) {
     this->stateMachine = new TCPStateMachine(this);
-    this->stateMachine->changeState(new TCPStateClosed(this->stateMachine));
+    // start() cannot be called in the constructor because we need a fully
+    // constructed object
     this->stateMachine->start();
 }
 
-TCPConnection::~TCPConnection() { delete stateMachine; }
-
-void TCPConnection::enqueueEvent(TCPEvent event) {
-    stateMachine->enqueueEvent(event);
+TCPConnection::~TCPConnection() {
+    if (!dynamic_cast<TCPStateClosed*>(stateMachine->getCurrentState())) {
+        L_WARNING("TCP",
+                  "TCPConnection has been deallocated without being in the "
+                  "closed state.\nCall close() before deleting the connection");
+    }
+    delete stateMachine;
 }
 
-TCPState* TCPConnection::getCurrentState() {
-    return stateMachine->getCurrentState();
+void TCPConnection::close() {
+    stateMachine->enqueueEvent(TCPEvent::Close);
+    // TODO wait for event to be completed
+    std::this_thread::sleep_for(200ms);  // TODO remove
 }
 
+void TCPConnection::segmentArrives(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> receivedLayers) {
+    receivingQueue_mutex.lock();
+    receivingQueue.push(std::move(receivedLayers));
+    receivingQueue_mutex.unlock();
 
-void TCPConnection::processMessage(std::stack<pcpp::Layer*>* layers) {
-    pcpp::IPv4Layer* ipLayer = dynamic_cast<pcpp::IPv4Layer*>(layers->top());
-    layers->pop();
-    pcpp::TcpLayer* tcpLayer = dynamic_cast<pcpp::TcpLayer*>(layers->top());
-    layers->pop();
-
-    pcpp::tcphdr* tcpHeader = tcpLayer->getTcpHeader();
-    uint8_t       flags     = parseTCPFlags(tcpHeader);
-
-    processFlags(flags, layers);
-
-    delete ipLayer;
-    delete tcpLayer;
+    stateMachine->enqueueEvent(TCPEvent::SegmentArrives);
 }
 
+std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+TCPConnection::getNextSegment() {
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> result;
+
+    receivingQueue_mutex.lock();
+    result = std::move(receivingQueue.front());
+    receivingQueue.pop();
+    receivingQueue_mutex.unlock();
+
+    return result;
+}
 
 uint8_t TCPConnection::parseTCPFlags(pcpp::tcphdr* tcpHeader) {
     uint8_t result = 0;
@@ -66,60 +78,53 @@ uint8_t TCPConnection::parseTCPFlags(pcpp::tcphdr* tcpHeader) {
     return result;
 }
 
-void TCPConnection::listen() {
-    enqueueEvent(TCPEvent::PassiveOpen);
-    start();
+int TCPConnection::listen() {
+    stateMachine->enqueueEvent(TCPEvent::OpenPassive);
+
+    // TODO wait for event result (success/fail and return the result)
+    std::this_thread::sleep_for(200ms);  // TODO remove
+    return 0;
 }
 
+std::shared_ptr<TCPConnection> TCPConnection::accept() {
+    std::unique_lock<std::mutex> pendingConnections_uniqueLock(
+        pendingConnections_mutex);
 
-bool TCPConnection::isReady() {
-    bool result;
-    ready_mutex.lock();
-    result = ready;
-    ready_mutex.unlock();
-    return result;
+    while (pendingConnections.empty() && running) {
+        pendingConnections_wakeup.wait(pendingConnections_uniqueLock);
+    }
+
+    std::shared_ptr<TCPConnection> nextPendingConnection;
+    if (running) {
+        nextPendingConnection = pendingConnections.front();
+        pendingConnections.pop();
+    }
+    return nextPendingConnection;
 }
 
-bool TCPConnection::isConnected() {
-    bool result;
-    connected_mutex.lock();
-    result = connected;
-    connected_mutex.unlock();
-    return result;
+int TCPConnection::connect() {
+    stateMachine->enqueueEvent(TCPEvent::OpenActive);
+
+    // Wait until the connection is established
+    std::unique_lock<std::mutex> established_uniqueLock(established_mutex);
+    while (
+        !dynamic_cast<TCPStateEnstablished*>(stateMachine->getCurrentState()) &&
+        running) {
+        established_wakeup.wait(established_uniqueLock);
+    }
+
+    if (running) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
-void TCPConnection::setConnected(bool value) {
-    connected_mutex.lock();
-    connected = value;
-    connected_mutex.unlock();
-}
-
-void TCPConnection::accept() {
-    std::unique_lock<std::mutex> receivingQueue_uniqueLock(
-        receivingQueue_mutex);
-    receivingQueue_wakeup.notify_one();
-    receivingQueue_uniqueLock.unlock();
-}
-
-void TCPConnection::connect(const pcpp::IPv4Address& dstAddr,
-                            uint16_t                 dstPort) {
-    this->dstAddr = dstAddr;
-    this->dstPort = dstPort;
-    running       = true;
-
-    pcpp::TcpLayer*           tcpLayer = craftTCPLayer(srcPort, 179, SYN);
-    std::stack<pcpp::Layer*>* layers   = new std::stack<pcpp::Layer*>();
-    layers->push(tcpLayer);
-    sendPacket(layers);
-    enqueueEvent(TCPEvent::ActiveOpen_SendSYN);
-}
-
-
-pcpp::TcpLayer* TCPConnection::craftTCPLayer(uint16_t srcPort,
-                                             uint16_t dstPort,
-                                             int      flags) {
-    pcpp::TcpLayer* tcpLayer = new pcpp::TcpLayer(srcPort, dstPort);
-
+std::unique_ptr<pcpp::TcpLayer> TCPConnection::craftTCPLayer(uint16_t srcPort,
+                                                             uint16_t dstPort,
+                                                             int      flags) {
+    std::unique_ptr<pcpp::TcpLayer> tcpLayer =
+        std::make_unique<pcpp::TcpLayer>(srcPort, dstPort);
 
     switch (flags) {
         case SYN:
@@ -150,137 +155,16 @@ pcpp::TcpLayer* TCPConnection::craftTCPLayer(uint16_t srcPort,
             break;
     }
 
-    return tcpLayer;
+    return std::move(tcpLayer);
 }
 
-void TCPConnection::processFlags(uint8_t                   flags,
-                                 std::stack<pcpp::Layer*>* applicationLayers) {
-    std::stack<pcpp::Layer*>* layers   = new std::stack<pcpp::Layer*>();
-    pcpp::TcpLayer*           tcpLayer = nullptr;
-    if (flags == SYN) {
-        tcpLayer = craftTCPLayer(srcPort, dstPort, SYN + ACK);
-        layers->push(tcpLayer);
-        sendPacket(layers);
-        enqueueEvent(TCPEvent::ReceiveClientSYN_SendSYNACK);
-    } else if (flags == SYN + ACK) {
-        tcpLayer = craftTCPLayer(srcPort, dstPort, ACK);
-        layers->push(tcpLayer);
-        sendPacket(layers);
-        enqueueEvent(TCPEvent::ReceiveSYNACKSendACK);
-    } else if (flags == ACK) {
-        enqueueEvent(TCPEvent::ReceiveACK);
-    } else if (flags == FIN) {
-        tcpLayer = craftTCPLayer(srcPort, dstPort, FIN + ACK);
-        layers->push(tcpLayer);
-        sendPacket(layers);
-        enqueueEvent(TCPEvent::ReceiveFINSendACK);
-        // TODO, change it
-        closeConnection();
-    } else if (flags == FIN + ACK) {
-        enqueueEvent(TCPEvent::ReceiveACKforFIN);
-    } else if (flags == RST) {
-        enqueueEvent(TCPEvent::ReceiveRST);
-        closeConnection();
-    } else if (flags == PSH + ACK && isConnected()) {
-        tcpLayer = craftTCPLayer(srcPort, dstPort, ACK);
-        layers->push(tcpLayer);
-        sendPacket(layers);
-        // Application layer will handle the message
-        enqueueApplicationLayers(applicationLayers);
-        // socket.recv(applicationLayers)
-    } else {
-        L_ERROR(owner->ID, "TCP flag combination not handled");
-    }
+void TCPConnection::enqueuePacketToOutbox(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
+    owner->sendPacket(std::move(layers), dstAddr);
 }
 
-void TCPConnection::start() {
-    running = true;
-
-
-    receivingThread = new std::thread([&]() {
-        while (running) {
-            std::unique_lock<std::mutex> receivingQueue_uniqueLock(
-                receivingQueue_mutex);
-            while ((receivingQueue.empty() || !isReady()) && running) {
-                receivingQueue_wakeup.wait(receivingQueue_uniqueLock);
-
-                if ((receivingQueue.empty() || !isReady()) && running) {
-                    L_DEBUG(name, "Spurious wakeup");
-                }
-            }
-
-            if (running) {
-                if (isReady()) {
-                    std::stack<pcpp::Layer*>* layers = receivingQueue.front();
-                    receivingQueue.pop();
-                    processMessage(layers);
-                } else {
-                    // connection is ready to be accepted
-                    ready_mutex.lock();
-                    ready = true;
-                    ready_mutex.unlock();
-                    owner->notifyListeningSocket(this);
-                }
-            } else {
-                L_DEBUG(name, "Shutting Down receiving queue");
-            }
-        }
-    });
-
-    sendingThread = new std::thread([&]() {
-        while (running) {
-            std::unique_lock<std::mutex> sendingQueue_uniqueLock(
-                sendingQueue_mutex);
-            while (sendingQueue.empty() && running) {
-                sendingQueue_wakeup.wait(sendingQueue_uniqueLock);
-
-                if (sendingQueue.empty() && running) {
-                    L_DEBUG(name, "Spurious wakeup");
-                }
-            }
-
-            if (running) {
-                std::stack<pcpp::Layer*>* layers = sendingQueue.front();
-                sendingQueue.pop();
-                owner->sendPacket(layers, dstAddr);
-                delete layers;
-            } else {
-                L_DEBUG(name, "Shutting Down sending queue");
-            }
-        }
-    });
-}
-
-void TCPConnection::sendPacket(std::stack<pcpp::Layer*>* layers) {
-    std::unique_lock<std::mutex> sendingQueue_uniqueLock(sendingQueue_mutex);
-    sendingQueue.push(layers);
-    sendingQueue_wakeup.notify_one();
-    sendingQueue_uniqueLock.unlock();
-}
-
-void TCPConnection::receivePacket(std::stack<pcpp::Layer*>* layers) {
-    std::unique_lock<std::mutex> receivingQueue_uniqueLock(
-        receivingQueue_mutex);
-    receivingQueue.push(layers);
-    receivingQueue_wakeup.notify_one();
-    receivingQueue_uniqueLock.unlock();
-}
-
-
-void TCPConnection::closeConnection() {
-    // TODO handle the notification to higher level that the TCP connection has
-    // been closed
-
-    // Socket* s = owner->getAssociatedConnectedSocketOrNull(this);
-
-    // if (s != nullptr) {
-    //     s->applicationConnection->closeConnection();
-    // } else {
-    //     L_FATAL(name, "No connected socket associated to the connection");
-    // }
-}
-
-std::stack<pcpp::Layer*>* TCPConnection::waitForApplicationData() {
+std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+TCPConnection::waitForApplicationData() {
     std::unique_lock<std::mutex> appReceivingQueue_uniqueLock(
         appReceivingQueue_mutex);
 
@@ -292,23 +176,89 @@ std::stack<pcpp::Layer*>* TCPConnection::waitForApplicationData() {
         }
     }
 
-    std::stack<pcpp::Layer*>* layers = appReceivingQueue.front();
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+        std::move(appReceivingQueue.front());
     appReceivingQueue.pop();
 
-    return layers;
+    return std::move(layers);
 }
 
-void TCPConnection::enqueueApplicationLayers(std::stack<pcpp::Layer*>* layers) {
+void TCPConnection::signalApplicationLayersReady(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
     std::unique_lock<std::mutex> appReceivingQueue_uniqueLock(
         appReceivingQueue_mutex);
 
-    appReceivingQueue.push(layers);
+    appReceivingQueue.push(std::move(layers));
     appReceivingQueue_wakeup.notify_one();
     appReceivingQueue_uniqueLock.unlock();
 }
 
-void TCPConnection::sendApplicationData(std::stack<pcpp::Layer*>* layers) {
-    pcpp::TcpLayer* tcpLayer = craftTCPLayer(srcPort, dstPort, PSH + ACK);
-    layers->push(tcpLayer);
-    sendPacket(layers);
+shared_ptr<TCPConnection> TCPConnection::createConnectedConnectionFromListening(
+    const pcpp::IPv4Address& dstAddr, const uint16_t dstPort) {
+    // TODO use this in the listening state if we receive a SYN
+    // TODO the caller (so not this function) need to push the new connection
+    // into a pendingConnection queue and notify the accept() method.
+
+    shared_ptr<TCPConnection> newTcpConnection =
+        make_shared<TCPConnection>(owner);
+    newTcpConnection->srcAddr = srcAddr;
+    newTcpConnection->srcPort = srcPort;
+    newTcpConnection->dstAddr = dstAddr;
+    newTcpConnection->dstPort = dstPort;
+
+    // Make the connection as it would have been in a listening state.
+    stateMachine->enqueueEvent(TCPEvent::OpenPassive);
+
+    return newTcpConnection;
+}
+
+void TCPConnection::send(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
+    appSendingQueue_mutex.lock();
+    appSendingQueue.push(std::move(layers));
+    appSendingQueue_mutex.unlock();
+
+    stateMachine->enqueueEvent(TCPEvent::Send);
+}
+
+void TCPConnection::sendSyn() {
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+
+    std::unique_ptr<pcpp::Layer> tcpLayer =
+        craftTCPLayer(srcPort, dstPort, SYN);
+    layers->push(std::move(tcpLayer));
+    enqueuePacketToOutbox(std::move(layers));
+
+    L_DEBUG(stateMachine->connection->owner->ID,
+            "SYN sent to " + stateMachine->connection->dstAddr.toString() +
+                ":" + std::to_string(stateMachine->connection->dstPort));
+}
+
+void TCPConnection::sendFin() {
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+
+    std::unique_ptr<pcpp::Layer> tcpLayer =
+        craftTCPLayer(srcPort, dstPort, FIN);
+    layers->push(std::move(tcpLayer));
+    enqueuePacketToOutbox(std::move(layers));
+
+    L_DEBUG(stateMachine->connection->owner->ID,
+            "FIN sent to " + stateMachine->connection->dstAddr.toString() +
+                ":" + std::to_string(stateMachine->connection->dstPort));
+}
+
+void TCPConnection::sendRst() {
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+
+    std::unique_ptr<pcpp::Layer> tcpLayer =
+        craftTCPLayer(srcPort, dstPort, RST);
+    layers->push(std::move(tcpLayer));
+    enqueuePacketToOutbox(std::move(layers));
+
+    L_DEBUG(stateMachine->connection->owner->ID,
+            "RST sent to " + stateMachine->connection->dstAddr.toString() +
+                ":" + std::to_string(stateMachine->connection->dstPort));
 }

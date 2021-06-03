@@ -9,38 +9,60 @@
 TCPStateSYNReceived::TCPStateSYNReceived(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {
     name = "SYN-RECEIVED";
-    L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
-            "State created: " + name);
+    // L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
+    // "State created: " + name);
 }
 
 bool TCPStateSYNReceived::onEvent(TCPEvent event) {
-    // std::stack<pcpp::Layer *> *layers   = nullptr;
-    // pcpp::TcpLayer *           tcpLayer = nullptr;
-
     bool handled = true;
+
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> segment;
     switch (event) {
-        case TCPEvent::ReceiveACK:
-            // When the device receives the ACK to the SYN it sent, it
-            // transitions to the ESTABLISHED state.
-
-            stateMachine->connection->setConnected(true);
-            stateMachine->connection->owner->notifyListeningSocket(
-                stateMachine->connection);
-            stateMachine->changeState(new TCPStateEnstablished(stateMachine));
-
+        case TCPEvent::OpenPassive:
+            handled = false;  // TODO implement
             break;
-        case TCPEvent::SendRST:
-            // layers   = new std::stack<pcpp::Layer *>();
-            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-            //                          stateMachine->connection->dstPort,
-            //                          RST);
-            // layers->push(tcpLayer);
-            // stateMachine->connection->owner->sendPacket(
-            //     layers, stateMachine->connection->dstAddr->toString());
-            // delete layers;
-            stateMachine->changeState(new TCPStateClosed(stateMachine));
+
+        case TCPEvent::OpenActive:
+            handled = false;  // TODO implement
             break;
-        case TCPEvent::ReceiveRST:
+
+        case TCPEvent::Send:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Receive:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Close:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Abort:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Status:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::SegmentArrives:
+            segment = std::move(stateMachine->connection->getNextSegment());
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::UserTimeout:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::RetransmissionTimeout:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::TimeWaitTimeout:
+            // If the time-wait timeout expires on a connection delete the TCB,
+            // enter the CLOSED state and return.
+            stateMachine->connection->running = false;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 

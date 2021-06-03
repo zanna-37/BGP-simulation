@@ -14,10 +14,10 @@ using namespace std;
  */
 class EndPoint : public virtual Device {
    public:
-    EndPoint(string ID, pcpp::IPv4Address defaultGateway)
+    EndPoint(std::string ID, pcpp::IPv4Address defaultGateway)
         : Device(std::move(ID), defaultGateway) {}
 
-    ~EndPoint() {}
+    ~EndPoint();
 
     /**
      * The endpoint drops a packet that does not have to process
@@ -25,10 +25,11 @@ class EndPoint : public virtual Device {
      * @param networkCard the network card to forward. It should be null for the
      * enpoint case
      */
-    void forwardMessage(stack<pcpp::Layer *> *layers,
-                        NetworkCard *         networkCard) override;
+    void forwardMessage(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
+        NetworkCard* networkCard) override;
 
-    void startInternal() {}
+    void bootUpInternal() {}
 };
 
 #endif  // BGP_SIMULATION_ENTITIES_ENDPOINT_H

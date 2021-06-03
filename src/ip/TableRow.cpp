@@ -11,7 +11,7 @@ TableRow::TableRow(pcpp::IPv4Address networkIP,
       netInterface(netInterface),
       networkCard(networkCard) {}
 
-int TableRow::toCIDR() {
+int TableRow::toCIDR() const {
     int cidr = 0;
 
     const uint8_t* netmask_bytes = netmask.toBytes();

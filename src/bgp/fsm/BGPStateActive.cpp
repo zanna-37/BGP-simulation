@@ -15,9 +15,8 @@ BGPStateActive ::~BGPStateActive() {}
 bool BGPStateActive ::onEvent(BGPEvent event) {
     bool handled = true;
 
-    BGPLayer* bgpOpenLayer = nullptr;
-
-    std::stack<pcpp::Layer*>* layers = nullptr;
+    std::unique_ptr<BGPLayer>                                 bgpOpenLayer;
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
 
 
     switch (event) {
@@ -52,15 +51,14 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
             stateMachine->connectRetryTimer->start();
 
-            // TODO initiates a TCP connection to the other BGP peer,
-            // initiateTCPConnection();
+            // initiates a TCP connection to the other BGP peer,
+            stateMachine->connection->asyncConnectToPeer();
 
-            // TODO continues to listen for a TCP connection that may be
-            // initiated
-            //   by a remote BGP peer, and
-            // stateMachine->connection->owner->listen();
+            // Continues to listen for a TCP connection that may be initiated by
+            // a remote BGP peer.
+            // --> Nothing to do as the listening is already taking place.
 
-            // - changes its state to Connect.
+            // and changes its state to Connect.
             stateMachine->changeState(new BGPStateConnect(stateMachine));
             break;
         case BGPEvent::DelayOpenTimer_Expires:
@@ -117,18 +115,17 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 //   TODO completes the BGP initialization,
 
                 //   TODO sends the OPEN message to its peer,
-                layers = new std::stack<pcpp::Layer*>();
 
-                // FIXME
-                bgpOpenLayer = new BGPOpenLayer(
+                // FIXME correct the hardcoded AS_number
+                bgpOpenLayer = std::make_unique<BGPOpenLayer>(
                     1111,
                     (uint16_t)(stateMachine->getHoldTime().count()),
-                    pcpp::IPv4Address("1.1.1.1"));
+                    pcpp::IPv4Address(stateMachine->connection->srcAddr));
                 bgpOpenLayer->computeCalculateFields();
 
-                layers->push(bgpOpenLayer);
+                layers->push(std::move(bgpOpenLayer));
 
-                stateMachine->connection->sendData(layers);
+                stateMachine->connection->sendData(std::move(layers));
 
                 //   - sets its HoldTimer to a large value, and
                 stateMachine->resetHoldTimer();

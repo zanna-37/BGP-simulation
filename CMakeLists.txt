@@ -47,6 +47,7 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
         ${SRC_UTILS}/MacGenerator.cpp
+        ${SRC_IP}/IpManager.cpp
         ${SRC_IP}/TableRow.cpp
         ${SRC_BGP}/BGPApplication.cpp
         ${SRC_BGP}/BGPConnection.cpp

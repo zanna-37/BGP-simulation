@@ -1,13 +1,20 @@
 #include "TCPStateMachine.h"
 
+#include "TCPStateClosed.h"
+
 
 TCPStateMachine::TCPStateMachine(TCPConnection* connection)
-    : StateMachine(connection) {
-    name = "TCPfsm";
+    : StateMachine(connection, "TCPfsm") {
     initializeTimers();
+    changeState(new TCPStateClosed(this));
 }
 
-TCPStateMachine::~TCPStateMachine() { delete timeWaitTimer; }
+TCPStateMachine::~TCPStateMachine() {
+    if (timeWaitTimer != nullptr) {
+        timeWaitTimer->stop();
+        delete timeWaitTimer;
+    }
+}
 
 
 void TCPStateMachine::initializeTimers() { resetTimeWaitTimer(); }
@@ -19,5 +26,16 @@ void TCPStateMachine::resetTimeWaitTimer() {
     }
 
     timeWaitTimer = new TCPTimer(
-        "TimeWaitTimer", this, TCPEvent::TimerExpiration, timeWaitTime);
+        "TimeWaitTimer", this, TCPEvent::TimeWaitTimeout, timeWaitTime);
+}
+
+string TCPStateMachine::toString() {
+    if (connection) {
+        return connection->srcAddr.toString() + ":" +
+               std::to_string(connection->srcPort) + " " +
+               connection->dstAddr.toString() + ":" +
+               std::to_string(connection->dstPort);
+    } else {
+        return "";
+    }
 }

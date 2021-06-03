@@ -9,8 +9,8 @@
 
 class ParserRouter : public virtual Parser {
    public:
-    static void parseAndAddBuiltRouters(const YAML::Node &routers_yaml,
-                                        vector<Device *> *devices_ptr);
+    static void parseAndAddBuiltRouters(const YAML::Node &     routers_yaml,
+                                        std::vector<Device *> *devices_ptr);
 
    private:
     ParserRouter() = delete;

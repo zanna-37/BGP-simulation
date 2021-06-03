@@ -194,6 +194,9 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
         delayOpenTime = value;
     }
 
+   protected:
+    std::string toString() override;
+
     // TODO print name of the current BGPState
 };
 
