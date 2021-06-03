@@ -109,6 +109,7 @@ int main(int argc, char *argv[]) {
             }
             */
             device->bootUp();
+            std::this_thread::sleep_for(500ms);  // TODO remove me
         }
 
         // devices->at(0)->listen();
@@ -126,10 +127,10 @@ int main(int argc, char *argv[]) {
 
         //         BGPConnection connection(dynamic_cast<Router
         //         *>(devices->at(0))); connection.enqueueEvent(AutomaticStart);
-        std::this_thread::sleep_for(10s);
+        std::this_thread::sleep_for(20s);
         //         connection.enqueueEvent(ManualStop);
 
-        L_DEBUG("main", "DELETING OBJECTS");
+        L_INFO("main", "SHUTTING DOWN SIMULATION");
         for (auto device : *devices) {
             delete device;
         }

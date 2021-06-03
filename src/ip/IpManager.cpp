@@ -60,7 +60,7 @@ std::string IpManager::getRoutingTableAsString(
 }
 
 NetworkCard *IpManager::findExitingNetworkCard(
-    const pcpp::IPv4Address &dstAddress, std::vector<TableRow> &routingTable) {
+    const pcpp::IPv4Address &dstAddress, const vector<TableRow> &routingTable) {
     int          longestMatch = -1;
     NetworkCard *result       = nullptr;
     for (const TableRow &row : routingTable) {

@@ -4,17 +4,19 @@
 
 #include "../ip/IpManager.h"
 #include "../logger/Logger.h"
+#include "../socket/Socket.h"
 #include "BGPEvent.h"
 
 BGPApplication::BGPApplication(Router* router) : router(router) {}
 
 BGPApplication::~BGPApplication() {
     running = false;
+
+    for (BGPConnection* connection : bgpConnections) {
+        connection->shutdown();
+    }
     for (Socket* listeningSocket : listeningSockets) {
         listeningSocket->close();
-    }
-    for (thread& listeningThread : listeningThreads) {
-        listeningThread.join();
     }
     for (BGPConnection* connection : bgpConnections) {
         delete connection;
@@ -24,66 +26,33 @@ BGPApplication::~BGPApplication() {
     }
 }
 
-
 void BGPApplication::passiveOpen() {
     running = true;
     // Foreach BGP peer in the BGP Routing table
-    for (pcpp::IPv4Address peer : router->peer_addresses) {
-        auto* connection = new BGPConnection(router);
-        bgpConnections.push_back(connection);
-
+    for (pcpp::IPv4Address peerAddr : router->peer_addresses) {
         NetworkCard* egressNetCard =
-            IpManager::findExitingNetworkCard(peer, router->routingTable);
-        connection->srcAddr = egressNetCard->IP;  // Get egress IP
-        connection->dstAddr = peer;
+            router->getNextHopNetworkCardOrNull(peerAddr);
 
-        connection->enqueueEvent(
-            BGPEvent::ManualStart_with_PassiveTcpEstablishment);
+        if (egressNetCard == nullptr) {
+            L_ERROR(router->ID,
+                    peerAddr.toString() + ": Destination unreachable");
+        } else {
+            pcpp::IPv4Address srcAddr = egressNetCard->IP;
 
-        Socket* socketListen = router->getNewSocket(Socket::Domain::AF_INET,
-                                                    Socket::Type::SOCK_STREAM);
-        listeningSockets.push_back(socketListen);
+            // Pre-create the socketListen that will be referenced from the
+            // BgpConnection
+            auto* socketListen = new Socket(router);
+            listeningSockets.push_back(socketListen);
+            socketListen->bind(srcAddr, BGPApplication::BGPDefaultPort);
 
-        listeningThreads.emplace_back([&, connection, socketListen]() {
-            socketListen->bind(connection->srcAddr,
-                               BGPApplication::BGPDefaultPort);
+            auto* bgpConnection = new BGPConnection(router, this);
+            bgpConnections.push_back(bgpConnection);
+            bgpConnection->srcAddr = srcAddr;
+            bgpConnection->srcPort = BGPApplication::BGPDefaultPort;
+            bgpConnection->dstAddr = peerAddr;
 
-            while (running) {
-                // wait for the socket to have TCP connection pending
-                socketListen->listen();
-
-                if (running) {
-                    Socket* tempSocket = socketListen->accept();
-                    bindSocketToBGPConnection(tempSocket);
-
-                } else {
-                    L_DEBUG(name + " LTh", "Shutting Down");
-                }
-            }
-        });
-    }
-}
-
-void BGPApplication::bindSocketToBGPConnection(Socket* socket) {
-    for (BGPConnection* connection : bgpConnections) {
-        if (connection->srcAddr == socket->srcAddr &&
-            connection->dstAddr == socket->dstAddr) {
-            if (connection->connectedSocket == nullptr) {
-                connection->connectedSocket = socket;
-                connection->enqueueEvent(BGPEvent::TcpConnectionConfirmed);
-                connection->receiveData();
-            } else {
-                BGPConnection* newBGPConnection = new BGPConnection(router);
-                newBGPConnection->enqueueEvent(
-                    BGPEvent::ManualStart_with_PassiveTcpEstablishment);
-                newBGPConnection->srcAddr         = socket->srcAddr;
-                newBGPConnection->dstAddr         = socket->dstAddr;
-                newBGPConnection->connectedSocket = socket;
-                newBGPConnection->enqueueEvent(
-                    BGPEvent::TcpConnectionConfirmed);
-                newBGPConnection->receiveData();
-                bgpConnections.push_back(newBGPConnection);
-            }
+            bgpConnection->enqueueEvent(
+                BGPEvent::ManualStart_with_PassiveTcpEstablishment);
         }
     }
 }
@@ -99,4 +68,21 @@ void BGPApplication::collisionDetection(BGPConnection* connectionToCheck) {
             }
         }
     }
+}
+BGPConnection* BGPApplication::createNewBgpConnection() {
+    auto* newBGPConnection = new BGPConnection(router, this);
+    bgpConnections.push_back(newBGPConnection);
+    return newBGPConnection;
+}
+
+Socket* BGPApplication::getCorrespondingListeningSocket(
+    pcpp::IPv4Address srcAddress, uint16_t srcPort) {
+    for (auto* listeningSocket : listeningSockets) {
+        // TODO check null ↓
+        if (listeningSocket->tcpConnection->srcAddr == srcAddress &&
+            listeningSocket->tcpConnection->srcPort == srcPort) {
+            return listeningSocket;
+        }
+    }
+    return nullptr;
 }

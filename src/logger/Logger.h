@@ -15,7 +15,7 @@
 #define L_SUCCESS(owner, message) \
     Logger::getInstance()->log(LogLevel::SUCCESS, owner, message)
 #define L_WARNING(owner, message) \
-    Logger::getInstance()->log(LogLevel::WARNING, owner, message);
+    Logger::getInstance()->log(LogLevel::WARNING, owner, message)
 #define L_ERROR(owner, message) \
     Logger::getInstance()->log(LogLevel::ERROR, owner, message)
 #define L_FATAL(owner, message) \

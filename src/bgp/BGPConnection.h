@@ -16,6 +16,7 @@
 #include "../entities/Router.fwd.h"
 #include "../socket/Socket.fwd.h"
 #include "../tcp/TCPConnection.fwd.h"
+#include "./BGPApplication.fwd.h"
 #include "fsm/BGPStateMachine.fwd.h"
 
 class BGPConnection {
@@ -23,31 +24,40 @@ class BGPConnection {
     BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
 
-   public:
-    /**
-     * The owner of the connection, necessary in simulation context
-     */
-    Router*           owner   = nullptr;
-    std::string       name    = "BGPconnection";
-    bool              running = false;
-    pcpp::IPv4Address srcAddr = pcpp::IPv4Address::Zero;
-    pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;
+    BGPApplication* bgpApplication;
 
-    std::chrono::seconds holdTime = 0s;
-
-    /**
-     * The newly created connected socket is assigned to this attribute, when
-     * the TCP connection is enstablished
-     */
-    Socket* connectedSocket = nullptr;
+    std::thread* listeningThread;
 
     /**
      * The thread that manages any incoming application packet.
      */
     std::thread* receivingThread = nullptr;
 
+    std::thread* connectThread = nullptr;
+
+   public:
+    /**
+     * The owner of the connection, necessary in simulation context
+     */
+    Router*           owner   = nullptr;
+    std::string       name    = "BGPconnection";
+    std::atomic<bool> running = {false};
+    pcpp::IPv4Address srcAddr = pcpp::IPv4Address::Zero;  // TODO remove(?)
+    pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;  // TODO remove(?)
+    uint16_t          srcPort = 179;                      // TODO remove!!
+
+    std::chrono::seconds holdTime = 0s;
+
+    std::mutex connectedSocket_mutex;
+
+    /**
+     * The newly created connected socket is assigned to this attribute, when
+     * the TCP connection is enstablished
+     */
+    Socket* connectedSocket = nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
+
     // Constructors
-    BGPConnection(Router* owner);
+    BGPConnection(Router* owner, BGPApplication* bgpApplication);
 
     // Destructor
     ~BGPConnection();
@@ -69,7 +79,7 @@ class BGPConnection {
      * Client side connection of TCP, used by the router that wants to initiate
      * the connection
      */
-    void connect();
+    void asyncConnectToPeer();
 
     /**
      * Close the BGP connection and notifies the state machine
@@ -80,7 +90,7 @@ class BGPConnection {
      * Starts the receiving thread. This thread will wait for new messages
      * incoming
      */
-    void receiveData();
+    void startReceivingThread();
 
     /**
      * Send BGP application data to the TCP layer through the socket
@@ -89,6 +99,9 @@ class BGPConnection {
      */
     void sendData(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
+    void listenForRemotelyInitiatedConnections();
+    void dropConnection();
+    void shutdown();
 };
 
 #endif

@@ -1,37 +1,29 @@
 #ifndef STATEMACHINE_H
 #define STATEMACHINE_H
 
+#include <atomic>
 #include <cassert>
 #include <condition_variable>
 #include <queue>
 #include <thread>
 
 #include "../logger/Logger.h"
+
 template <typename Connection, typename State, typename Event>
 class StateMachine {
-   private:
-    std::thread*            eventHandler = nullptr;
-    std::mutex              eventQueue_mutex;
-    std::condition_variable eventQueue_ready;
-    std::queue<Event>       eventQueue;
-    bool                    running = false;
-
    public:
     Connection* connection    = nullptr;
     State*      previousState = nullptr;
     State*      currentState  = nullptr;
+    std::string name;
 
-    std::string name = "";
-
-    StateMachine(Connection* connection) : connection(connection) {}
+    StateMachine(Connection* connection, std::string name)
+        : connection(connection), name(name) {}
 
     ~StateMachine() {
         running = false;
 
-        std::unique_lock<std::mutex> stateMachineEventQueue_uniqueLock(
-            eventQueue_mutex);
-        eventQueue_ready.notify_one();
-        stateMachineEventQueue_uniqueLock.unlock();
+        eventQueue_ready.notify_all();
         eventHandler->join();
         delete eventHandler;
         delete currentState;
@@ -59,18 +51,29 @@ class StateMachine {
                     L_DEBUG(connection->owner->ID + " " + name,
                             "Passing event " + getEventName(event) +
                                 " to the current state (" + currentState->name +
-                                ")");
+                                ") " + toString());
+
                     State* hanglingState_forlogs =
                         currentState;  // only used in the logs
                     bool result = currentState && currentState->onEvent(event);
-                    L_DEBUG(connection->owner->ID + " " + name,
+
+                    {
+                        std::string owner_str =
+                            connection->owner->ID + " " + name;
+                        std::string message_str =
                             "Event " + getEventName(event) +
-                                (result ? " handled" : " NOT handled") +
-                                " by " + hanglingState_forlogs->name);
+                            (result ? " handled" : " NOT handled") + " by " +
+                            hanglingState_forlogs->name + " " + toString();
+
+                        if (result) {
+                            L_DEBUG(owner_str, message_str);
+                        } else {
+                            L_WARNING(owner_str, message_str);
+                        }
+                    }
                 } else {
                     L_VERBOSE(connection->owner->ID + " " + name,
-                              "Shutting down state machine: " +
-                                  connection->owner->ID);
+                              "Shutting down state machine");
                 }
 
                 stateMachineEventQueue_uniqueLock.unlock();
@@ -90,11 +93,11 @@ class StateMachine {
         previousState = currentState;
         if (currentState == nullptr) {
             L_VERBOSE(connection->owner->ID + " " + name,
-                      "Initial state: " + newState->name);
+                      "Initial state: " + newState->name + " " + toString());
         } else {
             L_VERBOSE(connection->owner->ID + " " + name,
                       "State change: " + currentState->name + " -> " +
-                          newState->name);
+                          newState->name + " " + toString());
         }
 
 
@@ -121,5 +124,15 @@ class StateMachine {
      * @return the currentState value
      */
     State* getCurrentState() const { return currentState; }
+
+   protected:
+    virtual std::string toString() = 0;
+
+   private:
+    std::thread*            eventHandler = nullptr;
+    std::mutex              eventQueue_mutex;
+    std::condition_variable eventQueue_ready;
+    std::queue<Event>       eventQueue;
+    std::atomic<bool>       running = {false};
 };
 #endif

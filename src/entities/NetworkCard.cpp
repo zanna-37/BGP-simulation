@@ -96,13 +96,14 @@ void NetworkCard::receivePacketFromWire(
 
     L_DEBUG(owner->ID, "Enqueueing packet in " + netInterface + " queue");
 
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
 
     pcpp::Layer* currentLayer = receivedPacket->getLastLayer();
     while (currentLayer != nullptr) {
         pcpp::ProtocolType protocol = currentLayer->getProtocol();
-        layers->push(std::unique_ptr<pcpp::Layer>(
-            receivedPacket->detachLayer(protocol)));
+        layers->push(std::move(std::unique_ptr<pcpp::Layer>(
+            receivedPacket->detachLayer(protocol))));
         currentLayer = receivedPacket->getLastLayer();
     }
 
@@ -145,7 +146,7 @@ NetworkCard::waitForL3Packet() {
         receivedPacketsQueue_lock.unlock();
     }
 
-    return layers;
+    return std::move(layers);
 }
 
 
@@ -158,7 +159,8 @@ std::pair<const uint8_t*, const int> NetworkCard::serialize(
 std::unique_ptr<pcpp::Packet> NetworkCard::deserialize(uint8_t*  rawData,
                                                        const int rawDataLen) {
     struct timespec timestamp;
-    timespec_get(&timestamp, TIME_UTC);
+    timespec_get(&timestamp,
+                 TIME_UTC);  // TODO do we have to use local time here maybe?
 
     auto* rawPacket = new pcpp::RawPacket(rawData, rawDataLen, timestamp, true);
     auto  packet    = std::make_unique<pcpp::Packet>(rawPacket, true);

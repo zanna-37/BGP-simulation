@@ -25,7 +25,7 @@ class IpManager {
      */
     static NetworkCard *findExitingNetworkCard(
         const pcpp::IPv4Address &dstAddress,
-        std::vector<TableRow> &  routingTable);
+        const vector<TableRow> & routingTable);
 
    private:
     /**

@@ -38,8 +38,8 @@ void Link::sendPacketThroughWire(std::pair<const uint8_t *, int> data,
     assert(destination);
 
     if (connection_status == Connection_status::ACTIVE) {
-        L_DEBUG("link",
-                getLogLinkName(destination) + ": sending data through link");
+        L_VERBOSE("link",
+                  getLogLinkName(destination) + ": sending data through link");
         destination->receivePacketFromWire(data);
     } else {
         L_ERROR("link", getLogLinkName(destination) + ": physical link broken");

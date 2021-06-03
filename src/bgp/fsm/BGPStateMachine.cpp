@@ -1,10 +1,13 @@
 #include "BGPStateMachine.h"
 
+#include "BGPStateIdle.h"
+
 BGPStateMachine::BGPStateMachine(BGPConnection* connection)
-    : StateMachine(connection) {
-    name = "BGPfsm";
+    : StateMachine(connection, "BGPfsm") {
     initializeTimers();
+    changeState(new BGPStateIdle(this));
 }
+
 BGPStateMachine::~BGPStateMachine() {
     // ~StateMachine();
     // delete timers
@@ -70,4 +73,13 @@ void BGPStateMachine::initializeTimers() {
     resetHoldTimer();
     resetKeepAliveTimer();
     resetDelayOpenTimer();
+}
+
+std::string BGPStateMachine::toString() {
+    if (connection) {
+        return connection->srcAddr.toString() + " " +
+               connection->dstAddr.toString();
+    } else {
+        return "";
+    }
 }

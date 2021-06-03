@@ -47,60 +47,9 @@ class TCPConnection {
      */
     uint16_t dstPort = 0;
 
-    /**
-     * Mutex to access the ready variable
-     */
-    std::mutex ready_mutex;
-
-
-    /**
-     * Mutex to safely access the connected variable
-     */
-    std::mutex connected_mutex;
-
-    bool running = false;
-
-
-    // TCP receiving queue
-
-    /**
-     * The queue of received messages
-     */
-    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
-                                          receivingQueue;
-    std::mutex                            receivingQueue_mutex;
-    std::condition_variable               receivingQueue_wakeup;
-    std::thread*                          receivingThread = nullptr;
-
-    // TCP sending queue
-    /**
-     * The queue of messsages to be sent
-     */
-    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
-                                          sendingQueue;
-    std::mutex                            sendingQueue_mutex;
-    std::condition_variable               sendingQueue_wakeup;
-    std::thread*                          sendingThread = nullptr;
-
-    // Application receiving queue
-    /**
-     * The application packets queue. It is filled through the socket
-     */
-    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
-                            appReceivingQueue;
-    std::mutex              appReceivingQueue_mutex;
-    std::condition_variable               appReceivingQueue_wakeup;
-
-    // We do not need an application sending queue, since we immediately push
-    // the packet into the TCP sending queue
-
     TCPConnection(Device* owner);
     ~TCPConnection();
-    /**
-     * Enqueue a TCPEvent in the TCPStateMachine event queue
-     * @param event the event to trigger
-     */
-    void enqueueEvent(TCPEvent);
+
     /**
      * Take the TCP header as input and return a \a unint8_t indicating what
      * flags are set and what are not
@@ -110,61 +59,109 @@ class TCPConnection {
     static uint8_t parseTCPFlags(pcpp::tcphdr* tcpHeader);
 
     /**
-     * Process a newly arrived packet at the TCP layer, based on the flags int
+     * Process a newly arrived packet at the TCP layer, based on the flags in
      * the TCP header. It enqueues event accordingly, based on TCPStateMachine
-     * defined in RFC 793
+     * defined in RFC 793.
      */
-    void processMessage(
+    void segmentArrives(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
             receivedLayers);
-
-    /**
-     * Return a pointer to the current state of the connection
-     * @return pointer to the current state of the connection
-     */
-    TCPState* getCurrentState();
-
-    /**
-     * Start TCP connection threads, used to send and receive messages
-     */
-    void start();
 
     /**
      * Start the TCP connection in passive mode and listen for incoming
      * connections
      */
-    void listen();
-
-    /**
-     * Return the value of the ready variable
-     * @return ready variable value
-     */
-    bool isReady();
-
-    /**
-     * Return the value of the connected variable
-     * @return connected variable value
-     */
-    bool isConnected();
-
-    /**
-     * Set the connected value
-     * @param value the new value of connected attribute
-     */
-    void setConnected(bool value);
-
+    int listen();
 
     /**
      * Accept the incoming TCP connection request from the remote peer
      */
-    void accept();
+    std::shared_ptr<TCPConnection> accept();
 
     /**
      * Connect to a remote TCP server
      * @param dstAddr the destination address
      * @param dstPort the destination port
      */
-    void connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort);
+    int connect();
+
+    void close();
+
+    /**
+     * Blocking function that waits for the receiving application queue to
+     * receive data
+     * @return the application layers
+     */
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+    waitForApplicationData();
+
+    /**
+     * Enquque the application layers to the application layers queue
+     * @param layers the application layers
+     */
+    void signalApplicationLayersReady(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
+
+    /**
+     * craft the TCP header and send the packet (by pushing it to the
+     * sendingQueue)
+     * @param layers the stack abstraction of the packet with application data
+     * and TCP header
+     */
+    void send(std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
+
+   private:
+    std::atomic<bool> running = {false};
+
+    /**
+     * When a TCP connection is pending this value is set to true
+     */
+    std::atomic<bool> ready = {false};
+
+    // TCP receiving queue
+    /**
+     * The queue of received transport-level messages.
+     */
+    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+               receivingQueue;
+    std::mutex receivingQueue_mutex;
+
+    // TCP sending queue
+    /**
+     * The queue of transport-level messages to be sent.
+     */
+    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+                            sendingQueue;
+    std::mutex              sendingQueue_mutex;
+    std::condition_variable sendingQueue_wakeup;
+
+    /**
+     * The queue of received application-level messages. This queue is read by
+     * the application.
+     */
+    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+                            appReceivingQueue;
+    std::mutex              appReceivingQueue_mutex;
+    std::condition_variable appReceivingQueue_wakeup;
+
+    /**
+     * The queue of application-level messages to be sent. This queue is be
+     * filled by the application.
+     */
+    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+               appSendingQueue;
+    std::mutex appSendingQueue_mutex;
+
+    // Pending connection queue
+    std::queue<std::shared_ptr<TCPConnection>> pendingConnections;
+    std::mutex                                 pendingConnections_mutex;
+    std::condition_variable                    pendingConnections_wakeup;
+
+    /**
+     * Mutex to safely access the connected variable
+     */
+    std::mutex              established_mutex;
+    std::condition_variable established_wakeup;  // TODO call notify
 
     /**
      * Craft a TCP layer with the header flags specified.
@@ -180,55 +177,54 @@ class TCPConnection {
                                                          int      flags);
 
     /**
-     * push the packet to the sending queue
-     * @param layers the stack abstraction of the packet layers
+     * Fork the listening connection into a new one.
+     *
+     * In this way the old one continue listening while the new can
+     * evolve and connect.
+     *
+     * @param destAddr The remote address the SYN come from.
+     * @param destPort The remote port the SYN come from.
+     * @return A new connection that is technically put in the listening state,
+     * but is ready to evolve.
      */
-    void sendPacket(
+    std::shared_ptr<TCPConnection> createConnectedConnectionFromListening(
+        const pcpp::IPv4Address& destAddr, const uint16_t destPort);
+
+    /**
+     * Push the packet to the sending queue to be hand over to the lower stack
+     * layers.
+     * @warning Low-level call, do not use to send application packets directly.
+     * Call \a TCPConnection::send instead.
+     * @param layers The stack of the packet layers to send.
+     */
+    void enqueuePacketToOutbox(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
-    /**
-     * Push the TCP packet to the receiving queue
-     * @param layers the TCP packet abstraction layers
-     */
-    void receivePacket(
-        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
+    void sendSyn();
 
-    void closeConnection();
+    void sendFin();
+
+    void sendRst();
 
     /**
-     * Blocking function that waits for the receiving application queue to
-     * receive data
-     * @return the application layers
+     * TODO
+     * @warning This should only be called after having received a \a
+     * TCPEvent::SegmentArrives event.
+     * @return
      */
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-    waitForApplicationData();
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> getNextSegment();
 
-    /**
-     * Enquque the application layers to the application layers queue
-     * @param layers the application layers
-     */
-    void enqueueApplicationLayers(
-        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
-
-    /**
-     * craft the TCP header and send the packet (by pushing it to the
-     * sendingQueue)
-     * @param layers the stack abstraction of the packet with application data
-     * and TCP header
-     */
-    void sendApplicationData(
-        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
-
-   private:
-    /**
-     * When a TCP connection is pending this value is set to true
-     */
-    bool ready = false;
-
-    /**
-     * When the TCP connection is enstablished, this value is set to true
-     */
-    bool connected = false;
+    friend class TCPStateClosed;
+    friend class TCPStateCloseWait;
+    friend class TCPStateClosing;
+    friend class TCPStateEnstablished;
+    friend class TCPStateFINWait1;
+    friend class TCPStateFINWait2;
+    friend class TCPStateLastACK;
+    friend class TCPStateListen;
+    friend class TCPStateSYNReceived;
+    friend class TCPStateSYNSent;
+    friend class TCPStateTimeWait;
 };
 
 #endif

@@ -8,6 +8,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <stack>
@@ -74,7 +75,8 @@ class Device {
      * stored here.
      */
     // std::map<std::size_t, TCPConnection *> tcpConnections;
-    std::vector<TCPConnection *> tcpConnections;
+    std::vector<std::weak_ptr<TCPConnection>>
+        tcpConnections;  // TODO put in a map with the port
 
     /**
      * Threads that manage inbound network communication.
@@ -82,27 +84,12 @@ class Device {
     std::vector<std::thread> netInputThreads;
 
     /**
-     * If a deivice has open ports and accept connections, this pointer is
-     * initialized
-     * (// TODO change it to a list of connection, one for each open port)
-     */
-    TCPConnection *listenConnection = nullptr;
-
-    /**
      * A list of listening socket in the device. According to the
      * linux implementation, listening sockets are never used as connected
      * sockets, since accept return a new socket. We gather all the listening
      * sockets in this vector
      */
-    std::vector<Socket *> listeningSockets;
-
-    /**
-     * List of the socket initialized by the device and used by
-     * Applications
-     * @warning the application connection takes care of deallocating these
-     * sockets
-     */
-    std::vector<Socket *> connectedSockets;
+    std::vector<Socket *> listeningSockets;  // TODO probalby to remove
 
     Device(std::string ID, pcpp::IPv4Address defaultGateway);
 
@@ -167,150 +154,18 @@ class Device {
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
         const pcpp::IPv4Address &                                 dstAddr);
 
-    /**
-     * A server that wants to start listening open a port and instantiate a
-     * listening connection, waiting for messages to arrive.
-     *
-     * @param port The port to listen to.
-     */
-    void listen(uint16_t port);
-
-    /**
-     * Create a new TCP Connection and connect the device to the destination
-     * specified. It also adds the newly created connection to tcpConnections
-     * hashmap
-     * @param dstAddr, a pointer to the destination address
-     * @param dstPort the destination port the device wants to connect to
-     * @return the TCP connection created
-     */
-    TCPConnection *connect(const pcpp::IPv4Address &dstAddr, uint16_t dstPort);
-
-    /**
-     * Gently close the connection using 4-way closing mechanism, following TCP
-     * RFC 793
-     * @param dstAddr, a pointer to the destination address (
-     * @param dstPort the destination port
-     */
-    void closeConnection(std::string dstAddr, uint16_t dstPort);
-
-    /**
-     * Force close the connection, sending a RST packet. Faster way to close a
-     * connection or used in case of errors
-     * @param dstAddr, a pointer to the destination address
-     * @param dstPort the destination port
-     */
-    void resetConnection(std::string dstAddr, uint16_t dstPort);
-
-    /**
-     * Search for existing connections in tcpConnections hashmap. If no
-     * connection exists, or the connection is in state CLOSED, a \a nullptr is
-     * returned
-     * @param address the destination address of the connection
-     * @param port the destination port of the connection
-     * @return the existing TCPConnection or a \a nullptr
-     */
-    TCPConnection *getExistingTcpConnectionOrNull(
+    shared_ptr<TCPConnection> getExistingTcpConnectionOrNull(
         const pcpp::IPv4Address &srcAddr,
-        uint16_t                 srcPort,
+        const uint16_t &         srcPort,
         const pcpp::IPv4Address &dstAddr,
-        uint16_t                 dstPort);
+        const uint16_t &         dstPort);
 
+    int bind(const shared_ptr<TCPConnection> &tcpConnection);
 
-    /**
-     * Add a TCPConnection to the tcpConnections hashmap
-     * @param connection the TCPConnection to add
-     */
-    void addTCPConnection(TCPConnection *connection);
-    /**
-     * Remove a TCP connection from the hashmap
-     * @param connection the TCPConnection to remove
-     */
-    void removeTCPConnection(TCPConnection *connection);
+    uint16_t getFreePort();
 
-    // void addBGPConnection(BGPConnection connection);
-
-    // void removeBGPConnection(BGPConnection connection);
-
-    /**
-     * Handle the application layer of the packet. It depends on the application
-     * ports open
-     * @param layers the stack containing the application layers
-     * @param port the application port
-     */
-    void handleApplicationLayer(std::stack<pcpp::Layer *> *layers,
-                                TCPConnection *            connection);
-
-
-    // void bgpConnect(std::string dstAddr);
-
-
-    // TODO remote these methods, since they should not be necessary (used
-    // before socket implementation)
-    void bgpListen();
-
-    void connectionConfirmed(TCPConnection *connection);
-
-    void connectionAcked(TCPConnection *connection);
-
-    void tcpConnectionClosed(TCPConnection *connection);
-
-    // BGPConnection *findBGPConnectionOrNull(TCPConnection *tcpConnection);
-
-    /**
-     * return a newly created socket for a connection
-     * @param domain the network protocol, only AF_INET implemented
-     * @param type the type of socket, choose between SOCK_STREAM or
-     * SOCK_DGRAM, for BGP we use TCP so we will use SOCK_STREAM
-     * @return a pointer to the newly created socket
-     */
-    Socket *getNewSocket(int domain, int type);
-
-    /**
-     * Get the associated listening Socket based on a TCPConnection, or \a
-     * nullptr
-     * @param tcpConnection
-     * @return a poitner to the associated socket, or \a nullptr
-     */
-    Socket *getAssociatedListeningSocketOrNull(TCPConnection *);
-
-
-    /**
-     * Get the associated connected Socket based on a TCPConnection, or \a
-     * nullptr
-     * @param tcpConnection
-     * @return a poitner to the associated socket, or \a nullptr
-     */
-    Socket *getAssociatedConnectedSocketOrNull(TCPConnection *);
-
-    /**
-     * Get the associated TCPConnection based on a Socket, or \a nullptr
-     * @param socket
-     * @return a poitner to the associated tcpConnection, or \a nullptr
-     */
-    TCPConnection *getAssociatedTCPconnectionOrNull(Socket *);
-
-    /**
-     * Return a pointer to the newly created TCPConnection based on srcAddr and
-     *  srcPort
-     * @param srcAddr the source address
-     * @param srcPort the source port
-     * @return a pointer to the newly created TCPConnection
-     */
-    TCPConnection *getNewTCPConnection(const pcpp::IPv4Address &srcAddr,
-                                       uint16_t                 srcPort);
-
-    /**
-     * Notify the listening socket that data the TCP Connection is ready to be
-     * connected with the remote peer.
-     */
-    void notifyListeningSocket(TCPConnection *connection);
-
-    /**
-     * Notify the connected socket that the TCPConnection has completed its
-    handshake process and it is ready to send data
-     *
-     */
-    void notifyConnectedSocket(TCPConnection *connection);
+    NetworkCard *getNextHopNetworkCardOrNull(
+        const pcpp::IPv4Address &dstAddr) const;
 
    protected:
     /**
@@ -319,6 +174,8 @@ class Device {
      */
     virtual void bootUpInternal() = 0;
 
+    void shutdown();
+
    private:
     /**
      * A bool indicating if the device is running or not. \a Device::bootUp()
@@ -326,15 +183,7 @@ class Device {
      * \a false.
      */
     std::atomic<bool> running{false};
-
-    /**
-     * Compute the hash of the connection based on the destination IP address
-     * and the destination port
-     * @param dstAddr string of the IP address
-     * @param dstPort the destination port
-     * @return the hash
-     */
-    std::size_t tcpConnectionHash(std::string dstAddr, uint16_t dstPort);
+    std::mutex        ports_mutex;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_DEVICE_H

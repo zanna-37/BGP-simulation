@@ -14,63 +14,74 @@
 TCPStateEnstablished::TCPStateEnstablished(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {
     name = "ENSTABLISHED";
-    L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
-            "State created: " + name);
+    // L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
+    // "State created: " + name);
 }
 
 bool TCPStateEnstablished::onEvent(TCPEvent event) {
-    // stack<pcpp::Layer *> *layers   = nullptr;
-    // pcpp::TcpLayer *      tcpLayer = nullptr;
-
     bool handled = true;
 
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> segment;
     switch (event) {
-        case TCPEvent::CloseSendFIN:
-            // A device can close the connection by sending a message with the
-            // FIN (finish) bit sent and transition to the FIN-WAIT-1 state.
+        case TCPEvent::OpenPassive:
+            handled = false;  // TODO implement
+            break;
 
-            // layers   = new std::stack<pcpp::Layer *>();
-            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-            //                          stateMachine->connection->dstPort,
-            //                          FIN);
-            // layers->push(tcpLayer);
-            // stateMachine->connection->owner->sendPacket(
-            //     layers, stateMachine->connection->dstAddr->toString());
-            // delete layers;
+        case TCPEvent::OpenActive:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Send:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Receive:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Close:
+            // Queue this until all preceding SENDs have been segmentized, then
+            // form a FIN segment and send it. In any case, enter FIN-WAIT-1
+            // state.
+            stateMachine->connection->sendFin();
             stateMachine->changeState(new TCPStateFINWait1(stateMachine));
             break;
-        case TCPEvent::ReceiveFINSendACK:
-            // A device may receive a FIN message from its connection partner
-            // asking that the connection be closed. It will acknowledge this
-            // message and transition to the CLOSE-WAIT state
 
-            // layers   = new std::stack<pcpp::Layer *>();
-            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-            //                          stateMachine->connection->dstPort,
-            //                          FIN + ACK);
-            // layers->push(tcpLayer);
-            // stateMachine->connection->owner->sendPacket(
-            //     layers, stateMachine->connection->dstAddr->toString());
-            // delete layers;
-            stateMachine->changeState(new TCPStateCloseWait(stateMachine));
+        case TCPEvent::Abort:
+            // Send a reset segment: <SEQ=SND.NXT><CTL=RST>
+            stateMachine->connection->sendRst();
+            // TODO All queued SENDs and RECEIVEs should be given "connection
+            // reset" notification;
+            // TODO all segments queued for transmission (except for the RST
+            // formed above) or retransmission should be flushed,
 
-            break;
-        case TCPEvent::SendRST:
-            // layers   = new std::stack<pcpp::Layer *>();
-            // tcpLayer = craftTCPLayer(stateMachine->connection->srcPort,
-            //                          stateMachine->connection->dstPort,
-            //                          RST);
-            // layers->push(tcpLayer);
-            // stateMachine->connection->owner->sendPacket(
-            //     layers, stateMachine->connection->dstAddr->toString());
-            // delete layers;
+            // delete the TCB, enter CLOSED state, and return.
+            stateMachine->connection->running = false;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
-        case TCPEvent::ReceiveRST:
-            stateMachine->changeState(new TCPStateClosed(stateMachine));
+
+        case TCPEvent::Status:
+            handled = false;  // TODO implement
             break;
-        case TCPEvent::ReceiveACK:
-            L_DEBUG(stateMachine->connection->owner->ID, "Message ACKed");
+
+        case TCPEvent::SegmentArrives:
+            segment = std::move(stateMachine->connection->getNextSegment());
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::UserTimeout:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::RetransmissionTimeout:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::TimeWaitTimeout:
+            // If the time-wait timeout expires on a connection delete the TCB,
+            // enter the CLOSED state and return.
+            stateMachine->connection->running = false;
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 
         default:

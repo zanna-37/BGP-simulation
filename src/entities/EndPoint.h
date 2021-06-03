@@ -17,7 +17,7 @@ class EndPoint : public virtual Device {
     EndPoint(std::string ID, pcpp::IPv4Address defaultGateway)
         : Device(std::move(ID), defaultGateway) {}
 
-    ~EndPoint() {}
+    ~EndPoint();
 
     /**
      * The endpoint drops a packet that does not have to process
