@@ -8,12 +8,12 @@ using namespace std;
 
 class Parser {
    public:
-    static vector<Device *> *parseAndBuild(char *filename);
+    static std::vector<Device *> *parseAndBuild(char *filename);
 
    protected:
-    static string getNodeTypeName(YAML::NodeType::value nodeType);
+    static std::string getNodeTypeName(YAML::NodeType::value nodeType);
 
-    static void throwInvalidKey(const string &key, const YAML::Node &node);
+    static void throwInvalidKey(const std::string &key, const YAML::Node &node);
 
     static void assertNodeType(const YAML::Node &    node,
                                YAML::NodeType::value expectedNodeType);

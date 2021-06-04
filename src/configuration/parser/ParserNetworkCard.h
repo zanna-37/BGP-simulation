@@ -9,7 +9,7 @@
 
 class ParserNetworkCard : public virtual Parser {
    public:
-    static vector<NetworkCard*>* parseAndBuildNetworkCards(
+    static std::vector<NetworkCard*>* parseAndBuildNetworkCards(
         const YAML::Node& networkCards_yaml, Device* owner);
 
    private:

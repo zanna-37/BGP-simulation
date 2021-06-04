@@ -9,8 +9,8 @@
 
 class ParserClient : public virtual Parser {
    public:
-    static void parseAndAddBuiltClients(const YAML::Node &clients_yaml,
-                                        vector<Device *> *devices_ptr);
+    static void parseAndAddBuiltClients(const YAML::Node &     clients_yaml,
+                                        std::vector<Device *> *devices_ptr);
 
    private:
     ParserClient() = delete;

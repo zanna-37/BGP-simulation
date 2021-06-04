@@ -9,8 +9,8 @@
 #include "ParserRouter.h"
 
 
-string Parser::getNodeTypeName(YAML::NodeType::value nodeType) {
-    string name;
+std::string Parser::getNodeTypeName(YAML::NodeType::value nodeType) {
+    std::string name;
     switch (nodeType) {
         case YAML::NodeType::Null: {
             name = "Null";
@@ -33,7 +33,7 @@ string Parser::getNodeTypeName(YAML::NodeType::value nodeType) {
             break;
         }
         default: {
-            throw domain_error("Unexpected NodeType");
+            throw std::domain_error("Unexpected NodeType");
         }
     }
 
@@ -43,30 +43,31 @@ string Parser::getNodeTypeName(YAML::NodeType::value nodeType) {
 void Parser::assertNodeType(const YAML::Node &    node,
                             YAML::NodeType::value expectedNodeType) {
     if (node.Type() != expectedNodeType) {
-        throw runtime_error("Invalid config at line " +
-                            to_string(node.Mark().line + 1) + ": expected " +
-                            getNodeTypeName(expectedNodeType) + " but found " +
-                            getNodeTypeName(node.Type()));
+        throw std::runtime_error(
+            "Invalid config at line " + std::to_string(node.Mark().line + 1) +
+            ": expected " + getNodeTypeName(expectedNodeType) + " but found " +
+            getNodeTypeName(node.Type()));
     }
 }
 
-void Parser::throwInvalidKey(const string &key, const YAML::Node &node) {
-    throw runtime_error("Invalid config at line " +
-                        to_string(node.Mark().line + 1) + ": unknown key \"" +
-                        key + "\"");
+void Parser::throwInvalidKey(const std::string &key, const YAML::Node &node) {
+    throw std::runtime_error("Invalid config at line " +
+                             std::to_string(node.Mark().line + 1) +
+                             ": unknown key \"" + key + "\"");
 }
 
-vector<Device *> *Parser::parseAndBuild(char *filename) {
+std::vector<Device *> *Parser::parseAndBuild(char *filename) {
     L_VERBOSE("Parser", "PARSING CONFIG FILE");
-    L_VERBOSE("Parser", "Parsing from file \"" + string(filename) + "\"");
+    L_VERBOSE("Parser", "Parsing from file \"" + std::string(filename) + "\"");
 
     YAML::Node config_yaml = YAML::LoadFile(filename);
     assertNodeType(config_yaml, YAML::NodeType::value::Map);
 
-    auto *devices_ptr = new vector<Device *>;
+    auto *devices_ptr = new std::vector<Device *>;
 
     for (const auto &device_category_yaml : config_yaml) {
-        string deviceCategory   = device_category_yaml.first.as<std::string>();
+        std::string deviceCategory =
+            device_category_yaml.first.as<std::string>();
         YAML::Node devices_yaml = device_category_yaml.second;
 
         if (deviceCategory == "routers") {

@@ -42,39 +42,20 @@ class Link {
      * nullptr if there is not such endpoint connected or if the specified
      * networkCard is not connected to the link.
      */
-    NetworkCard *getPeerNetworkCardOrNull(NetworkCard *networkCard);
+    NetworkCard *getPeerNetworkCardOrNull(const NetworkCard *networkCard) const;
 
     /**
-     * Send a packet through the physical link. The packet is serialized, so it
-     * is a stream of bytes
-     * @warning it should be called by the Network card
-     * @param packet the packet to send
-     * @param origin the source network card
+     * Send a packet through the physical link.
+     *
+     * Sending is instantaneous, no network delay. The packet is serialized, so
+     * it is a stream of bytes.
+     *
+     * @warning This should be called by the Network card.
+     * @param data The packet to send.
+     * @param destination The source network card. Must not be \a nullptr.
      */
-    void sendPacket(pcpp::Packet *packet, NetworkCard *origin);
-
-    /**
-     * The physical link receive a packet (istantaneusly, no network delay)
-     * @warning it should be called by the Link
-     * @param data the pair indicating the length and the array of bytes
-     * @param destination the networkcard where the packet arrived
-     */
-    void receivePacket(pair<const uint8_t *, int> data,
-                       NetworkCard *              destination);
-    /**
-     * Transform a parsed packet to an array of bytes
-     * @param packet the packet to be parsed
-     * @return a pair with the data and data lenght
-     */
-    pair<const uint8_t *, int> serialize(pcpp::Packet *packet);
-
-    /**
-     * Transform a stream of bytes in a parsed packet
-     * @param rawdata the raw data
-     * @param rawDataLen the length of the stream
-     * @return a parsed packet
-     */
-    pcpp::Packet *deserialize(uint8_t *rawData, int rawDataLen);
+    void sendPacketThroughWire(std::pair<const uint8_t *, int> data,
+                               NetworkCard *destination) const;
 
    private:
     /**
@@ -87,16 +68,16 @@ class Link {
      * class. For this reason this pair should be used as a convenient reference
      * but the ground truth is always the state inside the \a NetworkCards.
      */
-    pair<NetworkCard *, NetworkCard *> device_source_networkCards;
+    std::pair<NetworkCard *, NetworkCard *> device_source_networkCards;
 
     /**
      * Disassociate the specified networkCard.
-     * This reflects the changes performed in \a NeworkCard::disconnect(...). In
-     * particular, when a network card disassociate from a link, the link will
-     * in turn remove its reference of the (now removed) network card.
+     * This reflects the changes performed in \a NetworkCard::disconnect(...).
+     * In particular, when a network card disassociate from a link, the link
+     * will in turn remove its reference of the (now removed) network card.
      *
      * @warning This is an internal method and should only be called from the \a
-     * NetworkCard class. Use \a NeworkCard::disconnect(...) instead.
+     * NetworkCard class. Use \a NetworkCard::disconnect(...) instead.
      * @param networkCard The networkcard that has been disassociated.
      */
     void disconnect(NetworkCard *networkCard);
@@ -113,8 +94,9 @@ class Link {
      */
     void connect(NetworkCard *networkCard);
 
+    std::string getLogLinkName(NetworkCard *destination) const;
+
     friend class NetworkCard;
 };
-
 
 #endif  // BGPSIMULATION_ENTITIES_LINK_H

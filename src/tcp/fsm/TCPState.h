@@ -47,17 +47,8 @@ class TCPState {
      */
     virtual bool onEvent(TCPEvent) = 0;
 
-    /**
-     * Craft a TCP layer with the header flags specified.
-     * @warning it should be called only inside the onEvent method
-     * @param srcPort the source port
-     * @param dstPort the destination port
-     * @param flags an integer indicating the TCP flag (bit notation, according
-     * to RFC)
-     * @return a pointer to the newly created TCP layer
-     */
-    pcpp::TcpLayer* craftTCPLayer(uint16_t srcPort,
-                                  uint16_t dstPort,
-                                  int      flags);
+    //  pcpp::TcpLayer* craftTCPLayer(uint16_t srcPort,
+    //                                uint16_t dstPort,
+    //                                int      flags);
 };
 #endif

@@ -1,6 +1,20 @@
 #include "Router.h"
 
-void Router::forwardMessage(stack<pcpp::Layer *> *layers,
-                            NetworkCard *         networkCard) {
-    networkCard->sendPacket(layers);
+Router::~Router() {
+    // Note: all the subclasses need to call Device::shutdown() in their
+    // deconstructor. Keep them in sync.
+    shutdown();
+
+    delete bgpApplication;
+}
+
+void Router::forwardMessage(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
+    NetworkCard*                                              networkCard) {
+    networkCard->sendPacket(std::move(layers));
+}
+
+void Router::bootUpInternal() {
+    bgpApplication = new BGPApplication(this);
+    bgpApplication->passiveOpen();
 }

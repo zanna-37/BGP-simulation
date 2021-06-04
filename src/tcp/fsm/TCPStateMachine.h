@@ -14,6 +14,8 @@
 #include "../TCPTimer.fwd.h"
 #include "TCPState.fwd.h"
 
+using namespace std::chrono_literals;
+
 /**
  *\verbatim
                               +---------+ ---------\      active OPEN
@@ -86,5 +88,8 @@ class TCPStateMachine : public StateMachine<TCPConnection, TCPState, TCPEvent> {
      * Resert the TimeWaitTimer deleting the old one and creating a new pointer
      */
     void resetTimeWaitTimer();
+
+   protected:
+    std::string toString() override;
 };
 #endif

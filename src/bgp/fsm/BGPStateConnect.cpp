@@ -1,6 +1,10 @@
 #include "BGPStateConnect.h"
 
+#include <stack>
+
+#include "../../entities/Router.h"
 #include "../BGPTimer.h"
+#include "../packets/BGPOpenLayer.h"
 #include "BGPStateActive.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenConfirm.h"
@@ -12,10 +16,13 @@ BGPStateConnect ::~BGPStateConnect() {}
 bool BGPStateConnect ::onEvent(BGPEvent event) {
     bool handled = true;
 
+    std::unique_ptr<BGPLayer>                                 bgpOpenLayer;
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
+
     switch (event) {
         case BGPEvent::ManualStop:
             // TODO drops the TCP connection,
-
+            // dropTCPConnection();
             // TODO releases all BGP resources,
 
             // - sets ConnectRetryCounter to zero,
@@ -31,7 +38,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             break;
         case BGPEvent::ConnectRetryTimer_Expires:
             // TODO drops the TCP connection,
-
+            // dropTCPConnection();
             // - restarts the ConnectRetryTimer,
             stateMachine->resetConnectRetryTimer();
             stateMachine->connectRetryTimer->start();
@@ -40,7 +47,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             stateMachine->resetDelayOpenTimer();
 
             // TODO initiates a TCP connection to the other BGP peer,
-
+            // initiateTCPConnection();
             // TODO continues to listen for a connection that may be initiated
             // by
             //   the remote BGP peer
@@ -57,11 +64,11 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateOpenSent(stateMachine));
             break;
         case BGPEvent::TcpConnection_Valid:
-            // TODO the TCP connection is processed,
+            // TODO the TCP connection is processed, OPTIONAL
             break;
         case BGPEvent::Tcp_CR_Invalid:
 
-            // TODO the local system rejects the TCP connection
+            // TODO the local system rejects the TCP connection, OPTIONAL
             break;
         case BGPEvent::Tcp_CR_Acked:
         case BGPEvent::TcpConnectionConfirmed:
@@ -87,9 +94,21 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
 
                 // TODO sends an OPEN message to its peer,
 
+                // FIXME
+                // dynamic_cast<Router*>(stateMachine->connection->owner)->AS_number
+                bgpOpenLayer = std::make_unique<BGPOpenLayer>(
+                    1111,
+                    (uint16_t)(stateMachine->getHoldTime().count()),
+                    pcpp::IPv4Address("1.1.1.1"));
+                bgpOpenLayer->computeCalculateFields();
+
+                layers->push(std::move(bgpOpenLayer));
+
+                stateMachine->connection->sendData(std::move(layers));
+
                 // - NOT_SURE sets the HoldTimer to a large value, and
-                stateMachine->setDelayOpenTime(240s);
-                stateMachine->delayOpenTimer->start();
+                stateMachine->setHoldTime(240s);
+                stateMachine->holdTimer->start();
 
                 // - changes its state to OpenSent.
                 stateMachine->changeState(new BGPStateOpenSent(stateMachine));
@@ -121,6 +140,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->resetConnectRetryTimer();
 
                 //     TODO drops the TCP connection,
+                // dropTCPConnection();
 
                 //     TODO releases all BGP resources, and
 
@@ -184,6 +204,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             // TODO releases all BGP resources,
 
             // TODO drops the TCP connection,
+            // dropTCPConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -209,6 +230,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 //     TODO releases all BGP resources,
 
                 //     TODO drops the TCP connection, and
+                // dropTCPConnection();
 
                 //     - changes its state to Idle.
 
@@ -223,6 +245,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 //     TODO releases all BGP resources,
 
                 //     TODO drops the TCP connection,
+                // dropTCPConnection();
 
                 //     - increments the ConnectRetryCounter by 1,
                 stateMachine->incrementConnectRetryCounter();
@@ -256,6 +279,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             // TODO releases all BGP resources,
 
             // TODO drops the TCP connection,
+            // dropTCPConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();

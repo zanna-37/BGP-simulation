@@ -1,5 +1,7 @@
 #include "BGPStateIdle.h"
 
+#include "../../tcp/TCPConnection.h"
+#include "../../tcp/TCPEvent.h"
 #include "BGPStateActive.h"
 #include "BGPStateConnect.h"
 
@@ -8,6 +10,7 @@ BGPStateIdle ::~BGPStateIdle() {}
 
 bool BGPStateIdle ::onEvent(BGPEvent event) {
     // maybe curly parenthesis
+
 
     bool handled = true;
 
@@ -23,15 +26,17 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->connectRetryTimer->start();
 
             // TODO initiates a TCP connection to the other BGP peer,
+            // initiateTCPConnection();
 
-            // TODO listens for a connection that may be initiated by the remote
-            //   BGP peer, and
+            // listens for a connection that may be initiated by the remote BGP
+            // peer
+            stateMachine->connection->listenForRemotelyInitiatedConnections();
 
-            // - changes its state to Connect.
+            // and changes its state to Connect.
             stateMachine->changeState(new BGPStateConnect(stateMachine));
 
-
             break;
+
         case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
         case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
 
@@ -43,13 +48,15 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             // - starts the ConnectRetryTimer with the initial value,
             stateMachine->connectRetryTimer->start();
 
-            // TODO listens for a connection that may be initiated by the remote
-            //   peer, and
+            // listens for a connection that may be initiated by the remote BGP
+            // peer
+            stateMachine->connection->listenForRemotelyInitiatedConnections();
 
-            // - changes its state to Active.
+            // and changes its state to Active.
             stateMachine->changeState(new BGPStateActive(stateMachine));
 
             break;
+
         case BGPEvent::AutomaticStart_with_DampPeerOscillations:
         case BGPEvent::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:

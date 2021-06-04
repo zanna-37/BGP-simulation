@@ -56,7 +56,6 @@ class Timer {
     std::timed_mutex sleepMutex;
     TimerState       timerState = UNINITIALIZED;
 
-
    public:
     /**
      * Timer constructor
@@ -78,11 +77,12 @@ class Timer {
           duration(std::chrono::milliseconds::min()) {}
     ~Timer() {
         if (timerThread != nullptr) {
-            L_ERROR(stateMachine->connection->owner->ID,
-                    "Timer " + name +
-                        " has not been stopped before deletion.\nCall stop() "
-                        "before "
-                        "deleting the Timer.");
+            L_ERROR(
+                stateMachine->connection->owner->ID + " " + stateMachine->name,
+                "Timer " + name +
+                    " has not been stopped before deletion.\nCall stop() "
+                    "before "
+                    "deleting the Timer.");
             stop();
         }
     }
@@ -96,8 +96,9 @@ class Timer {
         mutex.lock();
 
         if (timerState != UNINITIALIZED) {
-            L_ERROR(stateMachine->connection->owner->ID,
-                    "Illegal state: timer already started.");
+            L_ERROR(
+                stateMachine->connection->owner->ID + " " + stateMachine->name,
+                name + " Illegal state: timer already started.");
         } else {
             timerState = TICKING;
             sleepMutex.lock();
@@ -109,40 +110,45 @@ class Timer {
 
                 if (duration.count() < 0) {
                     timeToSleep = totalDuration;
-                    L_DEBUG(stateMachine->connection->owner->ID,
+                    L_DEBUG(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
                             "START " + name + ": " +
-                                to_string(timeToSleep.count()) + "ms");
+                                std::to_string(timeToSleep.count()) + "ms");
                 } else {
                     timeToSleep = duration;
-                    L_DEBUG(stateMachine->connection->owner->ID,
+                    L_DEBUG(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
                             "RESUME " + name + ": " +
-                                to_string(timeToSleep.count()) + "ms");
+                                std::to_string(timeToSleep.count()) + "ms");
                 }
 
                 sleepMutex.try_lock_for(timeToSleep);
 
                 mutex.lock();
                 if (timerState == TICKING) {
-                    L_DEBUG(stateMachine->connection->owner->ID,
+                    L_DEBUG(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
                             "TIMEOUT " + name + ": performing actions");
                     timerState = EXECUTING_SCHEDULED_TASK;
                     stateMachine->enqueueEvent(eventToSendUponExpire);
                     timerState = COMPLETED;
 
                 } else {
-                    L_DEBUG(stateMachine->connection->owner->ID,
+                    L_DEBUG(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
                             name + ": " + "was stopped, skipping actions");
                 }
 
                 auto end = std::chrono::steady_clock::now();
 
-                L_DEBUG(
-                    stateMachine->connection->owner->ID,
-                    "END " + name + " after " +
-                        to_string(std::chrono::duration_cast<
-                                      std::chrono::milliseconds>(end - start)
-                                      .count()) +
-                        "ms");
+                L_DEBUG(stateMachine->connection->owner->ID + " " +
+                            stateMachine->name,
+                        "END " + name + " after " +
+                            std::to_string(
+                                std::chrono::duration_cast<
+                                    std::chrono::milliseconds>(end - start)
+                                    .count()) +
+                            "ms");
                 mutex.unlock();
             });
         }
@@ -165,23 +171,29 @@ class Timer {
         mutex.lock();
         switch (timerState) {
             case UNINITIALIZED:
-                L_DEBUG(stateMachine->connection->owner->ID,
+                L_DEBUG(stateMachine->connection->owner->ID + " " +
+                            stateMachine->name,
                         "STOP " + name + ": state uninitialized");
                 break;
             case TICKING:
                 timerState = CANCELLED;
                 sleepMutex.unlock();
-                L_DEBUG(stateMachine->connection->owner->ID,
+                L_DEBUG(stateMachine->connection->owner->ID + " " +
+                            stateMachine->name,
                         "STOP " + name + ": state ticking");
-                L_DEBUG(stateMachine->connection->owner->ID, "CANCEL " + name);
+                L_DEBUG(stateMachine->connection->owner->ID + " " +
+                            stateMachine->name,
+                        "CANCEL " + name);
                 break;
             case EXECUTING_SCHEDULED_TASK:
             case COMPLETED:
-                L_DEBUG(stateMachine->connection->owner->ID,
+                L_DEBUG(stateMachine->connection->owner->ID + " " +
+                            stateMachine->name,
                         "STOP " + name + ": state expired");
                 break;
             case CANCELLED:
-                L_DEBUG(stateMachine->connection->owner->ID,
+                L_DEBUG(stateMachine->connection->owner->ID + " " +
+                            stateMachine->name,
                         "STOP " + name + ": state already cancelled");
                 break;
         }
@@ -212,6 +224,9 @@ class Timer {
      * @return The duration value.
      */
     std::chrono::milliseconds getDuration() const { return duration; }
+
+
+    void setDuration(std::chrono::seconds value) { duration = value; }
 };
 
 #endif

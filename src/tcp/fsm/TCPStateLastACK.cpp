@@ -6,23 +6,60 @@
 TCPStateLastACK::TCPStateLastACK(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
     name = "LAST-ACK";
-    L_DEBUG(stateMachine->connection->owner->ID, "State created: " + name);
+    // L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
+    // "State created: " + name);
 }
 
 bool TCPStateLastACK::onEvent(TCPEvent event) {
     bool handled = true;
-    switch (event) {
-        case TCPEvent::ReceiveACKforFIN:
-            // The device receives an acknowledgment for its close request. We
-            // have now sent our FIN and had it acknowledged, and received the
-            // other device's FIN and acknowledged it, so we go straight to the
-            // CLOSED state.
-            stateMachine->changeState(new TCPStateClosed(stateMachine));
-            // stateMachine->connection->owner->removeTCPConnection(
-            //     stateMachine->connection);
 
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> segment;
+    switch (event) {
+        case TCPEvent::OpenPassive:
+            handled = false;  // TODO implement
             break;
-        case TCPEvent::ReceiveRST:
+
+        case TCPEvent::OpenActive:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Send:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Receive:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Close:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Abort:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::Status:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::SegmentArrives:
+            segment = std::move(stateMachine->connection->getNextSegment());
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::UserTimeout:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::RetransmissionTimeout:
+            handled = false;  // TODO implement
+            break;
+
+        case TCPEvent::TimeWaitTimeout:
+            // If the time-wait timeout expires on a connection delete the TCB,
+            // enter the CLOSED state and return.
+            stateMachine->connection->running = false;
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 

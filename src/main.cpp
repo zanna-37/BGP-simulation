@@ -22,13 +22,16 @@
 #include "logger/Logger.h"
 
 
-using namespace std;
-
 int main(int argc, char *argv[]) {
-    srand(time(NULL) + getpid());
+    // Seed the random generator
+    srand(time(nullptr) + getpid());
+
+    // Get the first instance of the logger and set its options
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
+
     L_VERBOSE("main", "START");
 
+    // TODO REMOVE ME, just examples
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
                                     pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
     pcpp::IPv4Layer newIPLayer(pcpp::IPv4Address(std::string("192.168.1.1")),
@@ -40,12 +43,12 @@ int main(int argc, char *argv[]) {
     BGPOpenLayer bgpOpen =
         BGPOpenLayer(1, 2, pcpp::IPv4Address(std::string("10.0.0.1")));
     bgpOpen.computeCalculateFields();
-    cout << bgpOpen.toString() << endl;
+    std::cout << bgpOpen.toString() << std::endl;
 
     // BGP Update
     std::vector<LengthAndIpPrefix> withdrawnRoutes;
-    withdrawnRoutes.push_back(LengthAndIpPrefix(20, "10.3.2.1"));
-    withdrawnRoutes.push_back(LengthAndIpPrefix(24, "10.6.5.4"));
+    withdrawnRoutes.emplace_back(20, "10.3.2.1");
+    withdrawnRoutes.emplace_back(24, "10.6.5.4");
 
     std::vector<PathAttribute> pathAttributes;
     PathAttribute              pathAttribute;
@@ -56,16 +59,16 @@ int main(int argc, char *argv[]) {
         PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
     pathAttributes.push_back(pathAttribute);
     std::vector<LengthAndIpPrefix> nlri;
-    nlri.push_back(LengthAndIpPrefix(4, "10.9.8.7"));
+    nlri.emplace_back(4, "10.9.8.7");
     BGPUpdateLayer bgpUpdate =
         BGPUpdateLayer(withdrawnRoutes, pathAttributes, nlri);
     bgpUpdate.computeCalculateFields();
-    cout << bgpUpdate.toString() << endl;
+    std::cout << bgpUpdate.toString() << std::endl;
 
     // BGP Keepalive
     BGPKeepaliveLayer bgpKeepalive = BGPKeepaliveLayer();
     bgpKeepalive.computeCalculateFields();
-    cout << bgpKeepalive.toString() << endl;
+    std::cout << bgpKeepalive.toString() << std::endl;
 
     // BGP Notification
     uint8_t              notificationData[] = {'a', '0'};
@@ -75,7 +78,7 @@ int main(int argc, char *argv[]) {
         notificationData,
         sizeof(notificationData));
     bgpNotification.computeCalculateFields();
-    cout << bgpNotification.toString() << endl;
+    std::cout << bgpNotification.toString() << std::endl;
 
 
     // Add to packet
@@ -91,45 +94,51 @@ int main(int argc, char *argv[]) {
 
     newPacket.computeCalculateFields();
 
-    cout << newPacket.toString() << endl;
+    std::cout << newPacket.toString() << std::endl;
+    // END: REMOVE ME just examples
 
-    vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
+    if (argc > 1) {
+        std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
-
-    // TODO logic here
-    for (auto device : *devices) {
-        if (auto *x = dynamic_cast<Router *>(device)) {
-            cout << x->ID << endl;
-        } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
-            cout << x->ID << endl;
+        for (auto device : *devices) {
+            /* TODO REMOVE ME, just an example
+            if (auto *x = dynamic_cast<Router *>(device)) {
+                cout << x->ID << endl;
+            } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
+                cout << x->ID << endl;
+            }
+            */
+            device->bootUp();
+            std::this_thread::sleep_for(500ms);  // TODO remove me
         }
-        device->start();
+
+        // devices->at(0)->listen();
+        // std::string testAddress("90.36.25.1");
+        // devices->at(2)->connect(testAddress, 179);
+
+        // this_thread::sleep_for(5s);
+        // devices->at(2)->resetConnection(testAddress, 179);
+        // this_thread::sleep_for(5s);
+        // devices->at(2)->closeConnection(testAddress, 179);
+        // this_thread::sleep_for(2s);
+        // testAddress = "90.36.25.123";
+        // devices->at(0)->closeConnection(testAddress, 12345);
+        // this_thread::sleep_for(5s);
+
+        //         BGPConnection connection(dynamic_cast<Router
+        //         *>(devices->at(0))); connection.enqueueEvent(AutomaticStart);
+        std::this_thread::sleep_for(20s);
+        //         connection.enqueueEvent(ManualStop);
+
+        L_INFO("main", "SHUTTING DOWN SIMULATION");
+        for (auto device : *devices) {
+            delete device;
+        }
+        delete devices;
+    } else {
+        L_FATAL("main",
+                "Too few arguments. Did you specify the configuration file?");
     }
-
-    devices->at(0)->listen();
-    std::string testAddress("90.36.25.1");
-    devices->at(2)->connect(testAddress, 179);
-
-    this_thread::sleep_for(5s);
-    devices->at(2)->resetConnection(testAddress, 179);
-    this_thread::sleep_for(5s);
-    devices->at(2)->closeConnection(testAddress, 179);
-    this_thread::sleep_for(2s);
-    testAddress = "90.36.25.123";
-    devices->at(0)->closeConnection(testAddress, 12345);
-    this_thread::sleep_for(5s);
-
-    // BGPConnection connection(devices->at(0));
-    // connection.enqueueEvent(AutomaticStart);
-    // this_thread::sleep_for(10s);
-    // connection.enqueueEvent(ManualStop);
-
-    L_DEBUG("main", "DELETING OBJECTS");
-    for (auto device : *devices) {
-        delete device;
-    }
-    delete devices;
-
 
     L_VERBOSE("main", "END");
 

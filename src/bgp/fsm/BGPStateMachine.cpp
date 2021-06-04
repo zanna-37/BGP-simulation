@@ -1,9 +1,13 @@
 #include "BGPStateMachine.h"
 
+#include "BGPStateIdle.h"
+
 BGPStateMachine::BGPStateMachine(BGPConnection* connection)
-    : StateMachine(connection) {
+    : StateMachine(connection, "BGPfsm") {
     initializeTimers();
+    changeState(new BGPStateIdle(this));
 }
+
 BGPStateMachine::~BGPStateMachine() {
     // ~StateMachine();
     // delete timers
@@ -16,7 +20,7 @@ void BGPStateMachine::incrementConnectRetryCounter() {
     connectRetryCounter += 1;
     L_DEBUG(connection->owner->ID,
             "connectRetryCounter incremented. Current value: " +
-                to_string(connectRetryCounter));
+                std::to_string(connectRetryCounter));
 }
 
 void BGPStateMachine::resetConnectRetryTimer() {
@@ -69,4 +73,13 @@ void BGPStateMachine::initializeTimers() {
     resetHoldTimer();
     resetKeepAliveTimer();
     resetDelayOpenTimer();
+}
+
+std::string BGPStateMachine::toString() {
+    if (connection) {
+        return connection->srcAddr.toString() + " " +
+               connection->dstAddr.toString();
+    } else {
+        return "";
+    }
 }

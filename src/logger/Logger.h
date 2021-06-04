@@ -6,8 +6,6 @@
 #include <mutex>
 #include <string>
 
-using namespace std;
-
 #define L_DEBUG(owner, message) \
     Logger::getInstance()->log(LogLevel::DEBUG, owner, message)
 #define L_VERBOSE(owner, message) \
@@ -17,7 +15,7 @@ using namespace std;
 #define L_SUCCESS(owner, message) \
     Logger::getInstance()->log(LogLevel::SUCCESS, owner, message)
 #define L_WARNING(owner, message) \
-    Logger::getInstance()->log(LogLevel::WARNING, owner, message);
+    Logger::getInstance()->log(LogLevel::WARNING, owner, message)
 #define L_ERROR(owner, message) \
     Logger::getInstance()->log(LogLevel::ERROR, owner, message)
 #define L_FATAL(owner, message) \
@@ -67,7 +65,7 @@ class Logger {
      *
      * @return The singleton instance of the logger
      */
-    static shared_ptr<Logger> getInstance();
+    static std::shared_ptr<Logger> getInstance();
 
     /**
      * Set the minimum log level that will be printed out.
@@ -130,30 +128,31 @@ class Logger {
      * characters.
      * @param message The message to be logged.
      */
-    void log(LogLevel logLevel, string owner, string message);
+    void log(LogLevel logLevel, const std::string& owner, std::string message);
 
    private:
-    static shared_ptr<Logger> logger;
-    LogLevel                  targetLevel    = LogLevel::INFO;
-    bool                      longPrefix     = false;
-    bool                      enableColor    = true;
-    bool                      printTimestamp = true;
-    std::mutex                mutex;
+    static std::shared_ptr<Logger> logger;
+    LogLevel                       targetLevel    = LogLevel::INFO;
+    bool                           longPrefix     = false;
+    bool                           enableColor    = true;
+    bool                           printTimestamp = true;
+    std::mutex                     mutex;
 
-    string ESCAPE_CHAR           = "\033";
-    string COLOR_FG_DEFAULT      = ESCAPE_CHAR + "[39m";
-    string COLOR_FG_LIGHT_GREY   = ESCAPE_CHAR + "[90m";
-    string COLOR_FG_LIGHT_RED    = ESCAPE_CHAR + "[91m";
-    string COLOR_FG_LIGHT_GREEN  = ESCAPE_CHAR + "[92m";
-    string COLOR_FG_LIGHT_YELLOW = ESCAPE_CHAR + "[93m";
+    std::string ESCAPE_CHAR           = "\033";
+    std::string COLOR_FG_DEFAULT      = ESCAPE_CHAR + "[39m";
+    std::string COLOR_FG_LIGHT_GREY   = ESCAPE_CHAR + "[90m";
+    std::string COLOR_FG_LIGHT_RED    = ESCAPE_CHAR + "[91m";
+    std::string COLOR_FG_LIGHT_GREEN  = ESCAPE_CHAR + "[92m";
+    std::string COLOR_FG_LIGHT_YELLOW = ESCAPE_CHAR + "[93m";
 
-    map<LogLevel, string> levelMapLong = {{LogLevel::DEBUG, "DEBUG"},
-                                          {LogLevel::VERBOSE, "VERBOSE"},
-                                          {LogLevel::INFO, "INFO"},
-                                          {LogLevel::SUCCESS, "SUCCESS"},
-                                          {LogLevel::WARNING, "WARNING"},
-                                          {LogLevel::ERROR, "ERROR"},
-                                          {LogLevel::FATAL, "FATAL"}};
+    std::map<LogLevel, std::string> levelMapLong = {
+        {LogLevel::DEBUG, "DEBUG"},
+        {LogLevel::VERBOSE, "VERBOSE"},
+        {LogLevel::INFO, "INFO"},
+        {LogLevel::SUCCESS, "SUCCESS"},
+        {LogLevel::WARNING, "WARNING"},
+        {LogLevel::ERROR, "ERROR"},
+        {LogLevel::FATAL, "FATAL"}};
 
     const int padPrefixInternalLongLength =
         levelMapLong.at(LogLevel::SUCCESS)
@@ -162,20 +161,20 @@ class Logger {
     const int padPrefixExternalLongLength =
         encloseInBrackets("", padPrefixInternalLongLength).size();
 
-    map<LogLevel, string> levelMapShort = {{LogLevel::DEBUG, "|"},
-                                           {LogLevel::VERBOSE, ":"},
-                                           {LogLevel::INFO, "."},
-                                           {LogLevel::SUCCESS, "+"},
-                                           {LogLevel::WARNING, "!"},
-                                           {LogLevel::ERROR, "-"},
-                                           {LogLevel::FATAL, "x"}};
+    std::map<LogLevel, std::string> levelMapShort = {{LogLevel::DEBUG, "|"},
+                                                     {LogLevel::VERBOSE, ":"},
+                                                     {LogLevel::INFO, "."},
+                                                     {LogLevel::SUCCESS, "+"},
+                                                     {LogLevel::WARNING, "!"},
+                                                     {LogLevel::ERROR, "-"},
+                                                     {LogLevel::FATAL, "x"}};
 
     const int padPrefixInternalShortLength =
         levelMapShort.at(LogLevel::SUCCESS).size();
     const int padPrefixExternalShortLength =
         encloseInBrackets("", padPrefixInternalShortLength).size();
 
-    const int padTimestampInternalLength = string("HH:MM:ss.mmm").size();
+    const int padTimestampInternalLength = std::string("HH:MM:ss.mmm").size();
     const int padTimestampExternalLength =
         encloseInBrackets("", padTimestampInternalLength).size();
 
@@ -184,7 +183,8 @@ class Logger {
         encloseInBrackets("", padOwnerInternalLength).size();
 
 
-    static string encloseInBrackets(const string& message, int padLenght);
+    static std::string encloseInBrackets(const std::string& message,
+                                         int                padLenght);
 
     Logger() = default;
 };

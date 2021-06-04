@@ -10,7 +10,7 @@
 class BGPState {
    public:
     BGPStateMachine* stateMachine;
-    string           name;
+    std::string      name;
     BGPState(BGPStateMachine* stateMachine) : stateMachine(stateMachine){};
     virtual ~BGPState() {}
 
@@ -23,6 +23,10 @@ class BGPState {
      * @return boolean indicating if the event was handled correctly
      */
     virtual bool onEvent(BGPEvent) = 0;
+
+    // void initiateTCPConnection();
+
+    // void dropTCPConnection();
 };
 
 #endif

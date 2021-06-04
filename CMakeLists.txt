@@ -30,6 +30,7 @@ set(SRC_BGP_FSM ${SRC_BGP}/fsm)
 set(SRC_BGP_PACKETS ${SRC_BGP}/packets)
 set(SRC_TCP ${SRC}/tcp)
 set(SRC_TCP_FSM ${SRC_TCP}/fsm)
+set(SRC_SOCKET ${SRC}/socket)
 
 
 set(SOURCE_FILES
@@ -46,10 +47,13 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
         ${SRC_UTILS}/MacGenerator.cpp
+        ${SRC_IP}/IpManager.cpp
         ${SRC_IP}/TableRow.cpp
+        ${SRC_BGP}/BGPApplication.cpp
         ${SRC_BGP}/BGPConnection.cpp
         ${SRC_BGP}/BGPEvent.cpp
         ${SRC_BGP}/BGPTimer.cpp
+        ${SRC_BGP_FSM}/BGPState.cpp
         ${SRC_BGP_FSM}/BGPStateActive.cpp
         ${SRC_BGP_FSM}/BGPStateConnect.cpp
         ${SRC_BGP_FSM}/BGPStateEnstablished.cpp
@@ -80,6 +84,7 @@ set(SOURCE_FILES
         ${SRC_TCP_FSM}/TCPStateFINWait2.cpp
         ${SRC_TCP_FSM}/TCPStateLastACK.cpp
         ${SRC_TCP_FSM}/TCPStateTimeWait.cpp
+        ${SRC_SOCKET}/Socket.cpp
         )
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})

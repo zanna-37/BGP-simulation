@@ -1,6 +1,11 @@
 #include "BGPStateActive.h"
 
+#include <Layer.h>
+
+#include <stack>
+
 #include "../BGPTimer.h"
+#include "../packets/BGPOpenLayer.h"
 #include "BGPStateConnect.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenSent.h"
@@ -9,6 +14,11 @@ BGPStateActive ::~BGPStateActive() {}
 
 bool BGPStateActive ::onEvent(BGPEvent event) {
     bool handled = true;
+
+    std::unique_ptr<BGPLayer>                                 bgpOpenLayer;
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
+
+
     switch (event) {
         case BGPEvent::ManualStop:
             if (stateMachine->delayOpenTimer->getState() == TICKING &&
@@ -23,6 +33,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetDelayOpenTimer();
 
             // TODO drops the TCP connection,
+            // dropTCPConnection();
 
             // - sets ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
@@ -40,13 +51,14 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
             stateMachine->connectRetryTimer->start();
 
-            // TODO initiates a TCP connection to the other BGP peer,
+            // initiates a TCP connection to the other BGP peer,
+            stateMachine->connection->asyncConnectToPeer();
 
-            // TODO continues to listen for a TCP connection that may be
-            // initiated
-            //   by a remote BGP peer, and
+            // Continues to listen for a TCP connection that may be initiated by
+            // a remote BGP peer.
+            // --> Nothing to do as the listening is already taking place.
 
-            // - changes its state to Connect.
+            // and changes its state to Connect.
             stateMachine->changeState(new BGPStateConnect(stateMachine));
             break;
         case BGPEvent::DelayOpenTimer_Expires:
@@ -104,13 +116,20 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
 
                 //   TODO sends the OPEN message to its peer,
 
+                // FIXME correct the hardcoded AS_number
+                bgpOpenLayer = std::make_unique<BGPOpenLayer>(
+                    1111,
+                    (uint16_t)(stateMachine->getHoldTime().count()),
+                    pcpp::IPv4Address(stateMachine->connection->srcAddr));
+                bgpOpenLayer->computeCalculateFields();
+
+                layers->push(std::move(bgpOpenLayer));
+
+                stateMachine->connection->sendData(std::move(layers));
+
                 //   - sets its HoldTimer to a large value, and
                 stateMachine->resetHoldTimer();
-                stateMachine->holdTimer =
-                    new BGPTimer("holdTimer",
-                                 stateMachine,
-                                 BGPEvent::HoldTimer_Expires,
-                                 240s);
+                stateMachine->holdTimer->setDuration(240s);
                 stateMachine->holdTimer->start();
 
 
@@ -189,6 +208,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             // TODO releases all BGP resources,
 
             // TODO  drops the TCP connection,
+            // dropTCPConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -212,6 +232,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             // TODO releases all BGP resources,
 
             // TODO drops the TCP connection, and
+            // dropTCPConnection();
 
             // - changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
@@ -232,6 +253,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             // TODO releases all BGP resources,
 
             // TODO drops the TCP connection,
+            // dropTCPConnection();
 
             // - increments the ConnectRetryCounter by one,
             stateMachine->incrementConnectRetryCounter();

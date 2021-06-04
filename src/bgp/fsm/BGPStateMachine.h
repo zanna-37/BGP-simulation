@@ -25,8 +25,8 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     // Mandatory session attributes
     int connectRetryCounter = 0;
 #ifdef DEBUG_GUARD
-    std::chrono::seconds connectRetryTime = 3s;
-    std::chrono::seconds holdTime         = 4s;
+    std::chrono::seconds connectRetryTime = 10s;
+    std::chrono::seconds holdTime         = 20s;
     std::chrono::seconds keepaliveTime    = 5s;
 #else
     std::chrono::seconds connectRetryTime = 120s;
@@ -193,6 +193,9 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     void setDelayOpenTime(const std::chrono::seconds& value) {
         delayOpenTime = value;
     }
+
+   protected:
+    std::string toString() override;
 
     // TODO print name of the current BGPState
 };
