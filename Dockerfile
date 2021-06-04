@@ -27,6 +27,11 @@ RUN apt-get update && apt-get install -y \
     # END: PcapPlusPlus requirements
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y \
+    # For vscode TODO create another Dockerfile
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /project
 
 CMD ["make", "build"]

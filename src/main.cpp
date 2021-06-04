@@ -5,6 +5,7 @@
 #include <Packet.h>
 #include <SystemUtils.h>
 #include <UdpLayer.h>
+#include <signal.h>
 #include <unistd.h>
 
 #include <iostream>
@@ -20,7 +21,42 @@
 #include "entities/EndPoint.h"
 #include "entities/Router.h"
 #include "logger/Logger.h"
+#include "server/Server.h"
 
+
+// Variable for sig interrupt (Ctrl+C)
+volatile sig_atomic_t stop;
+
+/**
+ * @brief Startup of the server
+ *
+ * @param devices Vector of the Devices parsed for the configuration of the
+ * program
+ */
+int start_server(vector<Device *> *devices) {
+    Pistache::Port    port(9080);
+    int               thr = 2;
+    Pistache::Address addr(Pistache::Ipv4::any(), port);
+
+    // Start rest server
+    cout << "Cores = " << Pistache::hardware_concurrency() << endl;
+    cout << "Using " << thr << " threads" << endl;
+
+    ApiEndpoint stats(addr);
+
+    stats.init(thr, devices);
+    stats.start(&stop);
+
+    return 0;
+}
+
+/**
+ * @brief
+ * https://stackoverflow.com/questions/26965508/infinite-while-loop-and-control-c
+ *
+ * @param signum
+ */
+void inthand(int signum) { stop = 1; }
 
 int main(int argc, char *argv[]) {
     // Seed the random generator
@@ -30,6 +66,7 @@ int main(int argc, char *argv[]) {
     Logger::getInstance()->setTargetLogLevel(LogLevel::DEBUG);
 
     L_VERBOSE("main", "START");
+    int rc = 1;
 
     // TODO REMOVE ME, just examples
     pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
@@ -100,6 +137,17 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
+        auto *serverThread = new std::thread([&]() {
+            rc = start_server(devices);
+            if (rc == 0) {
+                L_INFO("Server",
+                       "SIGINT received, Pistache shutdown correctly!");
+            } else {
+                L_ERROR("Server", "ShutDown Failed!");
+            }
+        });
+        signal(SIGINT, inthand);
+
         for (auto device : *devices) {
             /* TODO REMOVE ME, just an example
             if (auto *x = dynamic_cast<Router *>(device)) {
@@ -112,25 +160,18 @@ int main(int argc, char *argv[]) {
             std::this_thread::sleep_for(500ms);  // TODO remove me
         }
 
-        // devices->at(0)->listen();
-        // std::string testAddress("90.36.25.1");
-        // devices->at(2)->connect(testAddress, 179);
+        while (!stop) {
+            sleep(1);  // TODO change from polling to wait
+        }
 
-        // this_thread::sleep_for(5s);
-        // devices->at(2)->resetConnection(testAddress, 179);
-        // this_thread::sleep_for(5s);
-        // devices->at(2)->closeConnection(testAddress, 179);
-        // this_thread::sleep_for(2s);
-        // testAddress = "90.36.25.123";
-        // devices->at(0)->closeConnection(testAddress, 12345);
-        // this_thread::sleep_for(5s);
+        L_VERBOSE("main", "SIGINT (Ctrl+C) received. Exiting...");
 
-        //         BGPConnection connection(dynamic_cast<Router
-        //         *>(devices->at(0))); connection.enqueueEvent(AutomaticStart);
-        std::this_thread::sleep_for(20s);
-        //         connection.enqueueEvent(ManualStop);
+        // Once the Ctrl+C is pressed all the threads stop
+        serverThread->join();
+        delete serverThread;
+        serverThread = nullptr;
 
-        L_INFO("main", "SHUTTING DOWN SIMULATION");
+        L_INFO("main", "SHUTTING DOWN DEVICES");
         for (auto device : *devices) {
             delete device;
         }
