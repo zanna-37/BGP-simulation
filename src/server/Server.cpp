@@ -1,5 +1,7 @@
 #include "Server.h"
 
+#include "../utils/Filesystem.h"
+
 
 void ApiEndpoint::init(size_t thr, std::vector<Device *> *devicesMain) {
     auto opts = Pistache::Http::Endpoint::options().flags(
@@ -597,8 +599,9 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
 void ApiEndpoint::showGUI(const Pistache::Rest::Request &request,
                           Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(
-            response, "src/net-visualization/bgp-visualization.html");
+        Pistache::Http::serveFile(response,
+                                  getExecutableParentPath().string() +
+                                      "/static_files/bgp-visualization.html");
     }
 }
 
@@ -607,15 +610,17 @@ void ApiEndpoint::getAddIcon(const Pistache::Rest::Request &request,
                              Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
         Pistache::Http::serveFile(response,
-                                  "src/net-visualization/img/add-icon.png");
+                                  getExecutableParentPath().string() +
+                                      "/static_files/img/add-icon.png");
     }
 }
 
 void ApiEndpoint::getEndpointIcon(const Pistache::Rest::Request &request,
                                   Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(
-            response, "src/net-visualization/img/endpoint-icon.png");
+        Pistache::Http::serveFile(response,
+                                  getExecutableParentPath().string() +
+                                      "/static_files/img/endpoint-icon.png");
     }
 }
 
@@ -623,7 +628,8 @@ void ApiEndpoint::getPacketIcon(const Pistache::Rest::Request &request,
                                 Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
         Pistache::Http::serveFile(response,
-                                  "src/net-visualization/img/packet-icon.png");
+                                  getExecutableParentPath().string() +
+                                      "/static_files/img/packet-icon.png");
     }
 }
 
@@ -631,7 +637,8 @@ void ApiEndpoint::getRouterIcon(const Pistache::Rest::Request &request,
                                 Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
         Pistache::Http::serveFile(response,
-                                  "src/net-visualization/img/router-icon.png");
+                                  getExecutableParentPath().string() +
+                                      "/static_files/img/router-icon.png");
     }
 }
 
@@ -639,14 +646,16 @@ void ApiEndpoint::getNodeEvents(const Pistache::Rest::Request &request,
                                 Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
         Pistache::Http::serveFile(response,
-                                  "src/net-visualization/js/node-events.js");
+                                  getExecutableParentPath().string() +
+                                      "/static_files/js/node-events.js");
     }
 }
 void ApiEndpoint::getMainCSS(const Pistache::Rest::Request &request,
                              Pistache::Http::ResponseWriter response) {
     if (request.method() == Pistache::Http::Method::Get) {
-        Pistache::Http::serveFile(response,
-                                  "src/net-visualization/css/main.css");
+        Pistache::Http::serveFile(
+            response,
+            getExecutableParentPath().string() + "/static_files/css/main.css");
     }
 }
 

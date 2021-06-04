@@ -7,7 +7,7 @@ ENDIF ()
 
 project(${TARGET_EXEC})
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(USE_DEBUG OFF)
@@ -89,6 +89,25 @@ set(SOURCE_FILES
         )
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
+
+###### Copy static HTTP files to the binary folder ######
+macro(configure_files srcDir destDir)
+    message(STATUS "Configuring directory ${destDir}")
+    make_directory(${destDir})
+
+    file(GLOB_RECURSE templateFiles RELATIVE ${CMAKE_SOURCE_DIR}/${srcDir} ${srcDir}/*)
+    foreach (templateFile ${templateFiles})
+        set(srcTemplatePath ${srcDir}/${templateFile})
+        if (NOT IS_DIRECTORY ${srcTemplatePath})
+            message(STATUS "Configuring file ${templateFile}")
+            configure_file(
+                    ${srcTemplatePath}
+                    ${destDir}/${templateFile}
+                    COPYONLY)
+        endif (NOT IS_DIRECTORY ${srcTemplatePath})
+    endforeach (templateFile)
+endmacro(configure_files)
+configure_files(./src/net-visualization ./static_files)
 
 ###### -lpthread flag support ######
 find_package(Threads)
