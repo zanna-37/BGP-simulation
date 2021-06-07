@@ -71,12 +71,12 @@ class Router : public virtual Device {
      */
     void bootUpInternal() override;
 
-    void setUpRIP(vector<NetworkCard *> *networkCards);
+    void buildBgpTable();
 
-    void printBGPTable();
+    std::string getBgpTableAsString();
 
    private:
-    void printElement(std::string t);
+    static std::string getBgpTableCellAsString(const std::string &s);
 };
 
 #endif  // BGPSIMULATION_ENTITIES_ROUTER_H

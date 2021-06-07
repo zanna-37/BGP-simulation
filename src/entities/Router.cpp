@@ -1,11 +1,12 @@
 #include "Router.h"
 
 #include <iomanip>
-#include <iostream>
-
+#include <ostream>
+#include <cstdint>
 #include "../bgp/ASPath.h"
 #include "../bgp/BGPApplication.h"
 #include "../bgp/BGPTableRow.h"
+#include "../logger/Logger.h"
 #include "Layer.h"
 #include "Link.h"
 #include "NetworkCard.h"
@@ -31,15 +32,18 @@ void Router::forwardMessage(
 }
 
 void Router::bootUpInternal() {
+    buildBgpTable();
+    std::string bgpTableAsString = getBgpTableAsString();
+    L_VERBOSE(ID, "BGP table:\n" + bgpTableAsString);
+
     bgpApplication = new BGPApplication(this, this->peer_addresses.front());
     bgpApplication->passiveOpenAll();
 }
 
-void Router::setUpRIP(vector<NetworkCard *> *networkCards) {
+void Router::buildBgpTable() {
     bgpTable = new std::vector<BGPTableRow *>();
 
-    char origin =
-        'i';  // this value can be 'i', 'e' or '?'
+    char origin = 'i';  // this value can be 'i', 'e' or '?'
     // need to understand if the router is interior or exterior
 
     std::vector<uint16_t> loopback_asPath;  // empty vector
@@ -104,36 +108,41 @@ void Router::setUpRIP(vector<NetworkCard *> *networkCards) {
             }
         }
     }
-    printBGPTable();
 }
 
-void Router::printElement(std::string t) {
-    // TODO (zanna): make it return a string a print with logger
-    const char separator = ' ';
-    const int  width     = 16;
-    std::cout << left << setw(width) << setfill(separator) << t;
+std::string Router::getBgpTableCellAsString(const std::string &s) {
+    const char         separator = ' ';
+    const int          width     = 16;
+    std::ostringstream oss;
+
+    oss << std::left << std::setw(width) << std::setfill(separator) << s;
+    return oss.str();
 }
 
-void Router::printBGPTable() {
-    // TODO (zanna): make it return a string a print with logger
-    printElement("Network");
-    printElement("NextHop");
-    printElement("Metric");
-    printElement("LocPref");
-    printElement("Weight");
-    printElement("Path");
-    std::cout << std::endl;
+std::string Router::getBgpTableAsString() {
+    std::string output;
+
+    output += getBgpTableCellAsString("Network");
+    output += getBgpTableCellAsString("NextHop");
+    output += getBgpTableCellAsString("Metric");
+    output += getBgpTableCellAsString("LocPref");
+    output += getBgpTableCellAsString("Weight");
+    output += getBgpTableCellAsString("Path");
+
     for (BGPTableRow *row : *bgpTable) {
-        printElement(row->networkIP.toString());
-        printElement(row->nextHop.toString());
-        printElement(std::to_string(row->metric));
-        printElement(std::to_string(row->localPreferences));
-        printElement(std::to_string(row->weight));
-        for (int i = 0; i < row->asPath.size(); i++) {
-            std::cout << std::to_string(row->asPath[i]);
-            std::cout << " ";
+        output += "\n";
+        output += getBgpTableCellAsString(row->networkIP.toString());
+        output += getBgpTableCellAsString(row->nextHop.toString());
+        output += getBgpTableCellAsString(std::to_string(row->metric));
+        output +=
+            getBgpTableCellAsString(std::to_string(row->localPreferences));
+        output += getBgpTableCellAsString(std::to_string(row->weight));
+        string asPAth;
+        for (uint16_t i : row->asPath) {
+            asPAth += std::to_string(i) + " ";
         }
-        std::cout << std::endl;
+        output += getBgpTableCellAsString(asPAth);
     }
-    std::cout << std::endl;
+
+    return output;
 }
