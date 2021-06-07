@@ -56,7 +56,14 @@ int start_server(vector<Device *> *devices) {
  *
  * @param signum
  */
-void inthand(int signum) { stop = 1; }
+void inthand(int signum) {
+    if (stop == false) {
+        stop = 1;
+    } else {
+        L_ERROR("main", "Exit forcefully");
+        std::abort();
+    }
+}
 
 int main(int argc, char *argv[]) {
     // Seed the random generator
@@ -137,16 +144,20 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
+        signal(SIGINT, inthand);
         auto *serverThread = new std::thread([&]() {
             rc = start_server(devices);
             if (rc == 0) {
                 L_INFO("Server",
                        "SIGINT received, Pistache shutdown correctly!");
             } else {
-                L_ERROR("Server", "ShutDown Failed!");
+                L_ERROR("Server", "Shutdown Failed!");
             }
         });
-        signal(SIGINT, inthand);
+
+        L_SUCCESS("main",
+                  "SERVER STARTING...\nOpen the web interface at "
+                  "localhost::9080\nPress Ctrl+C to end the simulation");
 
         for (auto device : *devices) {
             /* TODO REMOVE ME, just an example
