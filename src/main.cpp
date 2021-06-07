@@ -26,8 +26,8 @@ volatile sig_atomic_t stop;
  * @param devices Vector of the Devices parsed for the configuration of the
  * program
  */
-int start_server(std::vector<Device *> *devices) {
-    Pistache::Port    port(9080);
+int start_server(unsigned short int serverPort, std::vector<Device *> *devices) {
+    Pistache::Port    port(serverPort);
     int               thr = 2;
     Pistache::Address addr(Pistache::Ipv4::any(), port);
 
@@ -135,12 +135,15 @@ int main(int argc, char *argv[]) {
     // std::cout << newPacket.toString() << std::endl;
     // END: REMOVE ME just examples
 
+    // TODO set it with a command line argument bu provide a default
+    unsigned short int port = 9080;
+
     if (argc > 1) {
         std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
 
         signal(SIGINT, inthand);
         auto *serverThread = new std::thread([&]() {
-            rc = start_server(devices);
+            rc = start_server(port, devices);
             if (rc == 0) {
                 L_INFO("Server",
                        "SIGINT received, Pistache shutdown correctly!");
@@ -151,7 +154,9 @@ int main(int argc, char *argv[]) {
 
         L_SUCCESS("main",
                   "SERVER STARTING...\nOpen the web interface at "
-                  "localhost::9080\nPress Ctrl+C to end the simulation");
+                  "http://localhost:" +
+                      std::to_string(port) +
+                      "/showGUI\nPress Ctrl+C to end the simulation");
 
         for (auto device : *devices) {
             /* TODO REMOVE ME, just an example
