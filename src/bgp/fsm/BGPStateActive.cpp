@@ -25,7 +25,8 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
     bool handled = true;
 
     std::unique_ptr<BGPLayer>                                 bgpOpenLayer;
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
 
 
     switch (event) {
