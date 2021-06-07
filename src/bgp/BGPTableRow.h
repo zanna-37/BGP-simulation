@@ -1,12 +1,12 @@
-#ifndef BGPTABLEROW_H
-#define BGPTABLEROW_H
-
-#include <IPLayer.h>
+#ifndef BGPSIMULATION_BGP_BGPTABLEROW_H
+#define BGPSIMULATION_BGP_BGPTABLEROW_H
 
 #include <cstdint>
-#include <cstdlib>
+#include <vector>
 
 #include "../entities/NetworkCard.h"
+#include "IpAddress.h"
+
 
 class BGPTableRow {
    public:
@@ -32,7 +32,8 @@ class BGPTableRow {
                 uint32_t,
                 uint32_t,
                 uint32_t);
-    ~BGPTableRow(){};
+
+    ~BGPTableRow() = default;
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_BGPTABLEROW_H
