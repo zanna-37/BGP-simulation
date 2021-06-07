@@ -39,8 +39,10 @@ int start_server(vector<Device *> *devices) {
     Pistache::Address addr(Pistache::Ipv4::any(), port);
 
     // Start rest server
-    cout << "Cores = " << Pistache::hardware_concurrency() << endl;
-    cout << "Using " << thr << " threads" << endl;
+    L_DEBUG(
+        "Server",
+        "Hardware cores: " + std::to_string(Pistache::hardware_concurrency()));
+    L_DEBUG("Server", "Using " + std::to_string(thr) + " threads");
 
     ApiEndpoint stats(addr);
 
