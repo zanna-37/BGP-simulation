@@ -76,69 +76,68 @@ int main(int argc, char *argv[]) {
     int rc = 1;
 
     // TODO REMOVE ME, just examples
-    pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
-                                    pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
-    pcpp::IPv4Layer newIPLayer(pcpp::IPv4Address(std::string("192.168.1.1")),
-                               pcpp::IPv4Address(std::string("10.0.0.1")));
-    newIPLayer.getIPv4Header()->ipId       = pcpp::hostToNet16(2000);
-    newIPLayer.getIPv4Header()->timeToLive = 64;
-
-    // BGP Open
-    BGPOpenLayer bgpOpen =
-        BGPOpenLayer(1, 2, pcpp::IPv4Address(std::string("10.0.0.1")));
-    bgpOpen.computeCalculateFields();
-    std::cout << bgpOpen.toString() << std::endl;
-
-    // BGP Update
-    std::vector<LengthAndIpPrefix> withdrawnRoutes;
-    withdrawnRoutes.emplace_back(20, "10.3.2.1");
-    withdrawnRoutes.emplace_back(24, "10.6.5.4");
-
-    std::vector<PathAttribute> pathAttributes;
-    PathAttribute              pathAttribute;
-    const int                  data_len       = 10;
-    uint8_t                    data[data_len] = {'a', 'b'};
-    pathAttribute.setAttributeLengthAndValue(data, data_len);
-    pathAttribute.attributeTypeCode =
-        PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
-    pathAttributes.push_back(pathAttribute);
-    std::vector<LengthAndIpPrefix> nlri;
-    nlri.emplace_back(4, "10.9.8.7");
-    BGPUpdateLayer bgpUpdate =
-        BGPUpdateLayer(withdrawnRoutes, pathAttributes, nlri);
-    bgpUpdate.computeCalculateFields();
-    std::cout << bgpUpdate.toString() << std::endl;
-
-    // BGP Keepalive
-    BGPKeepaliveLayer bgpKeepalive = BGPKeepaliveLayer();
-    bgpKeepalive.computeCalculateFields();
-    std::cout << bgpKeepalive.toString() << std::endl;
-
-    // BGP Notification
-    uint8_t              notificationData[] = {'a', '0'};
-    BGPNotificationLayer bgpNotification    = BGPNotificationLayer(
-        BGPNotificationLayer::ErrorCode_uint8_t::MSG_HEADER_ERR,
-        BGPNotificationLayer::ErrorSubcode_uint8_t::ERR_1_BAD_MSG_TYPE,
-        notificationData,
-        sizeof(notificationData));
-    bgpNotification.computeCalculateFields();
-    std::cout << bgpNotification.toString() << std::endl;
-
-
-    // Add to packet
-
-    pcpp::Packet newPacket(100);
-
-    newPacket.addLayer(&newEthernetLayer);
-    newPacket.addLayer(&newIPLayer);
-    // newPacket.addLayer(&bgpOpen);
-    // newPacket.addLayer(&bgpUpdate);
-    // newPacket.addLayer(&bgpKeepalive);
-    newPacket.addLayer(&bgpNotification);
-
-    newPacket.computeCalculateFields();
-
-    std::cout << newPacket.toString() << std::endl;
+    // pcpp::EthLayer  newEthernetLayer(pcpp::MacAddress("11:11:11:11:11:11"),
+    //                                 pcpp::MacAddress("aa:bb:cc:dd:ee:ff"));
+    // pcpp::IPv4Layer newIPLayer(pcpp::IPv4Address(std::string("192.168.1.1")),
+    //                            pcpp::IPv4Address(std::string("10.0.0.1")));
+    // newIPLayer.getIPv4Header()->ipId       = pcpp::hostToNet16(2000);
+    // newIPLayer.getIPv4Header()->timeToLive = 64;
+    //
+    //// BGP Open
+    // BGPOpenLayer bgpOpen =
+    //     BGPOpenLayer(1, 2, pcpp::IPv4Address(std::string("10.0.0.1")));
+    // bgpOpen.computeCalculateFields();
+    // std::cout << bgpOpen.toString() << std::endl;
+    //
+    //// BGP Update
+    // std::vector<LengthAndIpPrefix> withdrawnRoutes;
+    // withdrawnRoutes.emplace_back(20, "10.3.2.1");
+    // withdrawnRoutes.emplace_back(24, "10.6.5.4");
+    //
+    // std::vector<PathAttribute> pathAttributes;
+    // PathAttribute              pathAttribute;
+    // const int                  data_len       = 10;
+    // uint8_t                    data[data_len] = {'a', 'b'};
+    // pathAttribute.setAttributeLengthAndValue(data, data_len);
+    // pathAttribute.attributeTypeCode =
+    //     PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
+    // pathAttributes.push_back(pathAttribute);
+    // std::vector<LengthAndIpPrefix> nlri;
+    // nlri.emplace_back(4, "10.9.8.7");
+    // BGPUpdateLayer bgpUpdate =
+    //     BGPUpdateLayer(withdrawnRoutes, pathAttributes, nlri);
+    // bgpUpdate.computeCalculateFields();
+    // std::cout << bgpUpdate.toString() << std::endl;
+    //
+    //// BGP Keepalive
+    // BGPKeepaliveLayer bgpKeepalive = BGPKeepaliveLayer();
+    // bgpKeepalive.computeCalculateFields();
+    // std::cout << bgpKeepalive.toString() << std::endl;
+    //
+    //// BGP Notification
+    // uint8_t              notificationData[] = {'a', '0'};
+    // BGPNotificationLayer bgpNotification    = BGPNotificationLayer(
+    //     BGPNotificationLayer::ErrorCode_uint8_t::MSG_HEADER_ERR,
+    //     BGPNotificationLayer::ErrorSubcode_uint8_t::ERR_1_BAD_MSG_TYPE,
+    //     notificationData,
+    //     sizeof(notificationData));
+    // bgpNotification.computeCalculateFields();
+    // std::cout << bgpNotification.toString() << std::endl;
+    //
+    //
+    //// Add to packet
+    // pcpp::Packet newPacket(100);
+    //
+    // newPacket.addLayer(&newEthernetLayer);
+    // newPacket.addLayer(&newIPLayer);
+    //// newPacket.addLayer(&bgpOpen);
+    //// newPacket.addLayer(&bgpUpdate);
+    //// newPacket.addLayer(&bgpKeepalive);
+    // newPacket.addLayer(&bgpNotification);
+    //
+    // newPacket.computeCalculateFields();
+    //
+    // std::cout << newPacket.toString() << std::endl;
     // END: REMOVE ME just examples
 
     if (argc > 1) {
