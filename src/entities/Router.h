@@ -26,8 +26,8 @@ class Router : public virtual Device {
     /**
      * The Autonomous System number this router belongs to.
      */
-    std::string AS_number;
-    bool        running = false;
+    int  AS_number;
+    bool running = false;
 
     BGPApplication *         bgpApplication = nullptr;
     pcpp::IPv4Address        loopbackIP;
@@ -38,11 +38,10 @@ class Router : public virtual Device {
     std::vector<pcpp::IPv4Address> peer_addresses;
 
     Router(std::string                    ID,
-           std::string                    AS_number,
+           int                            AS_number,
            pcpp::IPv4Address              defaultGateway,
            std::vector<pcpp::IPv4Address> peer_addresses)
-        : Device(std::move(ID), defaultGateway),
-          AS_number(std::move(AS_number)) {
+        : Device(std::move(ID), defaultGateway), AS_number(AS_number) {
         this->peer_addresses.insert(this->peer_addresses.end(),
                                     peer_addresses.begin(),
                                     peer_addresses.end());

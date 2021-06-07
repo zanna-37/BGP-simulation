@@ -19,7 +19,7 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &     routers_yaml,
 
     for (const auto &router_yaml : routers_yaml) {
         std::string                    ID;
-        std::string                    AS_number;
+        int                            AS_number;
         pcpp::IPv4Address              defaultGateway;
         std::vector<NetworkCard *> *   networkCards = nullptr;
         std::vector<pcpp::IPv4Address> peer_addresses;
@@ -33,7 +33,7 @@ void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &     routers_yaml,
             if (property == "id") {
                 ID = value.as<std::string>();
             } else if (property == "AS_number") {
-                AS_number = value.as<std::string>();
+                AS_number = value.as<int>();
             } else if (property == "default_gateway") {
                 std::string defaultGateway_str = value.as<std::string>();
                 defaultGateway = pcpp::IPv4Address(defaultGateway_str);
