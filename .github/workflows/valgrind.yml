@@ -26,10 +26,15 @@ jobs:
           docker run --rm -v "$(pwd):/project" --name build_env igang/build-cpp-env \
             bash -c " \
               make dbuild; \
+              set -m; \
               valgrind \
+                --error-exitcode=1 \
                 --leak-check=full \
                 --show-leak-kinds=all \
                 --track-origins=yes \
                 --track-fds=yes \
                 ./cmake-debug/BGP_simulation ./examples/config.yaml & \
-              ( sleep 60; echo 'Simulating SIGINT (Ctrl+C)'; kill -SIGINT $! )"
+              valgrind_pid=\$!; \
+              ( sleep 60; echo 'Sending SIGINT (Ctrl+C) to '\${valgrind_pid}; kill -SIGINT \${valgrind_pid} ); \
+              wait \$valgrind_pid; \
+              exit \$?; "
