@@ -1,9 +1,6 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <IPv4Layer.h>
-#include <Layer.h>
-
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -14,6 +11,8 @@
 
 #include "../entities/Device.h"
 #include "../tcp/TCPConnection.h"
+#include "IPv4Layer.h"
+#include "Layer.h"
 
 
 // forward declarations

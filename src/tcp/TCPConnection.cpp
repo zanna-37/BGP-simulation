@@ -1,10 +1,9 @@
 #include "TCPConnection.h"
 
-#include <TcpLayer.h>
-
 #include "../logger/Logger.h"
 #include "TCPEvent.h"
 #include "TCPFlag.h"
+#include "TcpLayer.h"
 #include "fsm/TCPStateClosed.h"
 #include "fsm/TCPStateEnstablished.h"
 #include "fsm/TCPStateListen.h"

@@ -2,13 +2,12 @@
 #define TCPSTATE_H
 
 
-#include <IPLayer.h>
-#include <TcpLayer.h>
-
 #include <stack>
 
 #include "../TCPEvent.h"
+#include "IPLayer.h"
 #include "TCPStateMachine.h"
+#include "TcpLayer.h"
 
 // forward declarations
 #include "TCPStateMachine.fwd.h"

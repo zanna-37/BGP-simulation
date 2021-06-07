@@ -1,12 +1,11 @@
 #ifndef BGPSIMULATION_ENTITIES_ROUTER_H
 #define BGPSIMULATION_ENTITIES_ROUTER_H
 
-#include <IPv4Layer.h>
-
 #include <string>
 
 #include "../bgp/BGPApplication.h"
 #include "Device.h"
+#include "IPv4Layer.h"
 #include "NetworkCard.h"
 
 // forward declarations

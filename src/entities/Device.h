@@ -1,10 +1,6 @@
 #ifndef BGPSIMULATION_ENTITIES_DEVICE_H
 #define BGPSIMULATION_ENTITIES_DEVICE_H
 
-#include <IPv4Layer.h>
-#include <Packet.h>
-#include <TcpLayer.h>
-
 #include <atomic>
 #include <condition_variable>
 #include <map>
@@ -20,7 +16,10 @@
 #include "../ip/TableRow.h"
 #include "../socket/Socket.h"
 #include "../tcp/TCPConnection.h"
+#include "IPv4Layer.h"
 #include "NetworkCard.h"
+#include "Packet.h"
+#include "TcpLayer.h"
 
 // forward declarations
 #include "../bgp/BGPConnection.fwd.h"

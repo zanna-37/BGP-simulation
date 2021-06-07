@@ -1,10 +1,6 @@
 #ifndef BGPSIMULATION_ENTITIES_NET_DETAILS_H
 #define BGPSIMULATION_ENTITIES_NET_DETAILS_H
 
-#include <EthLayer.h>
-#include <IPv4Layer.h>
-#include <Packet.h>
-#include <ProtocolType.h>
 #include <assert.h>
 #include <time.h>
 
@@ -16,7 +12,11 @@
 
 #include "../utils/MacGenerator.h"
 #include "Device.h"
+#include "EthLayer.h"
+#include "IPv4Layer.h"
 #include "Link.h"
+#include "Packet.h"
+#include "ProtocolType.h"
 
 // forward declarations
 #include "Device.fwd.h"

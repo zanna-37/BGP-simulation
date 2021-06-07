@@ -1,7 +1,5 @@
 #include "BGPStateActive.h"
 
-#include <Layer.h>
-
 #include <stack>
 
 #include "../BGPTimer.h"
@@ -9,6 +7,7 @@
 #include "BGPStateConnect.h"
 #include "BGPStateIdle.h"
 #include "BGPStateOpenSent.h"
+#include "Layer.h"
 
 BGPStateActive ::~BGPStateActive() {}
 

@@ -1,10 +1,9 @@
 #ifndef TABLEROW_H
 #define TABLEROW_H
 
-#include <IPv4Layer.h>
-
 #include "../entities/NetworkCard.h"
 #include "../logger/Logger.h"
+#include "IPv4Layer.h"
 
 // forward declarations
 #include "../entities/NetworkCard.fwd.h"

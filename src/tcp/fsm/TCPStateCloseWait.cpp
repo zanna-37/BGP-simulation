@@ -1,7 +1,5 @@
 #include "TCPStateCloseWait.h"
 
-#include <TcpLayer.h>
-
 #include <stack>
 
 #include "../../logger/Logger.h"
@@ -9,6 +7,7 @@
 #include "TCPStateClosed.h"
 #include "TCPStateClosing.h"
 #include "TCPStateLastACK.h"
+#include "TcpLayer.h"
 
 TCPStateCloseWait::TCPStateCloseWait(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {

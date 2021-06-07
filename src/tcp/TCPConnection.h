@@ -1,15 +1,14 @@
 #ifndef TCPCONNECTION_H
 #define TCPCONNECTION_H
 
-#include <IPv4Layer.h>
-#include <TcpLayer.h>
-
 #include <mutex>
 #include <stack>
 #include <thread>
 
 #include "../entities/Device.h"
+#include "IPv4Layer.h"
 #include "TCPEvent.h"
+#include "TcpLayer.h"
 #include "fsm/TCPState.h"
 #include "fsm/TCPStateMachine.h"
 

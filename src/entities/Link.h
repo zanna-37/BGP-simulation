@@ -1,11 +1,11 @@
 #ifndef BGPSIMULATION_ENTITIES_LINK_H
 #define BGPSIMULATION_ENTITIES_LINK_H
 
-#include <Packet.h>
 #include <assert.h>
 #include <time.h>
 
 #include "NetworkCard.h"
+#include "Packet.h"
 
 // forward declarations
 #include "NetworkCard.fwd.h"
