@@ -1,9 +1,9 @@
 #include "Router.h"
 
+#include <cstdint>
 #include <iomanip>
 #include <ostream>
-#include <cstdint>
-#include "../bgp/ASPath.h"
+
 #include "../bgp/BGPApplication.h"
 #include "../bgp/BGPTableRow.h"
 #include "../logger/Logger.h"
@@ -18,11 +18,6 @@ Router::~Router() {
     shutdown();
 
     delete bgpApplication;
-
-    for (BGPTableRow *row : *bgpTable) {
-        delete row;
-    }
-    delete bgpTable;
 }
 
 void Router::forwardMessage(
@@ -41,71 +36,59 @@ void Router::bootUpInternal() {
 }
 
 void Router::buildBgpTable() {
-    bgpTable = new std::vector<BGPTableRow *>();
-
     char origin = 'i';  // this value can be 'i', 'e' or '?'
     // need to understand if the router is interior or exterior
 
-    std::vector<uint16_t> loopback_asPath;  // empty vector
-
-    BGPTableRow *loopback_row =
-        new BGPTableRow(loopbackIP,
-                        pcpp::IPv4Address("255.255.255.255"),
-                        pcpp::IPv4Address::Zero,
-                        origin,
-                        loopback_asPath,
-                        0,
-                        0,
-                        32768);
-
-    bgpTable->push_back(loopback_row);
+    // Loopback row
+    bgpTable.emplace_back(loopbackIP,
+                          pcpp::IPv4Address("255.255.255.255"),
+                          pcpp::IPv4Address::Zero,
+                          origin,
+                          std::vector<uint16_t>(),
+                          0,
+                          0,
+                          32768);
 
     for (NetworkCard *networkCard : *networkCards) {
-        if (networkCard->owner->ID[0] == 'R') {
-            NetworkCard *networkCardPeer =
-                networkCard->link->getPeerNetworkCardOrNull(networkCard);
+        NetworkCard *networkCardPeer =
+            networkCard->link->getPeerNetworkCardOrNull(networkCard);
 
-            if (networkCardPeer->owner->ID[0] == 'R') {
-                std::vector<uint16_t> asPath;
+        if (networkCardPeer->owner->ID[0] == 'R') {
+            std::vector<uint16_t> asPath;
 
-                pcpp::IPv4Address networkIP(networkCard->IP.toInt() &
-                                            networkCard->netmask.toInt());
+            pcpp::IPv4Address networkIP(networkCard->IP.toInt() &
+                                        networkCard->netmask.toInt());
 
-                BGPTableRow *row =
-                    new BGPTableRow(networkIP,
-                                    pcpp::IPv4Address(networkCard->netmask),
-                                    pcpp::IPv4Address::Zero,
-                                    origin,
-                                    asPath,
-                                    0,
-                                    0,
-                                    32768);
+            BGPTableRow row(networkIP,
+                            pcpp::IPv4Address(networkCard->netmask),
+                            pcpp::IPv4Address::Zero,
+                            origin,
+                            asPath,
+                            0,
+                            0,
+                            32768);
 
-                pcpp::IPv4Address networkIPPeer(
-                    networkCardPeer->IP.toInt() &
-                    networkCardPeer->netmask.toInt());
+            pcpp::IPv4Address networkIPPeer(networkCardPeer->IP.toInt() &
+                                            networkCardPeer->netmask.toInt());
 
-                std::string numIDPeer =
-                    std::string(1, networkCardPeer->owner->ID[1]);
+            std::string numIDPeer =
+                std::string(1, networkCardPeer->owner->ID[1]);
 
-                asPath.push_back(
-                    std::stoi(numIDPeer));  // in asPath vector we don't
-                // consider the AS itself
+            asPath.push_back(
+                std::stoi(numIDPeer));  // in asPath vector we don't
+            // consider the AS itself
 
-                BGPTableRow *rowPeer =
-                    new BGPTableRow(networkIPPeer,
-                                    pcpp::IPv4Address(networkCardPeer->netmask),
-                                    networkCardPeer->IP,
-                                    origin,
-                                    asPath,
-                                    0,
-                                    0,
-                                    32768);
+            BGPTableRow rowPeer(networkIPPeer,
+                                pcpp::IPv4Address(networkCardPeer->netmask),
+                                networkCardPeer->IP,
+                                origin,
+                                asPath,
+                                0,
+                                0,
+                                32768);
 
-
-                bgpTable->push_back(row);
-                bgpTable->push_back(rowPeer);
-            }
+            bgpTable.push_back(row);
+            bgpTable.push_back(rowPeer);
         }
     }
 }
@@ -129,16 +112,15 @@ std::string Router::getBgpTableAsString() {
     output += getBgpTableCellAsString("Weight");
     output += getBgpTableCellAsString("Path");
 
-    for (BGPTableRow *row : *bgpTable) {
+    for (const BGPTableRow &row : bgpTable) {
         output += "\n";
-        output += getBgpTableCellAsString(row->networkIP.toString());
-        output += getBgpTableCellAsString(row->nextHop.toString());
-        output += getBgpTableCellAsString(std::to_string(row->metric));
-        output +=
-            getBgpTableCellAsString(std::to_string(row->localPreferences));
-        output += getBgpTableCellAsString(std::to_string(row->weight));
+        output += getBgpTableCellAsString(row.networkIP.toString());
+        output += getBgpTableCellAsString(row.nextHop.toString());
+        output += getBgpTableCellAsString(std::to_string(row.metric));
+        output += getBgpTableCellAsString(std::to_string(row.localPreferences));
+        output += getBgpTableCellAsString(std::to_string(row.weight));
         string asPAth;
-        for (uint16_t i : row->asPath) {
+        for (uint16_t i : row.asPath) {
             asPAth += std::to_string(i) + " ";
         }
         output += getBgpTableCellAsString(asPAth);

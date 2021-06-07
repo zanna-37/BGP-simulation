@@ -52,7 +52,6 @@ set(SOURCE_FILES
         ${SRC_UTILS}/MacGenerator.cpp
         ${SRC_IP}/IpManager.cpp
         ${SRC_IP}/TableRow.cpp
-        ${SRC_BGP}/ASPath.cpp
         ${SRC_BGP}/BGPApplication.cpp
         ${SRC_BGP}/BGPConnection.cpp
         ${SRC_BGP}/BGPEvent.cpp

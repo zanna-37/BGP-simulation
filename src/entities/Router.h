@@ -7,15 +7,14 @@
 #include <utility>
 #include <vector>
 
+#include "../bgp/BGPTableRow.h"
 #include "Device.h"
 #include "IpAddress.h"
 #include "Layer.h"
 #include "NetworkCard.h"
 
 // forward declarations
-#include "../bgp/ASPath.fwd.h"
 #include "../bgp/BGPApplication.fwd.h"
-#include "../bgp/BGPTableRow.fwd.h"
 
 using namespace std;
 
@@ -30,9 +29,9 @@ class Router : public virtual Device {
     int  AS_number;
     bool running = false;
 
-    BGPApplication *            bgpApplication = nullptr;
-    pcpp::IPv4Address           loopbackIP;
-    std::vector<BGPTableRow *> *bgpTable = nullptr;
+    BGPApplication *         bgpApplication = nullptr;
+    pcpp::IPv4Address        loopbackIP;
+    std::vector<BGPTableRow> bgpTable;
     // TODO: announced_prefixes
     // TODO: local_preferences
     // TODO: trust
