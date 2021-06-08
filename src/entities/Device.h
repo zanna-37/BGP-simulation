@@ -11,12 +11,10 @@
 #include <vector>
 
 #include "../ip/TableRow.h"
-#include "../socket/Socket.h"
 #include "IpAddress.h"
 #include "Layer.h"
 
 // forward declarations
-#include "../bgp/BGPConnection.fwd.h"
 #include "../socket/Socket.fwd.h"
 #include "../tcp/TCPConnection.fwd.h"
 #include "NetworkCard.fwd.h"

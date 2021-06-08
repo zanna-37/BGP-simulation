@@ -8,7 +8,6 @@
 #include "../logger/Logger.h"
 #include "../tcp/TCPConnection.h"
 #include "../tcp/fsm/TCPState.h"
-#include "../tcp/fsm/TCPStateClosed.h"
 #include "../tcp/fsm/TCPStateMachine.h"
 #include "IPv4Layer.h"
 #include "Layer.h"
@@ -46,9 +45,20 @@ Device::~Device() {
     }
     delete networkCards;
 
-    for (auto tcpConnection : tcpConnections) {
-        // ensure everything is closed and warn user if not
+    for (auto itr = tcpConnections.begin(); itr != tcpConnections.end();) {
+        auto tcpConnection = itr->lock();
+
+        if (tcpConnection) {
+            L_ERROR("TCP",
+                    tcpConnection->stateMachine->getCurrentState()->name +
+                        " TCP connection not yet deallocated");
+            itr++;
+        } else {
+            // Garbage collector
+            itr = tcpConnections.erase(itr);
+        }
     }
+    L_SUCCESS(ID, "Shutdown completed");
 }
 
 void Device::addCards(std::vector<NetworkCard *> *networkCards) {
@@ -56,7 +66,7 @@ void Device::addCards(std::vector<NetworkCard *> *networkCards) {
 }
 
 void Device::bootUp() {
-    L_VERBOSE(ID, "Booting up");
+    L_VERBOSE(ID, "Booting up...");
 
     IpManager::buildRoutingTable(routingTable, networkCards, defaultGateway);
 
@@ -108,6 +118,7 @@ void Device::bootUp() {
     }
 
     bootUpInternal();
+    L_SUCCESS(ID, "Booting up completed");
 }
 
 void Device::sendPacket(
@@ -150,14 +161,15 @@ void Device::processMessage(
 
     // Check if the message is part of an existing connection
     tcpConnection =
-        getExistingTcpConnectionOrNull(ipLayer_weak->getSrcIPv4Address(),
-                                       tcpLayer_weak->getSrcPort(),
-                                       ipLayer_weak->getDstIPv4Address(),
-                                       tcpLayer_weak->getDstPort());
+        getExistingTcpConnectionOrNull(ipLayer_weak->getDstIPv4Address(),
+                                       tcpLayer_weak->getDstPort(),
+                                       ipLayer_weak->getSrcIPv4Address(),
+                                       tcpLayer_weak->getSrcPort());
 
 
     if (tcpConnection != nullptr) {
-        tcpConnection->segmentArrives(std::move(layers));
+        tcpConnection->segmentArrives(std::make_pair(
+            ipLayer_weak->getSrcIPv4Address(), std::move(layers)));
     } else {
         L_ERROR(ID,
                 "No TCP service listening on " +
@@ -180,11 +192,6 @@ std::shared_ptr<TCPConnection> Device::getExistingTcpConnectionOrNull(
         auto tcpConnection = itr->lock();
 
         if (tcpConnection) {
-            if (!dynamic_cast<TCPStateClosed *>(
-                    tcpConnection->stateMachine->getCurrentState())) {
-                L_VERBOSE("TCP", "Closed TCP connection not yet deallocated");
-            }
-
             if (tcpConnection->srcAddr == srcAddr &&
                 tcpConnection->srcPort == srcPort &&
                 tcpConnection->dstAddr == dstAddr &&
@@ -192,8 +199,8 @@ std::shared_ptr<TCPConnection> Device::getExistingTcpConnectionOrNull(
                 // Return an existing connection
                 connectedTcpConn = tcpConnection;
                 break;
-            } else if (tcpConnection->srcAddr == dstAddr &&
-                       tcpConnection->srcPort == dstPort) {
+            } else if (tcpConnection->srcAddr == srcAddr &&
+                       tcpConnection->srcPort == srcPort) {
                 // Save the listening connection in case we don't find a more
                 // specific established TCP connection
                 listeningTcpConn = tcpConnection;
@@ -245,6 +252,6 @@ uint16_t Device::getFreePort() /* guarded_by ports_mutex */ {
 }
 
 void Device::shutdown() {
-    L_VERBOSE(ID, "Shutting down");
+    L_VERBOSE(ID, "Shutting down...");
     running = false;
 }

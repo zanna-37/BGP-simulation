@@ -28,13 +28,23 @@ BGPConnection::BGPConnection(Router* owner, BGPApplication* bgpApplication)
 
 BGPConnection::~BGPConnection() {
     if (running) {
-        L_ERROR(owner->ID,
-                "BGPConnection has not been shutdown before deletion.\nCall "
-                "shutdown() before deleting the BGPConnection.");
+        L_ERROR(
+            owner->ID,
+            "BGPConnection has not been shutdown before deletion.\nCall "
+            "shutdown() before deleting the BGPConnection.\nCurrent state is " +
+                stateMachine->getCurrentState()->name);
         shutdown();
     }
 
-    dropConnection();
+    //    if (connectedSocket != nullptr || connectThread != nullptr) {
+    //        L_ERROR(
+    //            owner->ID,
+    //            "BGPConnection has not dropped connections before
+    //            deletion.\nCall " "dropConnection() before deleting the
+    //            BGPConnection.\nCurrent state is " +
+    //            stateMachine->getCurrentState()->name);
+    //        dropConnection();
+    //    }
 
     if (listeningThread) {
         listeningThread->join();
@@ -75,12 +85,13 @@ void BGPConnection::processMessage(
             switch (bgpHeader->type) {
                 case BGPLayer::BGPMessageType::OPEN:
                     L_DEBUG(owner->ID, "OPEN message arrived");
-                    bgpOpenLayer_weak =
-                        dynamic_cast<BGPOpenLayer*>(bgpLayer_weak);
-                    holdTime = std::chrono::seconds(be16toh(
-                        bgpOpenLayer_weak->getOpenHeaderOrNull()->holdTime_be));
-                    bgpApplication->collisionDetection(this);
-                    enqueueEvent(BGPEvent::BGPOpen);
+                    //                    bgpOpenLayer_weak =
+                    //                        dynamic_cast<BGPOpenLayer*>(bgpLayer_weak);
+                    //                    holdTime =
+                    //                    std::chrono::seconds(be16toh(
+                    //                        bgpOpenLayer_weak->getOpenHeaderOrNull()->holdTime_be));
+                    //                    bgpApplication->collisionDetection(this);
+                    //                    enqueueEvent(BGPEvent::BGPOpen);
                     break;
                 case BGPLayer::BGPMessageType::UPDATE:
                     L_DEBUG(owner->ID, "UPDATE message arrived");
@@ -106,7 +117,21 @@ void BGPConnection::startReceivingThread() {
             std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
                 connectedSocket->recv();
 
-            processMessage(std::move(layers));
+            if (running) {
+                if (layers != nullptr) {
+                    processMessage(std::move(layers));
+                } else {
+                    // if layers == nullptr it means that the TCP state machine
+                    // is not running anymore so we should shutdown this
+                    // connection. Ideally this should not happen because the
+                    // TCP connection should notify the Socket about the
+                    // shutdown and the Socket should notify the BGP connection.
+                    // TODO this notify mechanism is not yet implemented at
+                    // 2021-06-15.
+
+                    shutdown();
+                }
+            }
         }
     });
 }
@@ -186,14 +211,15 @@ void BGPConnection::asyncConnectToPeer() {
     connectThread = new thread([&] {
         if (connectedSocket->connect(dstAddr, BGPApplication::BGPDefaultPort) ==
             0) {
+            this->startReceivingThread();
             enqueueEvent(BGPEvent::TcpConnection_Valid);
         }
     });
     connectedSocket_mutex.unlock();
 }
 
-
 void BGPConnection::dropConnection() {
+    running = false;
     connectedSocket_mutex.lock();
     if (connectedSocket) {
         connectedSocket->close();

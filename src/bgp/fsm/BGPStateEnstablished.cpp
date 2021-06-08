@@ -25,7 +25,8 @@ bool BGPStateEnstablished ::onEvent(BGPEvent event) {
 
             // TODO releases BGP resources,
 
-            // TODO drops the TCP connection,
+            // drops the TCP connection,
+            stateMachine->connection->dropConnection();
 
             // - sets the ConnectRetryCounter to zero, and
             stateMachine->setConnectRetryCounter(0);
@@ -43,7 +44,8 @@ bool BGPStateEnstablished ::onEvent(BGPEvent event) {
 
             // TODO releases all BGP resources,
 
-            // TODO drops the TCP connection,
+            // drops the TCP connection,
+            stateMachine->connection->dropConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -64,7 +66,8 @@ bool BGPStateEnstablished ::onEvent(BGPEvent event) {
 
             // TODO releases all BGP resources,
 
-            // TODO drops the TCP connection,
+            // drops the TCP connection,
+            stateMachine->connection->dropConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -112,7 +115,8 @@ bool BGPStateEnstablished ::onEvent(BGPEvent event) {
 
             // TODO releases all BGP resources,
 
-            // TODO drops the TCP connection,
+            // drops the TCP connection,
+            stateMachine->connection->dropConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -135,7 +139,8 @@ bool BGPStateEnstablished ::onEvent(BGPEvent event) {
 
             // TODO releases all the BGP resources,
 
-            // TODO drops the TCP connection,
+            // drops the TCP connection,
+            stateMachine->connection->dropConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -175,7 +180,8 @@ bool BGPStateEnstablished ::onEvent(BGPEvent event) {
 
             // TODO releases all BGP resources,
 
-            // TODO drops the TCP connection,
+            // drops the TCP connection,
+            stateMachine->connection->dropConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -205,7 +211,8 @@ bool BGPStateEnstablished ::onEvent(BGPEvent event) {
 
             // TODO releases all BGP resources,
 
-            // TODO drops the TCP connection,
+            // drops the TCP connection,
+            stateMachine->connection->dropConnection();
 
             // - increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();

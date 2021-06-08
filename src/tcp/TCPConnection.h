@@ -9,6 +9,7 @@
 #include <queue>
 #include <stack>
 #include <string>
+#include <utility>
 
 #include "IpAddress.h"
 #include "Layer.h"
@@ -66,7 +67,8 @@ class TCPConnection {
      * defined in RFC 793.
      */
     void segmentArrives(
-        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+        std::pair<pcpp::IPv4Address,
+                  std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
             receivedLayers);
 
     /**
@@ -89,6 +91,8 @@ class TCPConnection {
 
     void close();
 
+    void abort();
+
     /**
      * Blocking function that waits for the receiving application queue to
      * receive data
@@ -101,7 +105,7 @@ class TCPConnection {
      * Enquque the application layers to the application layers queue
      * @param layers the application layers
      */
-    void signalApplicationLayersReady(
+    void enqueuePacketToInbox(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
     /**
@@ -115,16 +119,13 @@ class TCPConnection {
    private:
     std::atomic<bool> running = {false};
 
-    /**
-     * When a TCP connection is pending this value is set to true
-     */
-    std::atomic<bool> ready = {false};
-
     // TCP receiving queue
     /**
      * The queue of received transport-level messages.
      */
-    std::queue<std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+    std::queue<
+        std::pair<pcpp::IPv4Address,
+                  std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>>
                receivingQueue;
     std::mutex receivingQueue_mutex;
 
@@ -159,11 +160,10 @@ class TCPConnection {
     std::mutex                                 pendingConnections_mutex;
     std::condition_variable                    pendingConnections_wakeup;
 
-    /**
-     * Mutex to safely access the connected variable
-     */
-    std::mutex              established_mutex;
-    std::condition_variable established_wakeup;  // TODO call notify
+
+    bool                    tryingToEstablish;
+    std::mutex              tryingToEstablish_mutex;
+    std::condition_variable tryingToEstablish_wakeup;
 
     /**
      * Craft a TCP layer with the header flags specified.
@@ -184,6 +184,10 @@ class TCPConnection {
      * In this way the old one continue listening while the new can
      * evolve and connect.
      *
+     * @warning The caller (so not this function) need to push the new
+     * connection into the pendingConnection queue and notify the accept()
+     * method.
+     *
      * @param destAddr The remote address the SYN come from.
      * @param destPort The remote port the SYN come from.
      * @return A new connection that is technically put in the listening state,
@@ -200,13 +204,23 @@ class TCPConnection {
      * @param layers The stack of the packet layers to send.
      */
     void enqueuePacketToOutbox(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
+        pcpp::IPv4Address&                                        dstAddr1);
+
+    void enqueuePacketToPeerOutbox(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
-    void sendSyn();
+    void sendSynToPeer();
 
-    void sendFin();
+    void sendFinToPeer();
 
-    void sendRst();
+    void sendAckToPeer();
+
+    void sendSynAckToPeer();
+
+    void sendRstToPeer();
+
+    void sendRstTo(pcpp::IPv4Address dstAddr, uint16_t dstPort);
 
     /**
      * TODO
@@ -214,7 +228,9 @@ class TCPConnection {
      * TCPEvent::SegmentArrives event.
      * @return
      */
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> getNextSegment();
+    std::pair<pcpp::IPv4Address,
+              std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+    getNextSegment();
 
     friend class TCPStateClosed;
     friend class TCPStateCloseWait;

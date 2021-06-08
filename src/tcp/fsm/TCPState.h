@@ -1,6 +1,7 @@
 #ifndef BGP_SIMULATION_TCP_FSM_TCPSTATE_H
 #define BGP_SIMULATION_TCP_FSM_TCPSTATE_H
 
+#include <stack>
 #include <string>
 
 #include "../TCPEvent.h"

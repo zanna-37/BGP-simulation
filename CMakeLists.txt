@@ -48,6 +48,7 @@ set(SOURCE_FILES
         ${SRC_ENTITIES}/NetworkCard.cpp
         ${SRC_ENTITIES}/Router.cpp
         ${SRC_LOGGER}/Logger.cpp
+        ${SRC_UTILS}/Bits.cpp
         ${SRC_UTILS}/MacGenerator.cpp
         ${SRC_IP}/IpManager.cpp
         ${SRC_IP}/TableRow.cpp

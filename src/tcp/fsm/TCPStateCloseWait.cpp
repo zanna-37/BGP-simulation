@@ -7,15 +7,18 @@
 #include <utility>
 
 #include "../../entities/Device.h"
+#include "../../logger/Logger.h"
+#include "../../utils/Bits.h"
 #include "../TCPConnection.h"
 #include "../TCPEvent.h"
+#include "../TCPFlag.h"
 #include "Layer.h"
 #include "TCPStateClosed.h"
 #include "TCPStateLastACK.h"
 #include "TCPStateMachine.h"
 
 
-TCPStateCloseWait::TCPStateCloseWait(TCPStateMachine *stateMachine)
+TCPStateCloseWait::TCPStateCloseWait(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
     name = "CLOSE_WAIT";
     // L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
@@ -25,7 +28,6 @@ TCPStateCloseWait::TCPStateCloseWait(TCPStateMachine *stateMachine)
 bool TCPStateCloseWait::onEvent(TCPEvent event) {
     bool handled = true;
 
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> segment;
     switch (event) {
         case TCPEvent::OpenPassive:
             handled = false;  // TODO implement
@@ -46,25 +48,56 @@ bool TCPStateCloseWait::onEvent(TCPEvent event) {
         case TCPEvent::Close:
             // Queue this request until all preceding SENDs have been
             // segmentized; then send a FIN segment, enter CLOSING state.
-            stateMachine->connection->sendFin();
+            stateMachine->connection->sendFinToPeer();
             // TODO check: at page 60 they say to switch to state closing, but
             // at page 22 the diagram suggest to go to last-ack state.
             stateMachine->changeState(new TCPStateLastACK(stateMachine));
             break;
 
         case TCPEvent::Abort:
-            handled = false;  // TODO implement
+            // Send a reset segment: <SEQ=SND.NXT><CTL=RST>
+            stateMachine->connection->sendRstToPeer();
+            // All queued SENDs and RECEIVEs should be given "connection reset"
+            // notification; all segments queued for transmission (except for
+            // the RST formed above) or retransmission should be flushed, delete
+            // the TCB, enter CLOSED state, and return.
+            stateMachine->connection->running = false;
+            stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 
         case TCPEvent::Status:
             handled = false;  // TODO implement
             break;
 
-        case TCPEvent::SegmentArrives:
-            segment = std::move(stateMachine->connection->getNextSegment());
+        case TCPEvent::SegmentArrives: {
+            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> segment;
+            pcpp::IPv4Address                                         fromAddr;
+
+            std::pair<pcpp::IPv4Address,
+                      std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
+                segmentPair =
+                    std::move(stateMachine->connection->getNextSegment());
+
+            fromAddr = segmentPair.first;
+            segment  = std::move(segmentPair.second);
+
+            auto receivedTcpLayer = std::move(segment->top());
+            segment->pop();
+
+            auto* receivedTcpLayer_weak =
+                dynamic_cast<pcpp::TcpLayer*>(receivedTcpLayer.get());
+
+            uint8_t receivedFlags = TCPConnection::parseTCPFlags(
+                receivedTcpLayer_weak->getTcpHeader());
+
+            if (isFlag8Set(receivedFlags, TCPFlag::RST)) {
+            } else if (isFlag8Set(receivedFlags, TCPFlag::ACK)) {
+            } else if (isFlag8Set(receivedFlags, TCPFlag::SYN)) {
+            } else {
+            }
             handled = false;  // TODO implement
             break;
-
+        }
         case TCPEvent::UserTimeout:
             handled = false;  // TODO implement
             break;

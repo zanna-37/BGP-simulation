@@ -28,7 +28,8 @@ Socket::~Socket() {
 
 void Socket::close() {
     running = false;
-    tcpConnection->close();
+    tcpConnection->abort();  // TODO use close()
+    // tcpConnection->close();
 }
 
 int Socket::listen() { return tcpConnection->listen(); }

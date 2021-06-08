@@ -188,7 +188,7 @@ class Timer {
             case COMPLETED:
                 L_DEBUG(stateMachine->connection->owner->ID + " " +
                             stateMachine->name,
-                        "STOP " + name + ": state expired");
+                        "STOP " + name + ": state has rang");
                 break;
             case CANCELLED:
                 L_DEBUG(stateMachine->connection->owner->ID + " " +

@@ -1,5 +1,5 @@
-#ifndef TCPFLAG_H
-#define TCPFLAG_H
+#ifndef BGPSIMULATION_TCP_TCPFLAG_H
+#define BGPSIMULATION_TCP_TCPFLAG_H
 
 /**
  * A list of the TCP flags implemented in this project, with the correct value
@@ -13,4 +13,5 @@ enum TCPFlag {
     PSH = 8,
     ACK = 16
 };
-#endif
+
+#endif  // BGPSIMULATION_TCP_TCPFLAG_H
