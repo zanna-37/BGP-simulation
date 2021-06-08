@@ -43,18 +43,13 @@ void NetworkCard::connect(const std::shared_ptr<Link>& linkToConnect) {
     }
 }
 
-void NetworkCard::disconnect(const std::shared_ptr<Link>& linkToDisconnect) {
-    if (link.get() == linkToDisconnect.get()) {
-        linkToDisconnect->disconnect(this);
-        link = nullptr;
-    } else if (link == nullptr) {
+void NetworkCard::disconnect() {
+    if (link == nullptr) {
         L_ERROR(owner->ID,
                 "(" + netInterface + ") This interface has no link connected");
     } else {
-        L_ERROR(
-            owner->ID,
-            "(" + netInterface +
-                ") This interface is not connected with the link specified");
+        link->disconnect(this);
+        link = nullptr;
     }
 }
 
@@ -184,4 +179,5 @@ std::unique_ptr<pcpp::Packet> NetworkCard::deserialize(uint8_t*  rawData,
 void NetworkCard::shutdown() {
     running = false;
     receivedPacketsQueue_wakeup.notify_all();
+    disconnect();
 }

@@ -106,13 +106,11 @@ class NetworkCard {
     void connect(const std::shared_ptr<Link>& linkToConnect);
 
     /**
-     * Disconnect the networkCard from the specified link.
+     * Disconnect the networkCard from the link.
      *
-     * It does nothing if the networkCard is not connected to the specified link
-     * or no link at all.
-     * @param linkToConnect The link to disconnect from.
+     * It does nothing if the networkCard is not connected to a link.
      */
-    void disconnect(const std::shared_ptr<Link>& linkToDisconnect);
+    void disconnect();
 
     /**
      * Send the packet packet to the lower layer after instantiating the MAC
