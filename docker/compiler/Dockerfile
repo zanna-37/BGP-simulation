@@ -1,11 +1,4 @@
 # Local build environment
-#
-# Build:
-#     docker build -t igang/build-cpp-env -f Dockerfile .
-#
-# Run:
-#     docker run --rm -v "absolute/path/to/project:/project" --name build_env igang/build-cpp-env [make command]
-#
 
 FROM ubuntu:20.04 AS base
 
@@ -65,17 +58,12 @@ RUN cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-${CLANG_VERSION}
 
 FROM base
 
-COPY --from=iwyu_builder /usr/local/bin/iwyu /usr/local/bin/include-what-you-use /usr/local/bin
+COPY --from=iwyu_builder /usr/local/bin/iwyu /usr/local/bin/include-what-you-use /usr/local/bin/
 
 RUN apt-get update && apt-get install -y \
     # PcapPlusPlus requirements
     libpcap-dev \
     # END: PcapPlusPlus requirements
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y \
-    # For vscode TODO create another Dockerfile
-    git \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /project

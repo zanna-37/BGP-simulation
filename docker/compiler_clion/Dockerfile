@@ -1,19 +1,7 @@
 # CLion remote docker environment
 #
-# Build:
-#     docker build -t igang/build-clion-cpp-env -f Dockerfile-build-clion .
-#
-# Run:
-#     docker run --rm -d --cap-add sys_ptrace -p 2222:22 --name build_clion_remote_env igang/build-clion-cpp-env
-#
 # ssh credentials (test user):
 #     user@password
-#
-# Clear local ssh host key cache:
-#     ssh-keygen -f "$HOME/.ssh/known_hosts" -R "[localhost]:2222" # optional
-#
-# Stop:
-#     docker stop build_clion_remote_env
 #
 
 FROM ubuntu:20.04 AS base
@@ -74,7 +62,7 @@ RUN cmake -G "Unix Makefiles" -DCMAKE_PREFIX_PATH=/usr/lib/llvm-${CLANG_VERSION}
 
 FROM base
 
-COPY --from=iwyu_builder /usr/local/bin/iwyu /usr/local/bin/include-what-you-use /usr/local/bin
+COPY --from=iwyu_builder /usr/local/bin/iwyu /usr/local/bin/include-what-you-use /usr/local/bin/
 
 RUN apt-get update && apt-get install -y \
     # PcapPlusPlus requirements
@@ -82,6 +70,7 @@ RUN apt-get update && apt-get install -y \
     # END: PcapPlusPlus requirements
     && rm -rf /var/lib/apt/lists/*
 
+# Clion requirements
 RUN apt-get update && apt-get install -y \
     ssh \
     && rm -rf /var/lib/apt/lists/*

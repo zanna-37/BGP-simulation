@@ -15,7 +15,7 @@ To run the program open the terminal in the project root folder. The path to the
 
 ## Run through Docker
 ```bash
-docker run --rm -v "</absolute_path_to_project>:/project" --name build_env igang/build-cpp-env ./<build_folder>/BGP_simulation [path_to_config_file]
+docker-compose run --rm --service-ports compiler ./<build_folder>/BGP_simulation [path_to_config_file]
 
-# example: docker run --rm -v "/Users/nickname/protocol_processing_security/simulation:/project" --name build_env igang/build-cpp-env ./cmake-release/BGP_simulation ./examples/config.yaml
+# example: docker-compose run --rm --service-ports compiler ./cmake-release/BGP_simulation ./examples/config.yaml
 ```

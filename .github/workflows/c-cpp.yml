@@ -19,7 +19,7 @@ jobs:
         run: git submodule update --init --recursive
 
       - name: build docker image
-        run: docker build -t igang/build-cpp-env -f Dockerfile .
+        run: docker-compose build compiler
 
       - name: make build
-        run: docker run --rm -v "$(pwd):/project" --name build_env igang/build-cpp-env make build
+        run: docker-compose run --rm compiler make build
