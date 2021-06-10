@@ -1,15 +1,20 @@
-#ifndef TCPSTATESYNSENT_H
-#define TCPSTATESYNSENT_H
+#ifndef BGP_SIMULATION_TCP_FSM_TCPSTATESYNSENT_H
+#define BGP_SIMULATION_TCP_FSM_TCPSTATESYNSENT_H
 
-#include "../TCPConnection.h"
+#include "../TCPEvent.h"
 #include "TCPState.h"
-#include "TCPStateMachine.h"
+
+// forward declarations
+#include "TCPStateMachine.fwd.h"
+
 
 class TCPStateSYNSent : public TCPState {
    public:
     TCPStateSYNSent(TCPStateMachine* stateMachine);
-    ~TCPStateSYNSent(){};
 
-    bool onEvent(TCPEvent);
+    ~TCPStateSYNSent() override = default;
+
+    bool onEvent(TCPEvent) override;
 };
-#endif
+
+#endif  // BGP_SIMULATION_TCP_FSM_TCPSTATESYNSENT_H

@@ -4,8 +4,10 @@
 #include <vector>
 
 #include "../../entities/Device.h"
+#include "../../entities/NetworkCard.h"
 #include "Parser.h"
 #include "yaml-cpp/yaml.h"
+
 
 class ParserNetworkCard : public virtual Parser {
    public:

@@ -1,26 +1,25 @@
-#ifndef BGPSTATECONNECT_H
-#define BGPSTATECONNECT_H
+#ifndef BGPSIMULATION_BGP_FSM_BGPSTATECONNECT_H
+#define BGPSIMULATION_BGP_FSM_BGPSTATECONNECT_H
 
-#include "../../logger/Logger.h"
-#include "../BGPConnection.h"
+#include <string>
+
 #include "../BGPEvent.h"
 #include "BGPState.h"
 #include "BGPStateMachine.h"
 
+
 class BGPStateConnect : public BGPState {
    private:
    public:
-    // Constructor
     BGPStateConnect(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         name = "CONNECT";
         // L_DEBUG(stateMachine->connection->owner->ID + " " +
         // stateMachine->name, "State created: " + name);
     };
 
-    // Deconstructor
-    ~BGPStateConnect();
+    ~BGPStateConnect() override = default;
 
-    bool onEvent(BGPEvent event);
+    bool onEvent(BGPEvent event) override;
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_FSM_BGPSTATECONNECT_H

@@ -1,16 +1,12 @@
 #ifndef BGPSIMULATION_ENTITIES_LINK_H
 #define BGPSIMULATION_ENTITIES_LINK_H
 
-#include <assert.h>
-#include <time.h>
+#include <cstdint>
+#include <string>
+#include <utility>
 
-#include "NetworkCard.h"
-#include "Packet.h"
-
-// forward declarations
 #include "NetworkCard.fwd.h"
 
-using namespace std;
 
 enum Connection_status {
     /**
@@ -62,7 +58,7 @@ class Link {
      *
      * @return string
      */
-    string getConnecionStatusString();
+    std::string getConnectionStatusString();
 
    private:
     /**

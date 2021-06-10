@@ -1,8 +1,18 @@
 #include "TCPStateClosing.h"
 
-#include "../../logger/Logger.h"
+#include <atomic>
+#include <memory>
+#include <stack>
+#include <string>
+#include <utility>
+
+#include "../../entities/Device.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateClosed.h"
-#include "TCPStateTimeWait.h"
+#include "TCPStateMachine.h"
+
 
 TCPStateClosing::TCPStateClosing(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {

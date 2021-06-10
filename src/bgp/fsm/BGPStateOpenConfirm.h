@@ -1,27 +1,27 @@
-#ifndef BGPSTATEOPENCONFIRM_H
-#define BGPSTATEOPENCONFIRM_H
+#ifndef BGPSIMULATION_BGP_FSM_BGPSTATEOPENCONFIRM_H
+#define BGPSIMULATION_BGP_FSM_BGPSTATEOPENCONFIRM_H
 
+#include <string>
 
-#include "../../logger/Logger.h"
-#include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "BGPState.h"
 #include "BGPStateMachine.h"
 
+
 class BGPStateOpenConfirm : public BGPState {
    private:
    public:
-    // Constructor
     BGPStateOpenConfirm(BGPStateMachine* stateMachine)
         : BGPState(stateMachine) {
         name = "OPEN_CONFIRM";
-        // L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name, "State created: " + name);
+        // L_DEBUG(stateMachine->connection->owner->ID + " " +
+        // stateMachine->name, "State created: " + name);
     };
 
-    // Deconstructor
-    ~BGPStateOpenConfirm();
 
-    bool onEvent(BGPEvent event);
+    ~BGPStateOpenConfirm() override = default;
+
+    bool onEvent(BGPEvent event) override;
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_FSM_BGPSTATEOPENCONFIRM_H

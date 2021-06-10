@@ -1,10 +1,12 @@
 #ifndef BGP_SIMULATION_CONFIGURATION_PARSER_PARSER_H
 #define BGP_SIMULATION_CONFIGURATION_PARSER_PARSER_H
 
+#include <string>
+#include <vector>
+
 #include "../../entities/Device.h"
 #include "yaml-cpp/yaml.h"
 
-using namespace std;
 
 class Parser {
    public:

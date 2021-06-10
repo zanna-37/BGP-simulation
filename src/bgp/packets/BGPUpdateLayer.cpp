@@ -1,6 +1,10 @@
 #include "BGPUpdateLayer.h"
 
+#include <endian.h>
+#include <string.h>
+
 #include <cassert>
+
 
 void BGPUpdateLayer::computeCalculateFieldsInternal() const {
     // There is no field to calculate in this layer.
@@ -11,8 +15,8 @@ std::string BGPUpdateLayer::toStringInternal() const {
 
     output += "-- Withdrawn routes length: " +
               std::to_string(getWithdrawnRoutesBytesLength()) + "\n";
-    std::vector<LengthAndIpPrefix>  withdrawnRoutesList;
-     getWithdrawnRoutes(withdrawnRoutesList);
+    std::vector<LengthAndIpPrefix> withdrawnRoutesList;
+    getWithdrawnRoutes(withdrawnRoutesList);
     output +=
         std::to_string(withdrawnRoutesList.size()) + " Withdrawn routes\n";
     for (const auto& withdrawnRoute : withdrawnRoutesList) {
@@ -21,7 +25,7 @@ std::string BGPUpdateLayer::toStringInternal() const {
 
     output += "-- Path attributes length: " +
               std::to_string(getPathAttributesBytesLength()) + "\n";
-    std::vector<PathAttribute>    pathAttributesList ;
+    std::vector<PathAttribute> pathAttributesList;
     getPathAttributes(pathAttributesList);
     output += std::to_string(pathAttributesList.size()) + " Path attributes\n";
     for (const auto& pathAttributes : pathAttributesList) {
@@ -31,7 +35,7 @@ std::string BGPUpdateLayer::toStringInternal() const {
     output += "-- Network layer reachability info length: " +
               std::to_string(getNetworkLayerReachabilityInfoBytesLength()) +
               "\n";
-    std::vector<LengthAndIpPrefix>   nlriList ;
+    std::vector<LengthAndIpPrefix> nlriList;
     getNetworkLayerReachabilityInfo(nlriList);
     output +=
         std::to_string(nlriList.size()) + " Network layer reachability info\n";
@@ -140,7 +144,6 @@ size_t BGPUpdateLayer::getWithdrawnRoutesBytesLength() const {
 
 void BGPUpdateLayer::getWithdrawnRoutes(
     std::vector<LengthAndIpPrefix>& withdrawnRoutes) const {
-
     size_t withdrawnRouteLen = getWithdrawnRoutesBytesLength();
     if (withdrawnRouteLen != 0) {
         size_t offset =
@@ -182,7 +185,6 @@ size_t BGPUpdateLayer::getPathAttributesBytesLength() const {
 
 void BGPUpdateLayer::getPathAttributes(
     std::vector<PathAttribute>& pathAttributes) const {
-
     size_t pathAttrLen = getPathAttributesBytesLength();
     if (pathAttrLen != 0) {
         size_t withdrawnRouteLen = getWithdrawnRoutesBytesLength();
@@ -232,7 +234,6 @@ size_t BGPUpdateLayer::getNetworkLayerReachabilityInfoBytesLength() const {
 
 void BGPUpdateLayer::getNetworkLayerReachabilityInfo(
     std::vector<LengthAndIpPrefix>& nlri) const {
-
     size_t nlriSize = getNetworkLayerReachabilityInfoBytesLength();
     if (nlriSize != 0) {
         size_t withdrawnRouteLen = getWithdrawnRoutesBytesLength();

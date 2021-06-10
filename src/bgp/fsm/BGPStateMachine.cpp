@@ -1,6 +1,15 @@
 #include "BGPStateMachine.h"
 
+#include "../../entities/Router.h"
+#include "../../fsm/StateMachine.h"
+#include "../../logger/Logger.h"
+#include "../BGPConnection.h"
+#include "../BGPEvent.h"
+#include "../BGPTimer.h"
+#include "BGPState.h"
 #include "BGPStateIdle.h"
+#include "IpAddress.h"
+
 
 BGPStateMachine::BGPStateMachine(BGPConnection* connection)
     : StateMachine(connection, "BGPfsm") {

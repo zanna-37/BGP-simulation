@@ -1,12 +1,16 @@
-#ifndef BGPTIMER_H
-#define BGPTIMER_H
+#ifndef BGPSIMULATION_BGP_BGPTIMER_H
+#define BGPSIMULATION_BGP_BGPTIMER_H
+
+#include <chrono>
+#include <string>
 
 #include "../utils/Timer.h"
 #include "BGPEvent.h"
-#include "fsm/BGPStateMachine.h"
 
 // forward declarations
 #include "fsm/BGPStateMachine.fwd.h"
+
+
 /**
  * Implementation of template Timer for the timers used by the BGP State Machine
  */
@@ -18,4 +22,4 @@ class BGPTimer : public Timer<BGPStateMachine, BGPEvent> {
              std::chrono::seconds totalDuration);
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_BGPTIMER_H

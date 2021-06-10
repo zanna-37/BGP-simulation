@@ -1,5 +1,7 @@
 #include "BGPUpdatePathAttribute.h"
 
+#include <endian.h>
+
 #include <bitset>
 #include <cstring>
 

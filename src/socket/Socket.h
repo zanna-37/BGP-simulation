@@ -1,19 +1,15 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#ifndef BGPSIMULATION_SOCKET_SOCKET_H
+#define BGPSIMULATION_SOCKET_SOCKET_H
 
 #include <condition_variable>
+#include <cstdint>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <stack>
 #include <string>
-#include <thread>
 
-#include "../entities/Device.h"
-#include "../tcp/TCPConnection.h"
-#include "IPv4Layer.h"
+#include "IpAddress.h"
 #include "Layer.h"
-
 
 // forward declarations
 #include "../entities/Device.fwd.h"
@@ -90,4 +86,5 @@ class Socket {
     void dataArrived();
     void close();
 };
-#endif
+
+#endif  // BGPSIMULATION_SOCKET_SOCKET_H

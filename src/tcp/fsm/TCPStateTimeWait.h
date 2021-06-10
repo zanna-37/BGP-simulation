@@ -1,16 +1,20 @@
-#ifndef TCPSTATETIMEWAIT_H
-#define TCPSTATETIMEWAIT_H
+#ifndef BGPSIMULATION_TCP_FSM_TCPSTATETIMEWAIT_H
+#define BGPSIMULATION_TCP_FSM_TCPSTATETIMEWAIT_H
 
-
+#include "../TCPEvent.h"
 #include "TCPState.h"
-#include "TCPStateMachine.h"
+
+// forward declarations
+#include "TCPStateMachine.fwd.h"
+
 
 class TCPStateTimeWait : public TCPState {
    public:
     TCPStateTimeWait(TCPStateMachine* stateMachine);
 
-    ~TCPStateTimeWait(){};
+    ~TCPStateTimeWait() override = default;
 
-    bool onEvent(TCPEvent);
+    bool onEvent(TCPEvent) override;
 };
-#endif
+
+#endif  // BGPSIMULATION_TCP_FSM_TCPSTATETIMEWAIT_H

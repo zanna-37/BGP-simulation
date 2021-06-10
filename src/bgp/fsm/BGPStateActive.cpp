@@ -1,15 +1,25 @@
 #include "BGPStateActive.h"
 
+#include <chrono>
+#include <cstdint>
+#include <memory>
 #include <stack>
+#include <utility>
 
+#include "../../entities/Router.h"
+#include "../../utils/Timer.h"
+#include "../BGPConnection.h"
+#include "../BGPEvent.h"
 #include "../BGPTimer.h"
+#include "../packets/BGPLayer.h"
 #include "../packets/BGPOpenLayer.h"
 #include "BGPStateConnect.h"
 #include "BGPStateIdle.h"
+#include "BGPStateMachine.h"
 #include "BGPStateOpenSent.h"
+#include "IpAddress.h"
 #include "Layer.h"
 
-BGPStateActive ::~BGPStateActive() {}
 
 bool BGPStateActive ::onEvent(BGPEvent event) {
     bool handled = true;
@@ -272,19 +282,3 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
     }
     return handled;
 }
-
-// TODO
-// If the DelayOpenTimer is not running, the local system:
-
-//         - sets the ConnectRetryTimer to zero,
-
-//         - releases all BGP resources,
-
-//         - drops the TCP connection,
-
-//         - increments the ConnectRetryCounter by 1,
-
-//         - (optionally) performs peer oscillation damping if the
-//           DampPeerOscillations attribute is set to TRUE, and
-
-//         - changes its state to Idle.

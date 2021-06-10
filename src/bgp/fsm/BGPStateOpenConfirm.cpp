@@ -1,10 +1,13 @@
 #include "BGPStateOpenConfirm.h"
 
+#include "../../entities/Router.h"
+#include "../BGPConnection.h"
+#include "../BGPEvent.h"
+#include "../BGPTimer.h"
 #include "BGPStateEnstablished.h"
 #include "BGPStateIdle.h"
+#include "BGPStateMachine.h"
 
-
-BGPStateOpenConfirm ::~BGPStateOpenConfirm() {}
 
 bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
     bool handled = true;

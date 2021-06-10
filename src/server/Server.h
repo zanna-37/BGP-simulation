@@ -1,20 +1,19 @@
 #ifndef BGP_SIMULATION_SERVER_SERVER_H
 #define BGP_SIMULATION_SERVER_SERVER_H
 
-#include <string>
-#include <vector>
-#include <signal.h>
+#include <stddef.h>
 
-#include "../entities/EndPoint.h"
-#include "../entities/Router.h"
-#include "../logger/Logger.h"
+#include <csignal>
+#include <memory>
+#include <mutex>
+#include <vector>
+
+#include "../entities/Device.h"
 #include "pistache/endpoint.h"
 #include "pistache/http.h"
+#include "pistache/net.h"
 #include "pistache/router.h"
 #include "rapidjson/document.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
 
 class ApiEndpoint {
    public:

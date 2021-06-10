@@ -1,8 +1,13 @@
 #ifndef BGP_SIMULATION_BGP_PACKETS_BGPNOTIFICATIONLAYER_H
 #define BGP_SIMULATION_BGP_PACKETS_BGPNOTIFICATIONLAYER_H
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
 
 #include "BGPLayer.h"
+#include "Layer.h"
+
 
 class BGPNotificationLayer : public BGPLayer {
    public:

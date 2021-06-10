@@ -1,12 +1,19 @@
 #include "TCPConnection.h"
 
+#include <chrono>
+#include <thread>
+#include <utility>
+
+#include "../entities/Device.h"
 #include "../logger/Logger.h"
+#include "Layer.h"
 #include "TCPEvent.h"
 #include "TCPFlag.h"
 #include "TcpLayer.h"
+#include "fsm/TCPState.h"
 #include "fsm/TCPStateClosed.h"
 #include "fsm/TCPStateEnstablished.h"
-#include "fsm/TCPStateListen.h"
+#include "fsm/TCPStateMachine.h"
 
 
 TCPConnection::TCPConnection(Device* owner) : owner(owner) {
@@ -192,14 +199,15 @@ void TCPConnection::signalApplicationLayersReady(
     appReceivingQueue_uniqueLock.unlock();
 }
 
-shared_ptr<TCPConnection> TCPConnection::createConnectedConnectionFromListening(
+std::shared_ptr<TCPConnection>
+TCPConnection::createConnectedConnectionFromListening(
     const pcpp::IPv4Address& dstAddr, const uint16_t dstPort) {
     // TODO use this in the listening state if we receive a SYN
     // TODO the caller (so not this function) need to push the new connection
     // into a pendingConnection queue and notify the accept() method.
 
-    shared_ptr<TCPConnection> newTcpConnection =
-        make_shared<TCPConnection>(owner);
+    std::shared_ptr<TCPConnection> newTcpConnection =
+        std::make_shared<TCPConnection>(owner);
     newTcpConnection->srcAddr = srcAddr;
     newTcpConnection->srcPort = srcPort;
     newTcpConnection->dstAddr = dstAddr;
@@ -222,7 +230,7 @@ void TCPConnection::send(
 
 void TCPConnection::sendSyn() {
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+        std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
 
     std::unique_ptr<pcpp::Layer> tcpLayer =
         craftTCPLayer(srcPort, dstPort, SYN);
@@ -236,7 +244,7 @@ void TCPConnection::sendSyn() {
 
 void TCPConnection::sendFin() {
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+        std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
 
     std::unique_ptr<pcpp::Layer> tcpLayer =
         craftTCPLayer(srcPort, dstPort, FIN);
@@ -250,7 +258,7 @@ void TCPConnection::sendFin() {
 
 void TCPConnection::sendRst() {
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+        std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
 
     std::unique_ptr<pcpp::Layer> tcpLayer =
         craftTCPLayer(srcPort, dstPort, RST);

@@ -1,16 +1,13 @@
-#ifndef TCPSTATE_H
-#define TCPSTATE_H
+#ifndef BGP_SIMULATION_TCP_FSM_TCPSTATE_H
+#define BGP_SIMULATION_TCP_FSM_TCPSTATE_H
 
-
-#include <stack>
+#include <string>
 
 #include "../TCPEvent.h"
-#include "IPLayer.h"
-#include "TCPStateMachine.h"
-#include "TcpLayer.h"
 
 // forward declarations
 #include "TCPStateMachine.fwd.h"
+
 
 class TCPState {
    public:
@@ -35,7 +32,8 @@ class TCPState {
     std::string name;
 
     TCPState(TCPStateMachine* stateMachine) : stateMachine(stateMachine){};
-    virtual ~TCPState() {}
+
+    virtual ~TCPState() = default;
 
     /**
      * Method called by each state to handle a specific TCP event triggered in
@@ -45,9 +43,6 @@ class TCPState {
      * @return \a true if the event was handled correctly, \a false otherwise
      */
     virtual bool onEvent(TCPEvent) = 0;
-
-    //  pcpp::TcpLayer* craftTCPLayer(uint16_t srcPort,
-    //                                uint16_t dstPort,
-    //                                int      flags);
 };
-#endif
+
+#endif  // BGP_SIMULATION_TCP_FSM_TCPSTATE_H

@@ -1,12 +1,18 @@
 #include "TCPStateFINWait1.h"
 
+#include <atomic>
+#include <memory>
 #include <stack>
+#include <string>
+#include <utility>
 
-#include "../../logger/Logger.h"
-#include "../TCPFlag.h"
+#include "../../entities/Device.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateClosed.h"
-#include "TCPStateClosing.h"
-#include "TCPStateFINWait2.h"
+#include "TCPStateMachine.h"
+
 
 TCPStateFINWait1::TCPStateFINWait1(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {

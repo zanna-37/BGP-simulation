@@ -1,5 +1,11 @@
 #include "TableRow.h"
 
+#include <cstdint>
+#include <utility>
+
+#include "../entities/NetworkCard.h"
+
+
 TableRow::TableRow(pcpp::IPv4Address networkIP,
                    pcpp::IPv4Address netmask,
                    pcpp::IPv4Address defaultGateway,
@@ -8,7 +14,7 @@ TableRow::TableRow(pcpp::IPv4Address networkIP,
     : networkIP(networkIP),
       netmask(netmask),
       defaultGateway(defaultGateway),
-      netInterface(netInterface),
+      netInterface(std::move(netInterface)),
       networkCard(networkCard) {}
 
 int TableRow::toCIDR() const {

@@ -1,7 +1,18 @@
 #include "TCPStateLastACK.h"
 
-#include "../../logger/Logger.h"
+#include <atomic>
+#include <memory>
+#include <stack>
+#include <string>
+#include <utility>
+
+#include "../../entities/Device.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateClosed.h"
+#include "TCPStateMachine.h"
+
 
 TCPStateLastACK::TCPStateLastACK(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {

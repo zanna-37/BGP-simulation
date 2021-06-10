@@ -1,17 +1,26 @@
 #include "BGPStateConnect.h"
 
+#include <chrono>
+#include <cstdint>
+#include <memory>
 #include <stack>
+#include <utility>
 
 #include "../../entities/Router.h"
+#include "../../utils/Timer.h"
+#include "../BGPConnection.h"
+#include "../BGPEvent.h"
 #include "../BGPTimer.h"
+#include "../packets/BGPLayer.h"
 #include "../packets/BGPOpenLayer.h"
 #include "BGPStateActive.h"
 #include "BGPStateIdle.h"
+#include "BGPStateMachine.h"
 #include "BGPStateOpenConfirm.h"
 #include "BGPStateOpenSent.h"
+#include "IpAddress.h"
+#include "Layer.h"
 
-
-BGPStateConnect ::~BGPStateConnect() {}
 
 bool BGPStateConnect ::onEvent(BGPEvent event) {
     bool handled = true;

@@ -1,13 +1,18 @@
 #include "TCPStateSYNSent.h"
 
+#include <atomic>
+#include <condition_variable>
+#include <memory>
 #include <stack>
+#include <string>
+#include <utility>
 
 #include "../../entities/Device.h"
-#include "../../logger/Logger.h"
-#include "../TCPFlag.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateClosed.h"
-#include "TCPStateEnstablished.h"
-#include "TCPStateSYNReceived.h"
+#include "TCPStateMachine.h"
 
 
 TCPStateSYNSent::TCPStateSYNSent(TCPStateMachine* stateMachine)

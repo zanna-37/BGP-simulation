@@ -1,8 +1,10 @@
 #include "../ip/IpManager.h"
 
 #include <iomanip>
+#include <ostream>
 
-#include "../bgp/packets/BGPLayer.h"
+#include "../entities/NetworkCard.h"
+#include "TableRow.h"
 
 
 void IpManager::buildRoutingTable(std::vector<TableRow> &     routingTable,
@@ -60,7 +62,8 @@ std::string IpManager::getRoutingTableAsString(
 }
 
 NetworkCard *IpManager::findExitingNetworkCard(
-    const pcpp::IPv4Address &dstAddress, const vector<TableRow> &routingTable) {
+    const pcpp::IPv4Address &    dstAddress,
+    const std::vector<TableRow> &routingTable) {
     int          longestMatch = -1;
     NetworkCard *result       = nullptr;
     for (const TableRow &row : routingTable) {

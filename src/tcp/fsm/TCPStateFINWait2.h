@@ -1,15 +1,20 @@
-#ifndef TCPSTATEFINWAIT2_H
-#define TCPSTATEFINWAIT2_H
+#ifndef BGP_SIMULATION_TCP_FSM_TCPSTATEFINWAIT2_H
+#define BGP_SIMULATION_TCP_FSM_TCPSTATEFINWAIT2_H
 
+#include "../TCPEvent.h"
 #include "TCPState.h"
-#include "TCPStateMachine.h"
+
+// forward declarations
+#include "TCPStateMachine.fwd.h"
+
 
 class TCPStateFINWait2 : public TCPState {
    public:
     TCPStateFINWait2(TCPStateMachine* stateMachine);
 
-    ~TCPStateFINWait2(){};
+    ~TCPStateFINWait2() override = default;
 
-    bool onEvent(TCPEvent);
+    bool onEvent(TCPEvent) override;
 };
-#endif
+
+#endif  // BGP_SIMULATION_TCP_FSM_TCPSTATEFINWAIT2_H

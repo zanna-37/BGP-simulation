@@ -1,13 +1,14 @@
 #ifndef BGP_SIMULATION_BGP_PACKETS_BGPUPDATELENGTHANDIPPREFIX_H
 #define BGP_SIMULATION_BGP_PACKETS_BGPUPDATELENGTHANDIPPREFIX_H
 
-
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
 
 #include "BGPUpdateLayer.fwd.h"
-#include "IPv4Layer.h"
+#include "IpAddress.h"
+
 
 class LengthAndIpPrefix {
    public:
@@ -60,6 +61,5 @@ class LengthAndIpPrefix {
 
     friend class BGPUpdateLayer;
 };
-
 
 #endif  // BGP_SIMULATION_BGP_PACKETS_BGPUPDATELENGTHANDIPPREFIX_H

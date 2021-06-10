@@ -1,9 +1,19 @@
 #include "TCPStateListen.h"
 
-#include "../../logger/Logger.h"
-#include "../TCPFlag.h"
+#include <atomic>
+#include <condition_variable>
+#include <memory>
+#include <stack>
+#include <string>
+#include <utility>
+
+#include "../../entities/Device.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateClosed.h"
-#include "TCPStateSYNReceived.h"
+#include "TCPStateMachine.h"
+
 
 TCPStateListen::TCPStateListen(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {

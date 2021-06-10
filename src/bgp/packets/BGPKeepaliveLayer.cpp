@@ -1,5 +1,7 @@
 #include "BGPKeepaliveLayer.h"
 
+#include <endian.h>
+
 #include <cstring>
 
 

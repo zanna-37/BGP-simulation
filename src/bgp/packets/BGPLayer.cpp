@@ -1,6 +1,7 @@
 #include "BGPLayer.h"
 
 #include <Logger.h>
+#include <endian.h>
 
 #include <climits>
 #include <cstring>
@@ -9,6 +10,7 @@
 #include "BGPNotificationLayer.h"
 #include "BGPOpenLayer.h"
 #include "BGPUpdateLayer.h"
+#include "Packet.h"
 
 
 BGPLayer* BGPLayer::parseBGPLayerOrNull(uint8_t*      data,

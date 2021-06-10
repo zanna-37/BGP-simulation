@@ -1,11 +1,16 @@
 #include "Socket.h"
 
+#include <cassert>
 #include <utility>
 
+#include "../entities/Device.h"
+#include "../entities/NetworkCard.h"
 #include "../logger/Logger.h"
+#include "../tcp/TCPConnection.h"
+#include "Layer.h"
 
 Socket::Socket(Device* device) : device(device) {
-    tcpConnection = make_shared<TCPConnection>(device);
+    tcpConnection = std::make_shared<TCPConnection>(device);
 }
 
 Socket::Socket(Device* device, std::shared_ptr<TCPConnection> tcpConnection)

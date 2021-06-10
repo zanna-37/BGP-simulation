@@ -1,10 +1,20 @@
 #include "BGPConnection.h"
 
+#include <endian.h>
+
+#include <cassert>
+#include <utility>
+
+#include "../entities/Router.h"
 #include "../logger/Logger.h"
-#include "fsm/BGPStateIdle.h"
+#include "../socket/Socket.h"
+#include "../tcp/TCPConnection.h"
+#include "BGPApplication.h"
+#include "Layer.h"
+#include "fsm/BGPState.h"
+#include "fsm/BGPStateMachine.h"
 #include "packets/BGPLayer.h"
 #include "packets/BGPOpenLayer.h"
-#include "packets/BGPUpdateLayer.h"
 
 
 BGPConnection::BGPConnection(Router* owner, BGPApplication* bgpApplication)

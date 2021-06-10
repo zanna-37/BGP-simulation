@@ -1,6 +1,10 @@
 #include "BGPUpdateLengthAndIpPrefix.h"
 
+#include <endian.h>
+
+#include <algorithm>
 #include <bitset>
+
 
 size_t LengthAndIpPrefix::lengthAndIpPrefixDataToByteArray(
     const std::vector<LengthAndIpPrefix>& vector,

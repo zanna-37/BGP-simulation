@@ -1,9 +1,17 @@
 #include "TCPStateSYNReceived.h"
 
-#include "../../logger/Logger.h"
-#include "../TCPFlag.h"
+#include <atomic>
+#include <memory>
+#include <stack>
+#include <string>
+#include <utility>
+
+#include "../../entities/Device.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateClosed.h"
-#include "TCPStateEnstablished.h"
+#include "TCPStateMachine.h"
 
 
 TCPStateSYNReceived::TCPStateSYNReceived(TCPStateMachine *stateMachine)

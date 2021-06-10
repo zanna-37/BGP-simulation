@@ -1,8 +1,8 @@
-#ifndef BGPEVENT_H
-#define BGPEVENT_H
+#ifndef BGPSIMULATION_BGP_BGPEVENT_H
+#define BGPSIMULATION_BGP_BGPEVENT_H
 
-#include <map>
 #include <string>
+
 
 /**
  * A list of event the BGP State Machine is able to handle (mandatory and
@@ -46,4 +46,4 @@ enum BGPEvent {
  */
 std::string getEventName(BGPEvent event);
 
-#endif
+#endif  // BGPSIMULATION_BGP_BGPEVENT_H

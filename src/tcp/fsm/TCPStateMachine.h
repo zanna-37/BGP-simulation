@@ -1,13 +1,11 @@
-#ifndef TCPSTATEMACHINE_H
-#define TCPSTATEMACHINE_H
+#ifndef BGP_SIMULATION_TCP_FSM_TCPSTATEMACHINE_H
+#define BGP_SIMULATION_TCP_FSM_TCPSTATEMACHINE_H
 
 #include <chrono>
+#include <string>
 
 #include "../../fsm/StateMachine.h"
-#include "../TCPConnection.h"
 #include "../TCPEvent.h"
-#include "../TCPTimer.h"
-#include "../fsm/TCPState.h"
 
 // forward declarations
 #include "../TCPConnection.fwd.h"
@@ -15,6 +13,7 @@
 #include "TCPState.fwd.h"
 
 using namespace std::chrono_literals;
+
 
 /**
  *\verbatim
@@ -92,4 +91,5 @@ class TCPStateMachine : public StateMachine<TCPConnection, TCPState, TCPEvent> {
    protected:
     std::string toString() override;
 };
-#endif
+
+#endif  // BGP_SIMULATION_TCP_FSM_TCPSTATEMACHINE_H

@@ -1,18 +1,20 @@
-#ifndef BGPSTATE_H
-#define BGPSTATE_H
+#ifndef BGPSIMULATION_BGP_FSM_BGPSTATE_H
+#define BGPSIMULATION_BGP_FSM_BGPSTATE_H
+
+#include <string>
 
 #include "../BGPEvent.h"
-#include "BGPStateMachine.h"
 
 // forward declarations
 #include "BGPStateMachine.fwd.h"
+
 
 class BGPState {
    public:
     BGPStateMachine* stateMachine;
     std::string      name;
     BGPState(BGPStateMachine* stateMachine) : stateMachine(stateMachine){};
-    virtual ~BGPState() {}
+    virtual ~BGPState() = default;
 
     /**
      * The current state handles the event received and returns if everything
@@ -29,4 +31,4 @@ class BGPState {
     // void dropTCPConnection();
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_FSM_BGPSTATE_H

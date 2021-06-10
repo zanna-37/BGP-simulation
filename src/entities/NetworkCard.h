@@ -1,27 +1,24 @@
-#ifndef BGPSIMULATION_ENTITIES_NET_DETAILS_H
-#define BGPSIMULATION_ENTITIES_NET_DETAILS_H
-
-#include <assert.h>
-#include <time.h>
+#ifndef BGPSIMULATION_ENTITIES_NETWORKCARD_H
+#define BGPSIMULATION_ENTITIES_NETWORKCARD_H
 
 #include <atomic>
+#include <condition_variable>
+#include <cstdint>
 #include <memory>
+#include <mutex>
 #include <queue>
 #include <stack>
 #include <string>
+#include <utility>
 
-#include "../utils/MacGenerator.h"
-#include "Device.h"
-#include "EthLayer.h"
-#include "IPv4Layer.h"
-#include "Link.h"
+#include "IpAddress.h"
+#include "Layer.h"
+#include "MacAddress.h"
 #include "Packet.h"
-#include "ProtocolType.h"
 
 // forward declarations
 #include "Device.fwd.h"
 #include "Link.fwd.h"
-using namespace std;
 
 
 /**
@@ -183,4 +180,4 @@ class NetworkCard {
     friend class Link;
 };
 
-#endif  // BGPSIMULATION_ENTITIES_NET_DETAILS_H
+#endif  // BGPSIMULATION_ENTITIES_NETWORKCARD_H

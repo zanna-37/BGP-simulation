@@ -1,14 +1,13 @@
-#ifndef BGPAPPLICATION_H
-#define BGPAPPLICATION_H
+#ifndef BGPSIMULATION_BGP_BGPAPPLICATION_H
+#define BGPSIMULATION_BGP_BGPAPPLICATION_H
 
-#include <condition_variable>
-#include <mutex>
-#include <thread>
+#include <atomic>
+#include <cstdint>
+#include <string>
 #include <vector>
 
-#include "../entities/Router.h"
 #include "../socket/Socket.h"
-#include "BGPConnection.h"
+#include "IpAddress.h"
 
 // forward declarations
 #include "../entities/Router.fwd.h"
@@ -72,4 +71,4 @@ class BGPApplication {
                                                    uint16_t          srcPort);
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_BGPAPPLICATION_H

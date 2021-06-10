@@ -1,6 +1,14 @@
 #include "ParserLink.h"
 
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "../../entities/Device.h"
+#include "../../entities/Link.h"
+#include "../../entities/NetworkCard.h"
 #include "../../logger/Logger.h"
+#include "yaml-cpp/yaml.h"
 
 
 void ParserLink::parseAndAddBuiltLinks(const YAML::Node &     links_yaml,

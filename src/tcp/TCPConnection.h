@@ -1,21 +1,24 @@
-#ifndef TCPCONNECTION_H
-#define TCPCONNECTION_H
+#ifndef BGPSIMULATION_TCP_TCPCONNECTION_H
+#define BGPSIMULATION_TCP_TCPCONNECTION_H
 
+#include <atomic>
+#include <condition_variable>
+#include <cstdint>
+#include <memory>
 #include <mutex>
+#include <queue>
 #include <stack>
-#include <thread>
+#include <string>
 
-#include "../entities/Device.h"
-#include "IPv4Layer.h"
-#include "TCPEvent.h"
+#include "IpAddress.h"
+#include "Layer.h"
 #include "TcpLayer.h"
-#include "fsm/TCPState.h"
-#include "fsm/TCPStateMachine.h"
 
 // forward declarations
 #include "../entities/Device.fwd.h"
 #include "fsm/TCPState.fwd.h"
 #include "fsm/TCPStateMachine.fwd.h"
+
 
 class TCPConnection {
    public:
@@ -226,4 +229,4 @@ class TCPConnection {
     friend class TCPStateTimeWait;
 };
 
-#endif
+#endif  // BGPSIMULATION_TCP_TCPCONNECTION_H
