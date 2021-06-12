@@ -11,8 +11,8 @@ var new_link = undefined;
 
 var chart = new NetChart({
     container: document.getElementById("netchart"),
-    area: { height: 400 },
-    data: { url: "http://localhost:9080/getNetZoomCharts" },
+    area: {height: 400},
+    data: {url: "/getNetZoomCharts"},
     info: {
         enabled: true,
         nodeContentsFunction: function (itemData, item) {
@@ -93,7 +93,7 @@ function modifyNodeNumbers(event) {
     }
     if (event.clickNode) {
         $.ajax({
-            url: "http://localhost:9080/removeNode",
+            url: "/removeNode",
             dataType: 'json',
             method: "POST",
             contentType: 'application/json',
@@ -111,7 +111,7 @@ function modifyNodeNumbers(event) {
     } else if (event.clickLink) {
         var link = event.clickLink;
         $.ajax({
-            url: "http://localhost:9080/breakLink",
+            url: "/breakLink",
             dataType: 'json',
             method: "POST",
             contentType: 'application/json',
@@ -168,7 +168,7 @@ $('#saveAddDeviceChanges').click(function () {
     });
 
     $.ajax({
-        url: "http://localhost:9080/addNode",
+        url: "/addNode",
         dataType: 'json',
         method: "POST",
         contentType: 'application/json',
@@ -297,7 +297,7 @@ $('#saveAddLinkChanges').click(function () {
     new_link.extra.to_interface = to_interface;
 
     $.ajax({
-        url: "http://localhost:9080/addLink",
+        url: "/addLink",
         dataType: 'json',
         method: "POST",
         contentType: 'application/json',

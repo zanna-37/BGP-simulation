@@ -8,7 +8,7 @@ services:
     volumes:
       - .:/project
     ports:
-      - "8080:9080"
+      - "8080:8080"
     profiles: [ "NULL" ] # This is meant to be called only directly. More info in the docs.
 
   compiler_clion:
@@ -17,7 +17,7 @@ services:
     cap_add:
       - sys_ptrace
     ports:
-      - "8080:9080"
+      - "8080:8080"
       - "3022:22"
     profiles: [ "NULL" ] # This is meant to be called only directly. More info in the docs.
 
@@ -27,5 +27,5 @@ services:
     volumes:
       - ./docs:/docs
     ports:
-      - "8080:9080"
+      - "8080:8080"
     profiles: [ "NULL" ] # This is meant to be called only directly. More info in the docs.
