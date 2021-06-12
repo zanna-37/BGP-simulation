@@ -136,7 +136,8 @@ int main(int argc, char *argv[]) {
     // END: REMOVE ME just examples
 
     // TODO set it with a command line argument bu provide a default
-    unsigned short int port = 9080;
+    unsigned short int port = 8080;  // If you change the port, keep all the
+                                     // docker-compose files in sync
 
     if (argc > 1) {
         std::vector<Device *> *devices = Parser::parseAndBuild(argv[1]);
