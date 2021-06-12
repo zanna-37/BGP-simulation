@@ -1,10 +1,14 @@
 #include "BGPApplication.h"
 
+#include <memory>
 #include <string>
 
-#include "../ip/IpManager.h"
+#include "../entities/NetworkCard.h"
+#include "../entities/Router.h"
 #include "../logger/Logger.h"
 #include "../socket/Socket.h"
+#include "../tcp/TCPConnection.h"
+#include "BGPConnection.h"
 #include "BGPEvent.h"
 
 BGPApplication::BGPApplication(Router* router) : router(router) {}

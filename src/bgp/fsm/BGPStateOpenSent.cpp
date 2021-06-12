@@ -1,10 +1,14 @@
 #include "BGPStateOpenSent.h"
 
+#include "../../entities/Router.h"
+#include "../BGPConnection.h"
+#include "../BGPEvent.h"
+#include "../BGPTimer.h"
 #include "BGPStateActive.h"
 #include "BGPStateIdle.h"
+#include "BGPStateMachine.h"
 #include "BGPStateOpenConfirm.h"
 
-BGPStateOpenSent ::~BGPStateOpenSent() {}
 
 bool BGPStateOpenSent ::onEvent(BGPEvent event) {
     bool handled = true;

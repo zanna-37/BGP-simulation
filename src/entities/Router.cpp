@@ -1,5 +1,10 @@
 #include "Router.h"
 
+#include "../bgp/BGPApplication.h"
+#include "Layer.h"
+#include "NetworkCard.h"
+
+
 Router::~Router() {
     // Note: all the subclasses need to call Device::shutdown() in their
     // deconstructor. Keep them in sync.

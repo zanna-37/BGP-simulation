@@ -1,12 +1,13 @@
-#ifndef TCPTIMER_H
-#define TCPTIMER_H
+#ifndef BGPSIMULATION_TCP_TCPTIMER_H
+#define BGPSIMULATION_TCP_TCPTIMER_H
+
+#include <chrono>
+#include <string>
 
 #include "../utils/Timer.h"
 #include "TCPEvent.h"
 #include "fsm/TCPStateMachine.h"
 
-// forward declarations
-#include "fsm/TCPStateMachine.fwd.h"
 
 class TCPTimer : public Timer<TCPStateMachine, TCPEvent> {
    public:
@@ -15,4 +16,5 @@ class TCPTimer : public Timer<TCPStateMachine, TCPEvent> {
              TCPEvent             eventToSendUponExpire,
              std::chrono::seconds totalDuration);
 };
-#endif
+
+#endif  // BGPSIMULATION_TCP_TCPTIMER_H

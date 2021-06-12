@@ -1,6 +1,6 @@
-#ifndef DEVICE_FWD_H
-#define DEVICE_FWD_H
+#ifndef BGPSIMULATION_ENTITIES_DEVICE_FWD_H
+#define BGPSIMULATION_ENTITIES_DEVICE_FWD_H
 
 class Device;
-class ReceivedPacketEvent;
-#endif
+
+#endif  // BGPSIMULATION_ENTITIES_DEVICE_FWD_H

@@ -1,17 +1,11 @@
-#ifndef BGPSTATEMACHINE_H
-#define BGPSTATEMACHINE_H
+#ifndef BGPSIMULATION_BGP_FSM_BGPSTATEMACHINE_H
+#define BGPSIMULATION_BGP_FSM_BGPSTATEMACHINE_H
 
-#include <cassert>
 #include <chrono>
-#include <cstring>
-#include <queue>
-#include <thread>
+#include <string>
 
 #include "../../fsm/StateMachine.h"
-#include "../BGPConnection.h"
 #include "../BGPEvent.h"
-#include "../BGPTimer.h"
-#include "BGPState.h"
 
 // forward declarations
 #include "../BGPConnection.fwd.h"
@@ -19,6 +13,7 @@
 #include "BGPState.fwd.h"
 
 using namespace std::chrono_literals;
+
 
 class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
    private:
@@ -200,4 +195,4 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     // TODO print name of the current BGPState
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_FSM_BGPSTATEMACHINE_H

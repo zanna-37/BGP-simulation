@@ -1,5 +1,5 @@
-#ifndef STATEMACHINE_H
-#define STATEMACHINE_H
+#ifndef BGPSIMULATION_FSM_STATEMACHINE_H
+#define BGPSIMULATION_FSM_STATEMACHINE_H
 
 #include <atomic>
 #include <cassert>
@@ -135,4 +135,5 @@ class StateMachine {
     std::queue<Event>       eventQueue;
     std::atomic<bool>       running = {false};
 };
-#endif
+
+#endif  // BGPSIMULATION_FSM_STATEMACHINE_H

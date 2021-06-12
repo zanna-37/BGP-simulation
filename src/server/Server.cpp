@@ -1,6 +1,31 @@
 #include "Server.h"
 
+#include <unistd.h>
+
+#include <cstdio>
+#include <filesystem>
+#include <new>
+#include <string>
+
+#include "../entities/Device.h"
+#include "../entities/EndPoint.h"
+#include "../entities/Link.h"
+#include "../entities/NetworkCard.h"
+#include "../entities/Router.h"
+#include "../logger/Logger.h"
 #include "../utils/Filesystem.h"
+#include "IpAddress.h"
+#include "MacAddress.h"
+#include "pistache/http_defs.h"
+#include "pistache/http_header.h"
+#include "pistache/http_headers.h"
+#include "pistache/mime.h"
+#include "pistache/tcp.h"
+#include "rapidjson/allocators.h"
+#include "rapidjson/encodings.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/rapidjson.h"
+#include "rapidjson/stringbuffer.h"
 
 
 void ApiEndpoint::init(size_t thr, std::vector<Device *> *devicesMain) {
@@ -153,8 +178,8 @@ void ApiEndpoint::initDoc() {
                                      net->netInterface.length(),
                                      allocator);
                 con_status.SetString(
-                    net->link->getConnecionStatusString().c_str(),
-                    net->link->getConnecionStatusString().length(),
+                    net->link->getConnectionStatusString().c_str(),
+                    net->link->getConnectionStatusString().length(),
                     allocator);
 
                 NetworkCard *net_dev2 =
@@ -485,14 +510,13 @@ void ApiEndpoint::getNetwork(const Pistache::Rest::Request &request,
 }
 
 void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
-                             Pistache::Http::ResponseWriter response) {
-    
+                                   Pistache::Http::ResponseWriter response) {
     using namespace rapidjson;
-    
+
     StringBuffer                          buf;
     PrettyWriter<rapidjson::StringBuffer> writer(buf);
-    
-    Document zoomDoc;
+
+    Document                 zoomDoc;
     Document::AllocatorType &allocator = zoomDoc.GetAllocator();
 
     zoomDoc.SetObject();
@@ -505,7 +529,7 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
 
     L_DEBUG("Server", "Creating nodes form endpoints");
 
-    for(auto &endpoint : doc["endpoints"].GetArray()){
+    for (auto &endpoint : doc["endpoints"].GetArray()) {
         Value node(kObjectType);
         Value image;
         Value loaded(true);
@@ -520,7 +544,9 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
         style.AddMember("image", image, allocator);
 
         Value netCards(endpoint["networkCards"], allocator);
-        extra.AddMember("default_gateway", Value(endpoint["defaultGateway"], allocator), allocator);
+        extra.AddMember("default_gateway",
+                        Value(endpoint["defaultGateway"], allocator),
+                        allocator);
         extra.AddMember("networkCard", netCards, allocator);
 
         node.AddMember("style", style, allocator);
@@ -531,7 +557,7 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
 
     L_DEBUG("Server", "Creating nodes form routers");
 
-    for(auto &router : doc["routers"].GetArray()){
+    for (auto &router : doc["routers"].GetArray()) {
         Value node(kObjectType);
         Value image;
         Value loaded(true);
@@ -545,9 +571,13 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
         style.AddMember("label", Value(router["ID"], allocator), allocator);
         style.AddMember("image", image, allocator);
 
-        extra.AddMember("AS_number", Value(router["asNumber"], allocator), allocator);
-        extra.AddMember("default_gateway", Value(router["defaultGateway"], allocator), allocator);
-        extra.AddMember("networkCard", Value(router["networkCards"], allocator), allocator);
+        extra.AddMember(
+            "AS_number", Value(router["asNumber"], allocator), allocator);
+        extra.AddMember("default_gateway",
+                        Value(router["defaultGateway"], allocator),
+                        allocator);
+        extra.AddMember(
+            "networkCard", Value(router["networkCards"], allocator), allocator);
 
         node.AddMember("style", style, allocator);
         node.AddMember("extra", extra, allocator);
@@ -557,7 +587,7 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
 
     L_DEBUG("Server", "Creating links");
 
-    for(auto &link_it : doc["links"].GetArray()){
+    for (auto &link_it : doc["links"].GetArray()) {
         Value link(kObjectType);
         Value id;
         Value loaded(true);
@@ -565,7 +595,10 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
         Value extra(kObjectType);
 
         char buffer[20];
-        int len = sprintf(buffer, "link_%s-%s", link_it["from"].GetString(), link_it["to"].GetString());
+        int  len = sprintf(buffer,
+                          "link_%s-%s",
+                          link_it["from"].GetString(),
+                          link_it["to"].GetString());
 
         id.SetString(buffer, len, allocator);
 
@@ -576,8 +609,12 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
         style.AddMember("toDecoration", Value("arrow", allocator), allocator);
         style.AddMember("fromDecoration", Value("arrow", allocator), allocator);
 
-        extra.AddMember("from_interface", Value(link_it["from_interface"], allocator), allocator);
-        extra.AddMember("to_interface", Value(link_it["to_interface"], allocator), allocator);
+        extra.AddMember("from_interface",
+                        Value(link_it["from_interface"], allocator),
+                        allocator);
+        extra.AddMember("to_interface",
+                        Value(link_it["to_interface"], allocator),
+                        allocator);
 
         link.AddMember("style", style, allocator);
         link.AddMember("extra", extra, allocator);
@@ -585,7 +622,6 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
         zoomDoc["links"].PushBack(link, allocator);
     }
 
-    
 
     zoomDoc.Accept(writer);
 
@@ -909,9 +945,11 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
                                            "Link disconnetcted. Device: " +
                                                dev->ID + " Interface: " +
                                                net->netInterface);
-                                    L_DEBUG("Server",
-                                            "Link status: " +
-                                                net->link->connection_status);
+                                    L_DEBUG(
+                                        "Server",
+                                        "Link status: " +
+                                            net->link
+                                                ->getConnectionStatusString());
                                 }
                             }
                         }

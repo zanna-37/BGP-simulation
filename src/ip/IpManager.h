@@ -1,10 +1,14 @@
 #ifndef BGPSIMULATION_ENTITIES_IP_IPMANAGER_H
 #define BGPSIMULATION_ENTITIES_IP_IPMANAGER_H
 
-
+#include <string>
 #include <vector>
 
+#include "../entities/NetworkCard.h"
+#include "IpAddress.h"
 #include "TableRow.h"
+
+
 class IpManager {
    public:
     static void buildRoutingTable(std::vector<TableRow> &     routingTable,
@@ -24,8 +28,8 @@ class IpManager {
      * @param dstAddress the destnation address of the packet
      */
     static NetworkCard *findExitingNetworkCard(
-        const pcpp::IPv4Address &dstAddress,
-        const vector<TableRow> & routingTable);
+        const pcpp::IPv4Address &    dstAddress,
+        const std::vector<TableRow> &routingTable);
 
    private:
     /**

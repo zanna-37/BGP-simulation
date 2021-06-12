@@ -1,8 +1,14 @@
 #include "ParserClient.h"
 
+#include <string>
+
+#include "../../entities/Device.h"
 #include "../../entities/EndPoint.h"
+#include "../../entities/NetworkCard.h"
 #include "../../logger/Logger.h"
+#include "IpAddress.h"
 #include "ParserNetworkCard.h"
+
 
 void ParserClient::parseAndAddBuiltClients(const YAML::Node &     clients_yaml,
                                            std::vector<Device *> *devices_ptr) {

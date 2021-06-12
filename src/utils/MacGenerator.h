@@ -1,7 +1,8 @@
 #ifndef MACGENERATOR_H
 #define MACGENERATOR_H
 
-#include "EthLayer.h"
+#include "MacAddress.h"
+
 
 /**
  * An utility method to create a random MAC address

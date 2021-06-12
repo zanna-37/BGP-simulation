@@ -19,13 +19,15 @@ jobs:
         run: git submodule update --init --recursive
 
       - name: build docker image
-        run: docker build -t igang/build-cpp-env -f Dockerfile .
+        run: docker-compose build compiler
+
+      - name: make DEBUG=1 build
+        run: docker-compose run --rm compiler make DEBUG=1 build
 
       - name: valgrind check
         run: |
-          docker run --rm -v "$(pwd):/project" --name build_env igang/build-cpp-env \
+          docker-compose run --rm compiler \
             bash -c " \
-              make dbuild; \
               set -m; \
               valgrind \
                 --error-exitcode=1 \
@@ -35,6 +37,6 @@ jobs:
                 --track-fds=yes \
                 ./cmake-debug/BGP_simulation ./examples/config.yaml & \
               valgrind_pid=\$!; \
-              ( sleep 60; echo 'Sending SIGINT (Ctrl+C) to '\${valgrind_pid}; kill -SIGINT \${valgrind_pid} ); \
+              ( sleep 60; echo 'Sending SIGINT (Ctrl+C) to pid:'\${valgrind_pid}'...'; kill -SIGINT \${valgrind_pid} ); \
               wait \$valgrind_pid; \
               exit \$?; "

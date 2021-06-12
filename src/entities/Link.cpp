@@ -1,6 +1,11 @@
 #include "Link.h"
 
+#include <cassert>
+
 #include "../logger/Logger.h"
+#include "Device.h"
+#include "NetworkCard.h"
+
 
 void Link::disconnect(NetworkCard *networkCard) {
     if (device_source_networkCards.first == networkCard) {
@@ -60,7 +65,7 @@ std::string Link::getLogLinkName(NetworkCard *destination) const {
     return output;
 }
 
-string Link::getConnecionStatusString() {
+std::string Link::getConnectionStatusString() {
     switch (connection_status) {
         case ACTIVE:
             return "active";
@@ -71,7 +76,7 @@ string Link::getConnecionStatusString() {
             break;
 
         default:
-            L_ERROR("Link", "UNKNOWN connection status"); //TODO put link name
+            L_ERROR("Link", "UNKNOWN connection status");  // TODO put link name
             return "UNKNOWN";
             break;
     }

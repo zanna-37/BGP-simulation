@@ -1,13 +1,20 @@
 #include "Device.h"
 
 #include <random>
+#include <utility>
 
-#include "../bgp/BGPEvent.h"
-#include "../bgp/packets/BGPLayer.h"
 #include "../ip/IpManager.h"
+#include "../ip/TableRow.h"
 #include "../logger/Logger.h"
+#include "../tcp/TCPConnection.h"
+#include "../tcp/fsm/TCPState.h"
 #include "../tcp/fsm/TCPStateClosed.h"
-#include "../tcp/fsm/TCPStateListen.h"
+#include "../tcp/fsm/TCPStateMachine.h"
+#include "IPv4Layer.h"
+#include "Layer.h"
+#include "NetworkCard.h"
+#include "TcpLayer.h"
+
 
 Device::Device(std::string ID, pcpp::IPv4Address defaultGateway)
     : ID(std::move(ID)), defaultGateway(defaultGateway) {}
@@ -139,7 +146,7 @@ void Device::processMessage(
 
     layers->push(std::move(tcpLayer));
 
-    shared_ptr<TCPConnection> tcpConnection = nullptr;
+    std::shared_ptr<TCPConnection> tcpConnection = nullptr;
 
     // Check if the message is part of an existing connection
     tcpConnection =
@@ -161,13 +168,13 @@ void Device::processMessage(
     }
 }
 
-shared_ptr<TCPConnection> Device::getExistingTcpConnectionOrNull(
+std::shared_ptr<TCPConnection> Device::getExistingTcpConnectionOrNull(
     const pcpp::IPv4Address &srcAddr,
     const uint16_t &         srcPort,
     const pcpp::IPv4Address &dstAddr,
     const uint16_t &         dstPort) {
-    shared_ptr<TCPConnection> connectedTcpConn;
-    shared_ptr<TCPConnection> listeningTcpConn;
+    std::shared_ptr<TCPConnection> connectedTcpConn;
+    std::shared_ptr<TCPConnection> listeningTcpConn;
 
     for (auto itr = tcpConnections.begin(); itr != tcpConnections.end();) {
         auto tcpConnection = itr->lock();
@@ -208,8 +215,8 @@ shared_ptr<TCPConnection> Device::getExistingTcpConnectionOrNull(
     }
 }
 
-int Device::bind(const shared_ptr<TCPConnection> &tcpConnection) {
-    std::unique_lock<mutex> ports_uniqueLock(ports_mutex, std::defer_lock);
+int Device::bind(const std::shared_ptr<TCPConnection> &tcpConnection) {
+    std::unique_lock<std::mutex> ports_uniqueLock(ports_mutex, std::defer_lock);
 
     if (tcpConnection->srcPort == 0) {
         ports_uniqueLock.lock();

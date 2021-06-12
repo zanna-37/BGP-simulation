@@ -1,11 +1,11 @@
-#ifndef BGP_SIMULATION__BGP_PACKETS_BGPUPDATEPATHATTRIBUTE_H
-#define BGP_SIMULATION__BGP_PACKETS_BGPUPDATEPATHATTRIBUTE_H
-
+#ifndef BGP_SIMULATION_BGP_PACKETS_BGPUPDATEPATHATTRIBUTE_H
+#define BGP_SIMULATION_BGP_PACKETS_BGPUPDATEPATHATTRIBUTE_H
 
 #include <cstdint>
 #include <cstdlib>
 #include <string>
 #include <vector>
+
 
 /**
  * @warning This datastructure does not check the validity of the data.
@@ -51,7 +51,7 @@ class PathAttribute {
         return (flagsToTest & flagValue) == flagValue;
     };
 
-    bool isFlagSet(AttributeTypeFlags_uint8_t flagValue) const {
+    [[nodiscard]] bool isFlagSet(AttributeTypeFlags_uint8_t flagValue) const {
         return isFlagSet(this->attributeTypeFlags, flagValue);
     };
 
@@ -114,8 +114,9 @@ class PathAttribute {
          * [out]       newAttributeTypeFlags 01001000
          * \endverbatim
          */
-        this->attributeTypeFlags = (AttributeTypeFlags_uint8_t)(
-            (this->attributeTypeFlags | mask) | value_bits);
+        this->attributeTypeFlags =
+            (AttributeTypeFlags_uint8_t)((this->attributeTypeFlags | mask) |
+                                         value_bits);
     }
 
     /**
@@ -189,5 +190,4 @@ class PathAttribute {
     std::string toString() const;
 };
 
-
-#endif  // BGP_SIMULATION__BGP_PACKETS_BGPUPDATEPATHATTRIBUTE_H
+#endif  // BGP_SIMULATION_BGP_PACKETS_BGPUPDATEPATHATTRIBUTE_H

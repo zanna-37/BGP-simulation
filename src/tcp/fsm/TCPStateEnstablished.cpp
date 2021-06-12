@@ -1,14 +1,19 @@
 #include "TCPStateEnstablished.h"
 
+#include <atomic>
+#include <memory>
 #include <stack>
+#include <string>
+#include <utility>
 
-#include "../../logger/Logger.h"
-#include "../TCPFlag.h"
-#include "IPLayer.h"
-#include "TCPStateCloseWait.h"
+#include "../../entities/Device.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateClosed.h"
 #include "TCPStateFINWait1.h"
-#include "TcpLayer.h"
+#include "TCPStateMachine.h"
+
 
 TCPStateEnstablished::TCPStateEnstablished(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {

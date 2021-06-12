@@ -1,11 +1,4 @@
 # Docs builder
-#
-# Build:
-#	  docker build -t igang/docs-builder -f Dockerfile-docs .
-#
-# Run:
-#     docker run --rm -v "absolute/path/to/project/docs:/docs" --name build_docs_env igang/docs-builder [make command]
-#
 
 FROM ubuntu:20.04
 

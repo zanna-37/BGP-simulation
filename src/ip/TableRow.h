@@ -1,12 +1,13 @@
-#ifndef TABLEROW_H
-#define TABLEROW_H
+#ifndef BGPSIMULATION_IP_TABLEROW_H
+#define BGPSIMULATION_IP_TABLEROW_H
 
-#include "../entities/NetworkCard.h"
-#include "../logger/Logger.h"
-#include "IPv4Layer.h"
+#include <string>
+
+#include "IpAddress.h"
 
 // forward declarations
 #include "../entities/NetworkCard.fwd.h"
+
 
 class TableRow {
    public:
@@ -20,12 +21,14 @@ class TableRow {
              pcpp::IPv4Address defaultGateway,
              std::string       netInterface,
              NetworkCard*      networkCard);
-    ~TableRow(){};
+
+    ~TableRow() = default;
+
     /**
      * Transform the netmask in CIDR format
      * @return CIDR value of the netmask
      */
-    int toCIDR() const;
+    [[nodiscard]] int toCIDR() const;
 };
 
-#endif  // TABLEROW_H
+#endif  // BGPSIMULATION_IP_TABLEROW_H

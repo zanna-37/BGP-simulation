@@ -1,7 +1,13 @@
 #ifndef BGP_SIMULATION_BGP_PACKETS_BGPLAYER_H
 #define BGP_SIMULATION_BGP_PACKETS_BGPLAYER_H
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
+
 #include "Layer.h"
+#include "ProtocolType.h"
+
 
 // TODO see https://tools.ietf.org/html/rfc4271#page-11
 

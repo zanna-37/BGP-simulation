@@ -2,33 +2,25 @@
 #define BGPSIMULATION_ENTITIES_DEVICE_H
 
 #include <atomic>
-#include <condition_variable>
-#include <map>
+#include <cstdint>
 #include <memory>
 #include <mutex>
-#include <queue>
 #include <stack>
 #include <string>
 #include <thread>
-#include <utility>
 #include <vector>
 
 #include "../ip/TableRow.h"
 #include "../socket/Socket.h"
-#include "../tcp/TCPConnection.h"
-#include "IPv4Layer.h"
-#include "NetworkCard.h"
-#include "Packet.h"
-#include "TcpLayer.h"
+#include "IpAddress.h"
+#include "Layer.h"
 
 // forward declarations
 #include "../bgp/BGPConnection.fwd.h"
-#include "../ip/TableRow.fwd.h"
 #include "../socket/Socket.fwd.h"
 #include "../tcp/TCPConnection.fwd.h"
 #include "NetworkCard.fwd.h"
 
-using namespace std;
 
 /**
  * This class abstracts the concept of a general network device
@@ -153,13 +145,13 @@ class Device {
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
         const pcpp::IPv4Address &                                 dstAddr);
 
-    shared_ptr<TCPConnection> getExistingTcpConnectionOrNull(
+    std::shared_ptr<TCPConnection> getExistingTcpConnectionOrNull(
         const pcpp::IPv4Address &srcAddr,
         const uint16_t &         srcPort,
         const pcpp::IPv4Address &dstAddr,
         const uint16_t &         dstPort);
 
-    int bind(const shared_ptr<TCPConnection> &tcpConnection);
+    int bind(const std::shared_ptr<TCPConnection> &tcpConnection);
 
     uint16_t getFreePort();
 

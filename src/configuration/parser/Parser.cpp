@@ -1,12 +1,13 @@
 #include "Parser.h"
 
+#include <stdexcept>
+
 #include "../../entities/Device.h"
-#include "../../entities/EndPoint.h"
-#include "../../entities/Router.h"
 #include "../../logger/Logger.h"
 #include "ParserClient.h"
 #include "ParserLink.h"
 #include "ParserRouter.h"
+#include "yaml-cpp/yaml.h"
 
 
 std::string Parser::getNodeTypeName(YAML::NodeType::value nodeType) {

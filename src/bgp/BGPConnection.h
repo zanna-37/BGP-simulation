@@ -1,23 +1,27 @@
-#ifndef BGPCONNECTION_H
-#define BGPCONNECTION_H
+#ifndef BGPSIMULATION_BGP_BGPCONNECTION_H
+#define BGPSIMULATION_BGP_BGPCONNECTION_H
 
-
-#include <cassert>
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <memory>
 #include <mutex>
+#include <stack>
+#include <string>
 #include <thread>
 
-#include "../entities/Router.h"
-#include "../socket/Socket.h"
-#include "../tcp/TCPConnection.h"
 #include "BGPEvent.h"
-#include "fsm/BGPStateMachine.h"
+#include "IpAddress.h"
+#include "Layer.h"
 
 // forward declarations
 #include "../entities/Router.fwd.h"
 #include "../socket/Socket.fwd.h"
-#include "../tcp/TCPConnection.fwd.h"
 #include "./BGPApplication.fwd.h"
 #include "fsm/BGPStateMachine.fwd.h"
+
+using namespace std::chrono_literals;
+
 
 class BGPConnection {
    private:
@@ -104,4 +108,4 @@ class BGPConnection {
     void shutdown();
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_BGPCONNECTION_H

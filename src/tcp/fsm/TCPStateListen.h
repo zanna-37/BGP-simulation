@@ -1,15 +1,20 @@
-#ifndef TCPSTATELISTEN_H
-#define TCPSTATELISTEN_H
+#ifndef BGP_SIMULATION_TCP_FSM_TCPSTATELISTEN_H
+#define BGP_SIMULATION_TCP_FSM_TCPSTATELISTEN_H
 
-
+#include "../TCPEvent.h"
 #include "TCPState.h"
-#include "TCPStateMachine.h"
+
+// forward declarations
+#include "TCPStateMachine.fwd.h"
+
 
 class TCPStateListen : public TCPState {
    public:
     TCPStateListen(TCPStateMachine* stateMachine);
-    ~TCPStateListen(){};
 
-    bool onEvent(TCPEvent);
+    ~TCPStateListen() override = default;
+
+    bool onEvent(TCPEvent) override;
 };
-#endif
+
+#endif  // BGP_SIMULATION_TCP_FSM_TCPSTATELISTEN_H

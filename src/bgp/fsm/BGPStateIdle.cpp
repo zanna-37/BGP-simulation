@@ -1,17 +1,15 @@
 #include "BGPStateIdle.h"
 
-#include "../../tcp/TCPConnection.h"
-#include "../../tcp/TCPEvent.h"
+#include "../../entities/Router.h"
+#include "../BGPConnection.h"
+#include "../BGPEvent.h"
+#include "../BGPTimer.h"
 #include "BGPStateActive.h"
 #include "BGPStateConnect.h"
+#include "BGPStateMachine.h"
 
-
-BGPStateIdle ::~BGPStateIdle() {}
 
 bool BGPStateIdle ::onEvent(BGPEvent event) {
-    // maybe curly parenthesis
-
-
     bool handled = true;
 
     switch (event) {

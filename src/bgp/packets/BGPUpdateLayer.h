@@ -1,11 +1,17 @@
 #ifndef BGP_SIMULATION_BGP_PACKETS_BGPUPDATELAYER_H
 #define BGP_SIMULATION_BGP_PACKETS_BGPUPDATELAYER_H
 
+#include <stddef.h>
+#include <stdint.h>
+
+#include <string>
+#include <vector>
 
 #include "BGPLayer.h"
 #include "BGPUpdateLengthAndIpPrefix.h"
 #include "BGPUpdatePathAttribute.h"
-#include "IPv4Layer.h"
+#include "Layer.h"
+
 
 class BGPUpdateLayer : public BGPLayer {
    public:

@@ -1,9 +1,13 @@
 #include "BGPStateEnstablished.h"
 
+#include <chrono>
+
+#include "../../entities/Router.h"
+#include "../BGPConnection.h"
+#include "../BGPEvent.h"
+#include "../BGPTimer.h"
 #include "BGPStateIdle.h"
-
-
-BGPStateEnstablished ::~BGPStateEnstablished() {}
+#include "BGPStateMachine.h"
 
 
 bool BGPStateEnstablished ::onEvent(BGPEvent event) {

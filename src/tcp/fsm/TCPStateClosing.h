@@ -1,15 +1,20 @@
-#ifndef TCPSTATECLOSING_H
-#define TCPSTATECLOSING_H
+#ifndef BGP_SIMULATION_TCP_FSM_TCPSTATECLOSING_H
+#define BGP_SIMULATION_TCP_FSM_TCPSTATECLOSING_H
 
-
+#include "../TCPEvent.h"
 #include "TCPState.h"
-#include "TCPStateMachine.h"
+
+// forward declarations
+#include "TCPStateMachine.fwd.h"
+
 
 class TCPStateClosing : public TCPState {
    public:
     TCPStateClosing(TCPStateMachine* stateMachine);
-    ~TCPStateClosing(){};
 
-    bool onEvent(TCPEvent);
+    ~TCPStateClosing() override = default;
+
+    bool onEvent(TCPEvent) override;
 };
-#endif
+
+#endif  // BGP_SIMULATION_TCP_FSM_TCPSTATECLOSING_H

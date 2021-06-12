@@ -1,5 +1,12 @@
 #include "TCPStateMachine.h"
 
+#include "../../entities/Device.h"
+#include "../../fsm/StateMachine.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "../TCPTimer.h"
+#include "IpAddress.h"
+#include "TCPState.h"
 #include "TCPStateClosed.h"
 
 
@@ -29,7 +36,7 @@ void TCPStateMachine::resetTimeWaitTimer() {
         "TimeWaitTimer", this, TCPEvent::TimeWaitTimeout, timeWaitTime);
 }
 
-string TCPStateMachine::toString() {
+std::string TCPStateMachine::toString() {
     if (connection) {
         return connection->srcAddr.toString() + ":" +
                std::to_string(connection->srcPort) + " " +

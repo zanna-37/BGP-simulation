@@ -1,12 +1,20 @@
 #include "TCPStateClosed.h"
 
+#include <atomic>
+#include <memory>
 #include <stack>
+#include <string>
+#include <utility>
 
+#include "../../entities/Device.h"
 #include "../../logger/Logger.h"
-#include "../TCPFlag.h"
-#include "TCPStateClosed.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateListen.h"
+#include "TCPStateMachine.h"
 #include "TCPStateSYNSent.h"
+
 
 TCPStateClosed::TCPStateClosed(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {

@@ -1,11 +1,16 @@
 #ifndef BGP_SIMULATION_ENTITIES_ENDPOINT_H
 #define BGP_SIMULATION_ENTITIES_ENDPOINT_H
 
+#include <memory>
+#include <stack>
 #include <string>
-#include <vector>
+#include <utility>
 
 #include "Device.h"
+#include "IpAddress.h"
+#include "Layer.h"
 #include "NetworkCard.h"
+
 
 using namespace std;
 
@@ -29,7 +34,7 @@ class EndPoint : public virtual Device {
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
         NetworkCard* networkCard) override;
 
-    void bootUpInternal() {}
+    void bootUpInternal() override {}
 };
 
 #endif  // BGP_SIMULATION_ENTITIES_ENDPOINT_H

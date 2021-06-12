@@ -1,26 +1,25 @@
-#ifndef BGPSTATEOPENSENT_H
-#define BGPSTATEOPENSENT_H
+#ifndef BGPSIMULATION_BGP_FSM_BGPSTATEOPENSENT_H
+#define BGPSIMULATION_BGP_FSM_BGPSTATEOPENSENT_H
 
-#include "../../logger/Logger.h"
-#include "../BGPConnection.h"
+#include <string>
+
 #include "../BGPEvent.h"
 #include "BGPState.h"
 #include "BGPStateMachine.h"
 
+
 class BGPStateOpenSent : public BGPState {
    private:
    public:
-    // Constructor
     BGPStateOpenSent(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         name = "OPEN_SENT";
         // L_DEBUG(stateMachine->connection->owner->ID + " " +
         // stateMachine->name, "State created: " + name);
     };
 
-    // Deconstructor
-    ~BGPStateOpenSent();
+    ~BGPStateOpenSent() override = default;
 
-    bool onEvent(BGPEvent event);
+    bool onEvent(BGPEvent event) override;
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_FSM_BGPSTATEOPENSENT_H

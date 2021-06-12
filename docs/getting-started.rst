@@ -10,3 +10,4 @@ There are multiple possible ways to compile the code and the documentation.
    getting-started/compile-documentation
    getting-started/run-the-program
    getting-started/test-the-program
+   getting-started/troubleshoot

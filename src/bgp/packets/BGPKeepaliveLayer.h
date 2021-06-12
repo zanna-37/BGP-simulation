@@ -1,8 +1,13 @@
 #ifndef BGP_SIMULATION_BGP_PACKETS_BGPKEEPALIVELAYER_H
 #define BGP_SIMULATION_BGP_PACKETS_BGPKEEPALIVELAYER_H
 
+#include <cstddef>
+#include <cstdint>
+#include <string>
 
 #include "BGPLayer.h"
+#include "Layer.h"
+
 
 class BGPKeepaliveLayer : public BGPLayer {
    public:

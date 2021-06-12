@@ -1,6 +1,6 @@
-#ifndef ROUTER_FWD_H
-#define ROUTER_FWD_H
+#ifndef BGPSIMULATION_ENTITIES_FWD_H
+#define BGPSIMULATION_ENTITIES_FWD_H
 
 class Router;
 
-#endif
+#endif  // BGPSIMULATION_ENTITIES_FWD_H

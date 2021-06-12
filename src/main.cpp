@@ -1,26 +1,19 @@
-#include <signal.h>
 #include <unistd.h>
 
-#include <iostream>
-#include <stack>
+#include <chrono>
+#include <csignal>
+#include <cstdlib>
+#include <ctime>
+#include <memory>
 #include <string>
+#include <thread>
+#include <vector>
 
-#include "BgpLayer.h"
-#include "DnsLayer.h"
-#include "EthLayer.h"
-#include "IPv4Layer.h"
-#include "Packet.h"
-#include "SystemUtils.h"
-#include "UdpLayer.h"
-#include "bgp/BGPConnection.h"
-#include "bgp/packets/BGPKeepaliveLayer.h"
-#include "bgp/packets/BGPNotificationLayer.h"
-#include "bgp/packets/BGPOpenLayer.h"
-#include "bgp/packets/BGPUpdateLayer.h"
 #include "configuration/parser/Parser.h"
-#include "entities/EndPoint.h"
-#include "entities/Router.h"
+#include "entities/Device.h"
 #include "logger/Logger.h"
+#include "pistache/net.h"
+#include "pistache/os.h"
 #include "server/Server.h"
 
 
@@ -33,7 +26,7 @@ volatile sig_atomic_t stop;
  * @param devices Vector of the Devices parsed for the configuration of the
  * program
  */
-int start_server(vector<Device *> *devices) {
+int start_server(std::vector<Device *> *devices) {
     Pistache::Port    port(9080);
     int               thr = 2;
     Pistache::Address addr(Pistache::Ipv4::any(), port);
@@ -169,7 +162,8 @@ int main(int argc, char *argv[]) {
             }
             */
             device->bootUp();
-            std::this_thread::sleep_for(500ms);  // TODO remove me
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(500));  // TODO remove me
         }
 
         while (!stop) {

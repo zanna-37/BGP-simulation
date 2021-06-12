@@ -1,6 +1,19 @@
 #include "NetworkCard.h"
 
+#include <algorithm>
+#include <cstdint>
+#include <ctime>
+
 #include "../logger/Logger.h"
+#include "../utils/MacGenerator.h"
+#include "Device.h"
+#include "EthLayer.h"
+#include "Layer.h"
+#include "Link.h"
+#include "Packet.h"
+#include "ProtocolType.h"
+#include "RawPacket.h"
+
 
 NetworkCard::NetworkCard(std::string       netInterface,
                          pcpp::IPv4Address IP,
@@ -97,7 +110,7 @@ void NetworkCard::receivePacketFromWire(
     L_DEBUG(owner->ID, "Enqueueing packet in " + netInterface + " queue");
 
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+        std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
 
     pcpp::Layer* currentLayer = receivedPacket->getLastLayer();
     while (currentLayer != nullptr) {

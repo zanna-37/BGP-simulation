@@ -1,15 +1,16 @@
-#ifndef BGPSTATEENSTABLISHED_H
-#define BGPSTATEENSTABLISHED_H
+#ifndef BGPSIMULATION_BGP_FSM_BGPSTATEENSTABLISHED_H
+#define BGPSIMULATION_BGP_FSM_BGPSTATEENSTABLISHED_H
 
-#include "../../logger/Logger.h"
+#include <string>
+
 #include "../BGPEvent.h"
 #include "BGPState.h"
 #include "BGPStateMachine.h"
 
+
 class BGPStateEnstablished : public BGPState {
    private:
    public:
-    // Constructor
     BGPStateEnstablished(BGPStateMachine* stateMachine)
         : BGPState(stateMachine) {
         name = "ENSTABLISHED";
@@ -17,10 +18,10 @@ class BGPStateEnstablished : public BGPState {
         // stateMachine->name, "State created: " + name);
     };
 
-    // Deconstructor
-    ~BGPStateEnstablished();
 
-    bool onEvent(BGPEvent event);
+    ~BGPStateEnstablished() override = default;
+
+    bool onEvent(BGPEvent event) override;
 };
 
-#endif
+#endif  // BGPSIMULATION_BGP_FSM_BGPSTATEENSTABLISHED_H

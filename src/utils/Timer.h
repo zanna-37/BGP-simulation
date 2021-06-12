@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef BGPSIMULATION_UTILS_TIMER_H
+#define BGPSIMULATION_UTILS_TIMER_H
 
 #include <chrono>
 #include <cstdio>
@@ -41,7 +41,6 @@ enum TimerState {
     CANCELLED
 };
 
-// http://coliru.stacked-crooked.com/a/98fdcd78c99e948c
 template <class StateMachine, class Event>
 class Timer {
    private:
@@ -229,4 +228,4 @@ class Timer {
     void setDuration(std::chrono::seconds value) { duration = value; }
 };
 
-#endif
+#endif  // BGPSIMULATION_UTILS_TIMER_H

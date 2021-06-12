@@ -1,15 +1,20 @@
-#ifndef TCPSTATECLOSEWAIT_H
-#define TCPSTATECLOSEWAIT_H
+#ifndef BGP_SIMULATION_TCP_FSM_TCPSTATECLOSEWAIT_H
+#define BGP_SIMULATION_TCP_FSM_TCPSTATECLOSEWAIT_H
 
+#include "../TCPEvent.h"
 #include "TCPState.h"
-#include "TCPStateMachine.h"
+
+// forward declarations
+#include "TCPStateMachine.fwd.h"
+
 
 class TCPStateCloseWait : public TCPState {
    public:
     TCPStateCloseWait(TCPStateMachine* stateMachine);
 
-    ~TCPStateCloseWait(){};
+    ~TCPStateCloseWait() override = default;
 
-    bool onEvent(TCPEvent);
+    bool onEvent(TCPEvent) override;
 };
-#endif
+
+#endif  // BGP_SIMULATION_TCP_FSM_TCPSTATECLOSEWAIT_H

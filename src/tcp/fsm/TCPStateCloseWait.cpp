@@ -1,13 +1,19 @@
 #include "TCPStateCloseWait.h"
 
+#include <atomic>
+#include <memory>
 #include <stack>
+#include <string>
+#include <utility>
 
-#include "../../logger/Logger.h"
-#include "../TCPFlag.h"
+#include "../../entities/Device.h"
+#include "../TCPConnection.h"
+#include "../TCPEvent.h"
+#include "Layer.h"
 #include "TCPStateClosed.h"
-#include "TCPStateClosing.h"
 #include "TCPStateLastACK.h"
-#include "TcpLayer.h"
+#include "TCPStateMachine.h"
+
 
 TCPStateCloseWait::TCPStateCloseWait(TCPStateMachine *stateMachine)
     : TCPState(stateMachine) {

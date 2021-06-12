@@ -1,8 +1,14 @@
 #include "ParserRouter.h"
 
+#include <string>
+
+#include "../../entities/Device.h"
+#include "../../entities/NetworkCard.h"
 #include "../../entities/Router.h"
 #include "../../logger/Logger.h"
+#include "IpAddress.h"
 #include "ParserNetworkCard.h"
+#include "yaml-cpp/yaml.h"
 
 
 void ParserRouter::parseAndAddBuiltRouters(const YAML::Node &     routers_yaml,

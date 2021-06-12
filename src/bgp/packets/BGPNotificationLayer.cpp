@@ -1,9 +1,11 @@
 #include "BGPNotificationLayer.h"
 
 #include <Logger.h>
+#include <endian.h>
 
 #include <bitset>
 #include <cstring>
+
 
 BGPNotificationLayer::BGPNotificationHeader*
 BGPNotificationLayer::getNotificationHeaderOrNull() const {
