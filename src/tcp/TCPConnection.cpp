@@ -46,16 +46,16 @@ TCPConnection::~TCPConnection() {
 void TCPConnection::abort() {
     stateMachine->enqueueEvent(TCPEvent::Abort);
     // TODO wait for the close abort to be completed
-    L_WARNING(stateMachine->connection->owner->ID,
-              "TODO wait for the abort call to be completed");
+    L_DEBUG(stateMachine->connection->owner->ID,
+            "TODO wait for the abort call to be completed");
     std::this_thread::sleep_for(3000ms);  // TODO remove
 }
 
 void TCPConnection::close() {
     stateMachine->enqueueEvent(TCPEvent::Close);
     // TODO wait for the close call to be completed
-    L_WARNING(stateMachine->connection->owner->ID,
-              "TODO wait for the close call to be completed");
+    L_DEBUG(stateMachine->connection->owner->ID,
+            "TODO wait for the close call to be completed");
     std::this_thread::sleep_for(3000ms);  // TODO remove
 }
 
@@ -114,9 +114,8 @@ int TCPConnection::listen() {
     stateMachine->enqueueEvent(TCPEvent::OpenPassive);
 
     // TODO wait for the listen call to be completed and return result
-    L_WARNING(
-        stateMachine->connection->owner->ID,
-        "TODO wait for the listen call to be completed and return result");
+    L_DEBUG(stateMachine->connection->owner->ID,
+            "TODO wait for the listen call to be completed and return result");
     std::this_thread::sleep_for(200ms);  // TODO remove
     return 0;
 }
@@ -141,9 +140,8 @@ int TCPConnection::connect() {
     stateMachine->enqueueEvent(TCPEvent::OpenActive);
 
     // TODO wait until the connection is established and return result
-    L_WARNING(
-        stateMachine->connection->owner->ID,
-        "TODO wait until the connection is established and return result");
+    L_DEBUG(stateMachine->connection->owner->ID,
+            "TODO wait until the connection is established and return result");
     std::this_thread::sleep_for(200ms);  // TODO remove
 
     return 0;
