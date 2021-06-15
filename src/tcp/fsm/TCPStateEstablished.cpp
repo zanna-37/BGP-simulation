@@ -1,4 +1,4 @@
-#include "TCPStateEnstablished.h"
+#include "TCPStateEstablished.h"
 
 #include <atomic>
 #include <cstdint>
@@ -23,14 +23,14 @@
 #include "TcpLayer.h"
 
 
-TCPStateEnstablished::TCPStateEnstablished(TCPStateMachine* stateMachine)
+TCPStateEstablished::TCPStateEstablished(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
-    name = "ENSTABLISHED";
+    name = "ESTABLISHED";
     // L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
     // "State created: " + name);
 }
 
-bool TCPStateEnstablished::onEvent(TCPEvent event) {
+bool TCPStateEstablished::onEvent(TCPEvent event) {
     bool handled = true;
 
     switch (event) {

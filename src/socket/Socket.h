@@ -49,23 +49,23 @@ class Socket {
     int listen();
 
     /**
-     * Enstablish the TCP connection and return a new socket with the references
+     * Establish the TCP connection and return a new socket with the references
      * of the new connection
-     * @return a socket with the properties of the newly enstablished connection
+     * @return a socket with the properties of the newly established connection
      */
     Socket* accept();
 
     /**
      * Client active connection, accept a destination address and port and
-     * return 0 if the socket has been enstablished
+     * return 0 if the socket has been established
      * @param dstAddr the destination address
      * @param dstPort the destination port
-     * @return 0 if the connection has been enstablished
+     * @return 0 if the connection has been established
      */
     int connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort);
 
     /**
-     * send data the socket by using the TCP connection enstablished
+     * send data the socket by using the TCP connection established
      * @param applicationLayers the applicaiton layers to be sent through the
      * TCP connection
      */

@@ -17,7 +17,7 @@
 #include "IpAddress.h"
 #include "Layer.h"
 #include "TCPStateClosed.h"
-#include "TCPStateEnstablished.h"
+#include "TCPStateEstablished.h"
 #include "TCPStateMachine.h"
 #include "TCPStateSYNReceived.h"
 #include "TcpLayer.h"
@@ -162,7 +162,7 @@ bool TCPStateSYNSent::onEvent(TCPEvent event) {
                     // connection state to ESTABLISHED, form an ACK segment
                     // <SEQ=SND.NXT><ACK=RCV.NXT><CTL=ACK> and send it.
                     stateMachine->changeState(
-                        new TCPStateEnstablished(stateMachine));
+                        new TCPStateEstablished(stateMachine));
                     stateMachine->connection->tryingToEstablish_mutex.lock();
                     stateMachine->connection->tryingToEstablish = false;
                     stateMachine->connection->tryingToEstablish_mutex.unlock();

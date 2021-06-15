@@ -235,7 +235,7 @@ class TCPConnection {
     friend class TCPStateClosed;
     friend class TCPStateCloseWait;
     friend class TCPStateClosing;
-    friend class TCPStateEnstablished;
+    friend class TCPStateEstablished;
     friend class TCPStateFINWait1;
     friend class TCPStateFINWait2;
     friend class TCPStateLastACK;

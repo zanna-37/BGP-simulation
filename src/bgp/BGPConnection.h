@@ -56,7 +56,7 @@ class BGPConnection {
 
     /**
      * The newly created connected socket is assigned to this attribute, when
-     * the TCP connection is enstablished
+     * the TCP connection is established
      */
     Socket* connectedSocket = nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
 

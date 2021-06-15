@@ -21,7 +21,7 @@ class TCPState {
      * - CLOSED
      * - CLOSE-WAIT
      * - CLOSING
-     * - ENSTABLISHED
+     * - ESTABLISHED
      * - FIN-WAIT-1
      * - FIN-WAIT-2
      * - LAST-ACK

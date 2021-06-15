@@ -59,7 +59,7 @@ set(SOURCE_FILES
         ${SRC_BGP_FSM}/BGPState.cpp
         ${SRC_BGP_FSM}/BGPStateActive.cpp
         ${SRC_BGP_FSM}/BGPStateConnect.cpp
-        ${SRC_BGP_FSM}/BGPStateEnstablished.cpp
+        ${SRC_BGP_FSM}/BGPStateEstablished.cpp
         ${SRC_BGP_FSM}/BGPStateIdle.cpp
         ${SRC_BGP_FSM}/BGPStateMachine.cpp
         ${SRC_BGP_FSM}/BGPStateOpenConfirm.cpp
@@ -77,7 +77,7 @@ set(SOURCE_FILES
         ${SRC_TCP_FSM}/TCPState.cpp
         ${SRC_TCP_FSM}/TCPStateClosed.cpp
         ${SRC_TCP_FSM}/TCPStateClosing.cpp
-        ${SRC_TCP_FSM}/TCPStateEnstablished.cpp
+        ${SRC_TCP_FSM}/TCPStateEstablished.cpp
         ${SRC_TCP_FSM}/TCPStateListen.cpp
         ${SRC_TCP_FSM}/TCPStateMachine.cpp
         ${SRC_TCP_FSM}/TCPStateSYNReceived.cpp

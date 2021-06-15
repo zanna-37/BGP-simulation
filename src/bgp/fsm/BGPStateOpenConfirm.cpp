@@ -4,7 +4,7 @@
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "../BGPTimer.h"
-#include "BGPStateEnstablished.h"
+#include "BGPStateEstablished.h"
 #include "BGPStateIdle.h"
 #include "BGPStateMachine.h"
 
@@ -200,7 +200,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->holdTimer->start();
 
             // - changes its state to Established.
-            stateMachine->changeState(new BGPStateEnstablished(stateMachine));
+            stateMachine->changeState(new BGPStateEstablished(stateMachine));
             break;
         case BGPEvent::ConnectRetryTimer_Expires:
         case BGPEvent::DelayOpenTimer_Expires:

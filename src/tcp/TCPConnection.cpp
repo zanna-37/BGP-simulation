@@ -12,7 +12,7 @@
 #include "TcpLayer.h"
 #include "fsm/TCPState.h"
 #include "fsm/TCPStateClosed.h"
-#include "fsm/TCPStateEnstablished.h"
+#include "fsm/TCPStateEstablished.h"
 #include "fsm/TCPStateListen.h"
 #include "fsm/TCPStateMachine.h"
 

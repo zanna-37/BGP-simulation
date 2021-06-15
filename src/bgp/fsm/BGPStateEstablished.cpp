@@ -1,4 +1,4 @@
-#include "BGPStateEnstablished.h"
+#include "BGPStateEstablished.h"
 
 #include <chrono>
 
@@ -10,7 +10,7 @@
 #include "BGPStateMachine.h"
 
 
-bool BGPStateEnstablished ::onEvent(BGPEvent event) {
+bool BGPStateEstablished ::onEvent(BGPEvent event) {
     bool handled = true;
 
     switch (event) {

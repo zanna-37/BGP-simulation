@@ -18,7 +18,7 @@
 #include "Layer.h"
 #include "TCPStateCloseWait.h"
 #include "TCPStateClosed.h"
-#include "TCPStateEnstablished.h"
+#include "TCPStateEstablished.h"
 #include "TCPStateFINWait1.h"
 #include "TCPStateMachine.h"
 #include "TcpLayer.h"
@@ -171,7 +171,7 @@ bool TCPStateSYNReceived::onEvent(TCPEvent event) {
                 // If SND.UNA =< SEG.ACK =< SND.NXT then enter ESTABLISHED state
                 // and continue processing.
                 stateMachine->changeState(
-                    new TCPStateEnstablished(stateMachine));
+                    new TCPStateEstablished(stateMachine));
                 stateMachine->connection->tryingToEstablish_mutex.lock();
                 stateMachine->connection->tryingToEstablish = false;
                 stateMachine->connection->tryingToEstablish_mutex.unlock();
