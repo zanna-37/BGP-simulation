@@ -60,8 +60,8 @@ void NetworkCard::sendPacket(
     if (destination == nullptr) {
         L_ERROR(owner->ID, "No destination for packets from " + netInterface);
     } else {
-        L_DEBUG(owner->ID,
-                "Sending packet from " + netInterface + " through link");
+        // L_DEBUG(owner->ID, "Sending packet from " + netInterface + " through
+        // link");
 
         auto* packet = new pcpp::Packet(100);
 

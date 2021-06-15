@@ -132,7 +132,8 @@ void Device::sendPacket(
     if (nextHopNetworkCard == nullptr) {
         L_ERROR(ID, dstAddr.toString() + ": Destination unreachable");
     } else {
-        L_DEBUG(ID, "Sending packet using " + nextHopNetworkCard->netInterface);
+        // L_DEBUG(ID, "Sending packet using " +
+        // nextHopNetworkCard->netInterface);
         ipLayer->setSrcIPv4Address(nextHopNetworkCard->IP);
         layers->push(std::move(ipLayer));
         nextHopNetworkCard->sendPacket(std::move(layers));

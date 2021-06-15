@@ -67,7 +67,7 @@ class StateMachine {
                             hanglingState_forlogs->name + " " + toString();
 
                         if (result) {
-                            L_DEBUG(owner_str, message_str);
+                            // L_DEBUG(owner_str, message_str);
                         } else {
                             L_WARNING(owner_str, message_str);
                         }
