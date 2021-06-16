@@ -44,7 +44,7 @@ class BGPApplication {
      * The BGP application start without immediately connecting to the peers,
      * but waiting for the peer to connect
      */
-    void passiveOpen();
+    void passiveOpenAll();
 
     /**
      * The BGP application starts by actively connecting to the remote peers

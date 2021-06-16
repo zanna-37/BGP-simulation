@@ -1,6 +1,7 @@
 #ifndef BGP_SIMULATION_TCP_FSM_TCPSTATE_H
 #define BGP_SIMULATION_TCP_FSM_TCPSTATE_H
 
+#include <stack>
 #include <string>
 
 #include "../TCPEvent.h"
@@ -20,7 +21,7 @@ class TCPState {
      * - CLOSED
      * - CLOSE-WAIT
      * - CLOSING
-     * - ENSTABLISHED
+     * - ESTABLISHED
      * - FIN-WAIT-1
      * - FIN-WAIT-2
      * - LAST-ACK

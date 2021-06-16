@@ -47,6 +47,7 @@ class StateMachine {
                 if (running) {
                     Event event = eventQueue.front();
                     eventQueue.pop();
+                    stateMachineEventQueue_uniqueLock.unlock();
 
                     L_DEBUG(connection->owner->ID + " " + name,
                             "Passing event " + getEventName(event) +
@@ -66,7 +67,7 @@ class StateMachine {
                             hanglingState_forlogs->name + " " + toString();
 
                         if (result) {
-                            L_DEBUG(owner_str, message_str);
+                            // L_DEBUG(owner_str, message_str);
                         } else {
                             L_WARNING(owner_str, message_str);
                         }
@@ -74,9 +75,8 @@ class StateMachine {
                 } else {
                     L_VERBOSE(connection->owner->ID + " " + name,
                               "Shutting down state machine");
+                    stateMachineEventQueue_uniqueLock.unlock();
                 }
-
-                stateMachineEventQueue_uniqueLock.unlock();
             }
         });
     }
@@ -112,10 +112,11 @@ class StateMachine {
      * @param event the event triggered
      */
     void enqueueEvent(Event event) {
-        std::unique_lock<std::mutex> eventQueue_uniqueLock(eventQueue_mutex);
+        eventQueue_mutex.lock();
         eventQueue.push(event);
+        eventQueue_mutex.unlock();
+
         eventQueue_ready.notify_one();
-        eventQueue_uniqueLock.unlock();
     }
 
     /**

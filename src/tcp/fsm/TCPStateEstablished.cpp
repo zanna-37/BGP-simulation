@@ -1,4 +1,4 @@
-#include "TCPStateFINWait2.h"
+#include "TCPStateEstablished.h"
 
 #include <atomic>
 #include <cstdint>
@@ -13,23 +13,24 @@
 #include "../TCPConnection.h"
 #include "../TCPEvent.h"
 #include "../TCPFlag.h"
-#include "../TCPTimer.h"
+#include "IPLayer.h"
 #include "IpAddress.h"
 #include "Layer.h"
+#include "TCPStateCloseWait.h"
 #include "TCPStateClosed.h"
+#include "TCPStateFINWait1.h"
 #include "TCPStateMachine.h"
-#include "TCPStateTimeWait.h"
 #include "TcpLayer.h"
 
 
-TCPStateFINWait2::TCPStateFINWait2(TCPStateMachine* stateMachine)
+TCPStateEstablished::TCPStateEstablished(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
-    name = "FIN-WAIT-2";
+    name = "ESTABLISHED";
     // L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
     // "State created: " + name);
 }
 
-bool TCPStateFINWait2::onEvent(TCPEvent event) {
+bool TCPStateEstablished::onEvent(TCPEvent event) {
     bool handled = true;
 
     switch (event) {
@@ -41,26 +42,51 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
             handled = false;  // TODO implement
             break;
 
-        case TCPEvent::Send:
-            handled = false;  // TODO implement
-            break;
+        case TCPEvent::Send: {
+            stateMachine->connection->appSendingQueue_mutex.lock();
+            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+                std::move(stateMachine->connection->appSendingQueue.front());
+            stateMachine->connection->appSendingQueue.pop();
+            stateMachine->connection->appSendingQueue_mutex.unlock();
 
+            std::unique_ptr<pcpp::Layer> tcpLayer =
+                TCPConnection::craftTCPLayer(stateMachine->connection->srcPort,
+                                             stateMachine->connection->dstPort,
+                                             TCPFlag::ACK);
+            layers->push(std::move(tcpLayer));
+
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Sending PACKET to " +
+                        stateMachine->connection->dstAddr.toString() + ":" +
+                        std::to_string(stateMachine->connection->dstPort));
+            stateMachine->connection->enqueuePacketToPeerOutbox(
+                std::move(layers));
+
+            break;
+        }
         case TCPEvent::Receive:
             handled = false;  // TODO implement
             break;
 
         case TCPEvent::Close:
-            handled = false;  // TODO implement
+            // Queue this until all preceding SENDs have been segmentized, then
+            // form a FIN segment and send it. In any case, enter FIN-WAIT-1
+            // state.
+            stateMachine->connection->sendFinToPeer();
+            stateMachine->changeState(new TCPStateFINWait1(stateMachine));
             break;
 
         case TCPEvent::Abort:
             // Send a reset segment: <SEQ=SND.NXT><CTL=RST>
             stateMachine->connection->sendRstToPeer();
-            // All queued SENDs and RECEIVEs should be given "connection reset"
-            // notification; all segments queued for transmission (except for
-            // the RST formed above) or retransmission should be flushed, delete
-            // the TCB, enter CLOSED state, and return.
+            // TODO All queued SENDs and RECEIVEs should be given "connection
+            // reset" notification;
+            // TODO all segments queued for transmission (except for the RST
+            // formed above) or retransmission should be flushed,
+
+            // delete the TCB, enter CLOSED state, and return.
             stateMachine->connection->running = false;
+            stateMachine->connection->appReceivingQueue_wakeup.notify_one();
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 
@@ -74,11 +100,9 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
 
             std::pair<pcpp::IPv4Address,
                       std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>>
-                segmentPair =
-                    std::move(stateMachine->connection->getNextSegment());
+                segmentPair = stateMachine->connection->getNextSegment();
 
-            fromAddr = segmentPair.first;
-            segment  = std::move(segmentPair.second);
+            std::tie(fromAddr, segment) = std::move(segmentPair);
 
             auto receivedTcpLayer = std::move(segment->top());
             segment->pop();
@@ -106,9 +130,24 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
                 // CLOSED state, delete the TCB, and return.
 
                 stateMachine->connection->running = false;
+                stateMachine->connection->appReceivingQueue_wakeup.notify_one();
                 stateMachine->changeState(new TCPStateClosed(stateMachine));
+            }
+            // third check security and precedence
+            // If the security/compartment and precedence in the segment do
+            // not exactly match the security/compartment and precedence in
+            // the TCB then send a reset, any outstanding RECEIVEs and SEND
+            // should receive "reset" responses.  All segment queues should
+            // be flushed. Users should also receive an unsolicited general
+            // "connection reset" signal. Enter the CLOSED state, delete the
+            // TCB, and return.
+            // <-- Not implemented
 
-            } else if (isFlag8Set(receivedFlags, TCPFlag::SYN)) {
+            // Note this check is placed following the sequence check to
+            // prevent a segment from an old connection between these ports
+            // with a different security or precedence from causing anabort
+            // of the current connection.
+            else if (isFlag8Set(receivedFlags, TCPFlag::SYN)) {
                 // If the SYN is in the window it is an error, send a reset,
                 // any outstanding RECEIVEs and SEND should receive "reset"
                 // responses, all segment queues should be flushed, the user
@@ -147,11 +186,6 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
                 // acknowledgment number of the last segment used to update
                 // SND.WND.  The check here prevents using old segments to
                 // update the window.
-                // <-- Not implemented
-
-                // In addition to the processing for the ESTABLISHED state, if
-                // the retransmission queue is empty, the user's CLOSE can be
-                // acknowledged ("ok") but do not delete the TCB.
                 // <-- Not implemented
             } else {
                 // if the ACK bit is off drop the segment and return
@@ -211,12 +245,8 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
                 // delivered to the user.
                 stateMachine->connection->sendAckToPeer();
 
-                // Enter the TIME-WAIT state.
-                stateMachine->changeState(new TCPStateTimeWait(stateMachine));
-                // Start the time-wait timer
-                stateMachine->timeWaitTimer->start();
-                // turn off the other timers.
-                // <-- Not implemented
+                // Enter the CLOSE-WAIT state.
+                stateMachine->changeState(new TCPStateCloseWait(stateMachine));
             }
             break;
         }
@@ -232,6 +262,7 @@ bool TCPStateFINWait2::onEvent(TCPEvent event) {
             // If the time-wait timeout expires on a connection delete the TCB,
             // enter the CLOSED state and return.
             stateMachine->connection->running = false;
+            stateMachine->connection->appReceivingQueue_wakeup.notify_one();
             stateMachine->changeState(new TCPStateClosed(stateMachine));
             break;
 
