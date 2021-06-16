@@ -58,7 +58,10 @@ class BGPConnection {
      * The newly created connected socket is assigned to this attribute, when
      * the TCP connection is established
      */
-    Socket* connectedSocket = nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
+    Socket* connectedSocket
+        [[deprecated("Do not use directly. Use setConnectedSocket() or "
+                     "getConnectedSocket()")]] =
+            nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
 
     // Constructors
     BGPConnection(Router* owner, BGPApplication* bgpApplication);
@@ -106,6 +109,16 @@ class BGPConnection {
     void listenForRemotelyInitiatedConnections();
     void dropConnection();
     void shutdown();
+
+   private:
+    [[nodiscard]] BGPConnection* setConnectedSocket(Socket* newConnectedSocket);
+
+    /** TODO
+     * @warning \a connectedSocket_mutex MUST be held before calling this
+     * function.
+     * @return
+     */
+    [[nodiscard]] Socket* getConnectedSocket();
 };
 
 #endif  // BGPSIMULATION_BGP_BGPCONNECTION_H

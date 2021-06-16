@@ -115,7 +115,7 @@ void BGPConnection::startReceivingThread() {
     receivingThread = new std::thread([&]() {
         while (running) {
             std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-                connectedSocket->recv();
+                getConnectedSocket()->recv();
 
             if (running) {
                 if (layers != nullptr) {
@@ -142,7 +142,7 @@ void BGPConnection::closeConnection() {
 
 void BGPConnection::sendData(
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
-    connectedSocket->send(std::move(layers));
+    getConnectedSocket()->send(std::move(layers));
 }
 
 void BGPConnection::listenForRemotelyInitiatedConnections() {
@@ -165,36 +165,21 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
 
             if (running) {
                 if (newArrivedSocket) {
-                    // Bind connected Socket to this BGP Connection
-                    connectedSocket_mutex.lock();
-                    if (this->connectedSocket == nullptr) {
-                        this->connectedSocket = newArrivedSocket;
-                        connectedSocket_mutex.unlock();
-                        this->enqueueEvent(BGPEvent::TcpConnectionConfirmed);
-                        this->startReceivingThread();
-                    } else {
-                        // This BGP Connection is full, bind connected Socket to
-                        // a new BgpConnection
-                        auto* newBGPConnection_weak =
-                            bgpApplication->createNewBgpConnection();
-                        newBGPConnection_weak->connectedSocket =
-                            newArrivedSocket;
-                        connectedSocket_mutex.unlock();
+                    // Bind connected Socket to this (or a new) BGP Connection
+                    BGPConnection* bgpConnection_weak =
+                        setConnectedSocket(newArrivedSocket);
 
-                        newBGPConnection_weak->enqueueEvent(
+                    if (bgpConnection_weak != this) {
+                        // If it is a new BGPConnection set it up
+                        bgpConnection_weak->enqueueEvent(
                             BGPEvent::ManualStart_with_PassiveTcpEstablishment);
-                        newBGPConnection_weak->srcAddr =
-                            newArrivedSocket->tcpConnection->srcAddr;
-                        newBGPConnection_weak->dstAddr =
-                            newArrivedSocket->tcpConnection->dstAddr;
-
-                        newBGPConnection_weak->enqueueEvent(
-                            BGPEvent::TcpConnectionConfirmed);
-                        newBGPConnection_weak->startReceivingThread();
                     }
-                } else {
-                    L_DEBUG(owner->ID, "accept() failed");
+                    bgpConnection_weak->enqueueEvent(
+                        BGPEvent::TcpConnectionConfirmed);
+                    bgpConnection_weak->startReceivingThread();
                 }
+            } else {
+                L_DEBUG(owner->ID, "accept() failed");
             }
         }
     });
@@ -202,31 +187,33 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
 
 void BGPConnection::asyncConnectToPeer() {
     // TODO this is probably an async task
-    connectedSocket_mutex.lock();
-    assert(connectedSocket == nullptr);
-    assert(connectThread == nullptr);
 
-    connectedSocket = new Socket(owner);
+    BGPConnection* bgpConnection_weak = setConnectedSocket(new Socket(owner));
 
-    connectThread = new thread([&] {
-        if (connectedSocket->connect(dstAddr, BGPApplication::BGPDefaultPort) ==
+    assert(bgpConnection_weak->getConnectedSocket() != nullptr);
+    assert(bgpConnection_weak->connectThread == nullptr);
+
+    bgpConnection_weak->connectThread = new thread([&, bgpConnection_weak] {
+        if (bgpConnection_weak->getConnectedSocket()->connect(
+                bgpConnection_weak->dstAddr, BGPApplication::BGPDefaultPort) ==
             0) {
-            this->startReceivingThread();
-            enqueueEvent(BGPEvent::TcpConnection_Valid);
+            bgpConnection_weak->startReceivingThread();
+            bgpConnection_weak->enqueueEvent(BGPEvent::TcpConnection_Valid);
         }
     });
-    connectedSocket_mutex.unlock();
 }
 
 void BGPConnection::dropConnection() {
     running = false;
-    connectedSocket_mutex.lock();
-    if (connectedSocket) {
-        connectedSocket->close();
+
+    if (getConnectedSocket()) {
+        getConnectedSocket()->close();
     }
-    delete connectedSocket;
+    delete getConnectedSocket();
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     connectedSocket = nullptr;
-    connectedSocket_mutex.unlock();
+#pragma clang diagnostic pop
 
     if (connectThread) {
         connectThread->join();
@@ -238,4 +225,46 @@ void BGPConnection::dropConnection() {
 void BGPConnection::shutdown() {
     running = false;
     enqueueEvent(BGPEvent::ManualStop);
+}
+
+BGPConnection* BGPConnection::setConnectedSocket(Socket* newConnectedSocket) {
+    BGPConnection*          filledBGPConnection;
+    std::unique_lock<mutex> connectedSocket_uniqueLock(connectedSocket_mutex);
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    if (this->connectedSocket == nullptr) {
+        // This BGP Connection is empty, bind connected Socket to this
+        this->connectedSocket = newConnectedSocket;
+        connectedSocket_uniqueLock.unlock();
+        filledBGPConnection = this;
+    } else {
+        // This BGP Connection is full, bind connected Socket to
+        // a new BgpConnection
+        auto* newBGPConnection_weak = bgpApplication->createNewBgpConnection();
+        newBGPConnection_weak->connectedSocket = newConnectedSocket;
+        connectedSocket_uniqueLock.unlock();
+
+        newBGPConnection_weak->srcAddr =
+            newConnectedSocket->tcpConnection->srcAddr;
+        newBGPConnection_weak->dstAddr =
+            newConnectedSocket->tcpConnection->dstAddr;
+
+        filledBGPConnection = newBGPConnection_weak;
+    }
+#pragma clang diagnostic pop
+
+    return filledBGPConnection;
+}
+
+Socket* BGPConnection::getConnectedSocket() {
+    Socket* result;
+    connectedSocket_mutex.lock();
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    result = this->connectedSocket;
+#pragma clang diagnostic pop
+    connectedSocket_mutex.unlock();
+
+    return result;
 }
