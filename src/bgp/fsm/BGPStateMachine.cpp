@@ -41,7 +41,7 @@ void BGPStateMachine::resetConnectRetryTimer() {
     connectRetryTimer = new BGPTimer("ConnectRetryTimer",
                                      this,
                                      BGPEvent::ConnectRetryTimer_Expires,
-                                     connectRetryTime);
+                                     kConnectRetryTime_defaultVal);
 }
 
 void BGPStateMachine::resetHoldTimer() {
@@ -50,8 +50,8 @@ void BGPStateMachine::resetHoldTimer() {
         delete holdTimer;
     }
 
-    holdTimer =
-        new BGPTimer("HoldTimer", this, BGPEvent::HoldTimer_Expires, holdTime);
+    holdTimer = new BGPTimer(
+        "HoldTimer", this, BGPEvent::HoldTimer_Expires, kHoldTime_defaultVal);
 }
 
 void BGPStateMachine::resetKeepAliveTimer() {
@@ -63,7 +63,7 @@ void BGPStateMachine::resetKeepAliveTimer() {
     keepAliveTimer = new BGPTimer("KeepAliveTimer",
                                   this,
                                   BGPEvent::KeepaliveTimer_Expires,
-                                  keepaliveTime);
+                                  kKeepaliveTime_defaultVal);
 }
 
 void BGPStateMachine::resetDelayOpenTimer() {

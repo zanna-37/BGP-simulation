@@ -58,9 +58,9 @@ class BGPConnection {
      * The newly created connected socket is assigned to this attribute, when
      * the TCP connection is established
      */
-    Socket* connectedSocket
-        [[deprecated("Do not use directly. Use setConnectedSocket() or "
-                     "getConnectedSocket()")]] =
+    Socket* connectedSocket [[deprecated(
+        "Do not use directly. Use setConnectedSocketToAvailableBGPConn() or "
+        "getConnectedSocket()")]] =
             nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
 
     // Constructors
@@ -107,11 +107,12 @@ class BGPConnection {
     void sendData(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
     void listenForRemotelyInitiatedConnections();
-    void dropConnection();
+    void dropConnection(bool gentle);
     void shutdown();
 
    private:
-    [[nodiscard]] BGPConnection* setConnectedSocket(Socket* newConnectedSocket);
+    [[nodiscard]] BGPConnection* setConnectedSocketToAvailableBGPConn(
+        Socket* newConnectedSocket);
 
     /** TODO
      * @warning \a connectedSocket_mutex MUST be held before calling this

@@ -16,35 +16,25 @@ using namespace std::chrono_literals;
 
 
 class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
-   private:
-    // Mandatory session attributes
-    int connectRetryCounter = 0;
+   public:
 #ifdef DEBUG_GUARD
-    std::chrono::seconds connectRetryTime = 10s;
-    std::chrono::seconds holdTime         = 20s;
-    std::chrono::seconds keepaliveTime    = 5s;
+    constexpr static const std::chrono::seconds kConnectRetryTime_defaultVal =
+        12s;
+    constexpr static const std::chrono::seconds kHoldTime_defaultVal = 9s;
+    constexpr static const std::chrono::seconds kHoldTime_large_defaultVal =
+        24s;
+    constexpr static const std::chrono::seconds kKeepaliveTime_defaultVal =
+        kHoldTime_defaultVal / 3;
 #else
-    std::chrono::seconds connectRetryTime = 120s;
-    std::chrono::seconds holdTime         = 90s;
-    std::chrono::seconds keepaliveTime    = 30s;
+    constexpr static const std::chrono::seconds kConnectRetryTime_defaultVal =
+        120s;
+    constexpr static const std::chrono::seconds kHoldTime_defaultVal = 90s;
+    constexpr static const std::chrono::seconds kHoldTime_large_defaultVal =
+        240s;
+    constexpr static const std::chrono::seconds kKeepaliveTime_defaultVal =
+        kHoldTime_defaultVal / 3;
 #endif
 
-    // Optional attributes
-
-    //   1) AcceptConnectionsUnconfiguredPeers
-    //   2) AllowAutomaticStart
-    //   3) AllowAutomaticStop
-    //   4) CollisionDetectEstablishedState
-    bool                 dampPeerOscillations = false;
-    bool                 delayOpen            = false;
-    std::chrono::seconds delayOpenTime        = 0s;  // TODO
-    //   9) IdleHoldTime
-    //  10) IdleHoldTimer
-    //  11) PassiveTcpEstablishment
-    bool sendNOTIFICATIONwithoutOPEN = false;
-    //  13) TrackTcpState
-
-   public:
     BGPStateMachine(BGPConnection* connection);
 
     ~BGPStateMachine();
@@ -193,6 +183,29 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     std::string toString() override;
 
     // TODO print name of the current BGPState
+
+   private:
+    std::chrono::seconds connectRetryTime = 120s;
+    std::chrono::seconds holdTime         = 90s;
+    std::chrono::seconds keepaliveTime    = holdTime / 3;
+
+    // Mandatory session attributes
+    int connectRetryCounter = 0;
+
+    // Optional attributes
+
+    //   1) AcceptConnectionsUnconfiguredPeers
+    //   2) AllowAutomaticStart
+    //   3) AllowAutomaticStop
+    //   4) CollisionDetectEstablishedState
+    bool                 dampPeerOscillations = false;
+    bool                 delayOpen            = false;
+    std::chrono::seconds delayOpenTime        = 0s;  // TODO
+    //   9) IdleHoldTime
+    //  10) IdleHoldTimer
+    //  11) PassiveTcpEstablishment
+    bool sendNOTIFICATIONwithoutOPEN = false;
+    //  13) TrackTcpState
 };
 
 #endif  // BGPSIMULATION_BGP_FSM_BGPSTATEMACHINE_H

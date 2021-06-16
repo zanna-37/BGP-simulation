@@ -37,9 +37,11 @@ bool TCPStateClosed::onEvent(TCPEvent event) {
             // passive open on a TCP port. At the same time, it sets up the data
             // structure (transmission control block or TCB) needed to manage
             // the connection. It then transitions to the LISTEN state.
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Listening on port " +
-                        std::to_string(stateMachine->connection->srcPort));
+            L_DEBUG(
+                stateMachine->connection->owner->ID + " " + stateMachine->name,
+                "Listening on port " +
+                    stateMachine->connection->srcAddr.toString() + ":" +
+                    std::to_string(stateMachine->connection->srcPort));
 
             stateMachine->connection->running = true;
             stateMachine->changeState(new TCPStateListen(stateMachine));

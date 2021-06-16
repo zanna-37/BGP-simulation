@@ -17,96 +17,114 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEvent::ManualStop:
             // TODO sends the NOTIFICATION with a Cease,
 
-            // - sets the ConnectRetryTimer to zero,
+            // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // TODO releases all BGP resources,
 
             // drops the TCP connection,
-            stateMachine->connection->dropConnection();
+            stateMachine->connection->dropConnection(false);
 
-            // - sets the ConnectRetryCounter to zero, and
+            // sets the ConnectRetryCounter to zero
             stateMachine->setConnectRetryCounter(0);
 
-            // - changes its state to Idle.
+            // and changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+
+            handled = false;
             break;
+
         case BGPEvent::AutomaticStop:
             // TODO sends the NOTIFICATION with a Cease,
 
-            // - sets the ConnectRetryTimer to zero,
+            // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // TODO releases all the BGP resources,
 
             // drops the TCP connection,
-            stateMachine->connection->dropConnection();
+            stateMachine->connection->dropConnection(false);
 
-            // - increments the ConnectRetryCounter by 1,
+            // increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
 
-            // - (optionally) performs peer oscillation damping if the
-            //     DampPeerOscillations attribute is set to TRUE, and
+            // optionally performs peer oscillation damping if the
+            // DampPeerOscillations attribute is set to TRUE, and
             if (stateMachine->getDampPeerOscillations()) {
+                // performs peer oscillation damping
+                // <-- Not implemented
             }
 
-            // - changes its state to Idle.
+            // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+
+            handled = false;
             break;
+
         case BGPEvent::HoldTimer_Expires:
             // TODO sends a NOTIFICATION message with the error code Hold Timer
-            //   Expired,
+            // Expired
 
-            // - sets the ConnectRetryTimer to zero,
+            // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // TODO releases all BGP resources,
 
             // drops the TCP connection,
-            stateMachine->connection->dropConnection();
+            stateMachine->connection->dropConnection(false);
 
-            // - increments the ConnectRetryCounter,
+            // increments the ConnectRetryCounter,
             stateMachine->incrementConnectRetryCounter();
 
-            // - (optionally) performs peer oscillation damping if the
-            //   DampPeerOscillations attribute is set to TRUE, and
+            // optionally performs peer oscillation damping if the
+            // DampPeerOscillations attribute is set to TRUE, and
             if (stateMachine->getDampPeerOscillations()) {
+                // performs peer oscillation damping
+                // <-- Not implemented
             }
 
-
-            // - changes its state to Idle.
+            // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+
+            handled = false;
             break;
+
         case BGPEvent::TcpConnection_Valid:
         case BGPEvent::Tcp_CR_Acked:
         case BGPEvent::TcpConnectionConfirmed:
-            //    TODO a second TCP
-            //   connection may be in progress.  This second TCP connection is
-            //   tracked per Connection Collision processing (Section 6.8) until
-            //   an OPEN message is received.
+            // TODO a second TCP connection may be in progress. This second TCP
+            // connection is tracked per Connection Collision processing
+            // (Section 6.8) until an OPEN message is received.
+
+            handled = false;
             break;
+
         case BGPEvent::Tcp_CR_Invalid:
+
+            handled = false;
             break;
+
         case BGPEvent::TcpConnectionFails:
             // TODO closes the BGP connection,
-            // stateMachine->connection->tcpConnection = nullptr;
 
-            // - restarts the ConnectRetryTimer,
+            // restarts the ConnectRetryTimer,
             stateMachine->resetConnectRetryTimer();
             stateMachine->connectRetryTimer->start();
 
-            // TODO continues to listen for a connection that may be initiated
-            // by
-            //   the remote BGP peer, and
+            // continues to listen for a connection that may be initiated
+            // --> Nothing to do as the listening is already taking place.
 
-            // - changes its state to Active.
+            // changes its state to Active.
             stateMachine->changeState(new BGPStateActive(stateMachine));
+
+            handled = false;
             break;
+
         case BGPEvent::BGPOpen:
-            // - resets the DelayOpenTimer to zero,
+            // resets the DelayOpenTimer to zero,
             stateMachine->resetDelayOpenTimer();
 
-            // TODO sets the BGP ConnectRetryTimer to zero,
+            // sets the BGP ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // TODO sends a KEEPALIVE message, and
@@ -117,71 +135,84 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             //   Section 4.2),
             stateMachine->resetHoldTimer();
             stateMachine->holdTimer->setDuration(
-                stateMachine->connection->holdTime);
+                stateMachine->connection->holdTime);  // ← probably wrong
             stateMachine->holdTimer->start();
 
-            // - changes its state to OpenConfirm.
+            // changes its state to OpenConfirm.
             stateMachine->changeState(new BGPStateOpenConfirm(stateMachine));
+
+            handled = false;
             break;
+
         case BGPEvent::BGPHeaderErr:
         case BGPEvent::BGPOpenMsgErr:
             //  TODO sends a NOTIFICATION message with the appropriate error
-            //  code,
+            //  code
 
-            // - sets the ConnectRetryTimer to zero,
+            // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // TODO releases all BGP resources,
 
             // drops the TCP connection,
-            stateMachine->connection->dropConnection();
+            stateMachine->connection->dropConnection(false);
 
-            // - increments the ConnectRetryCounter by 1,
+            // increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
 
-            // - (optionally) performs peer oscillation damping if the
-            //   DampPeerOscillations attribute is TRUE, and
+            // optionally performs peer oscillation damping if the
+            // DampPeerOscillations attribute is set to TRUE, and
             if (stateMachine->getDampPeerOscillations()) {
+                // performs peer oscillation damping
+                // <-- Not implemented
             }
 
-            // - changes its state to Idle.
+            // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+
+            handled = false;
             break;
+
         case BGPEvent::OpenCollisionDump:
             // TODO sends a NOTIFICATION with a Cease,
 
-            // - sets the ConnectRetryTimer to zero,
+            // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // TODO releases all BGP resources,
 
             // drops the TCP connection,
-            stateMachine->connection->dropConnection();
+            stateMachine->connection->dropConnection(false);
 
-            // - increments the ConnectRetryCounter by 1,
+            // increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
 
-            // - (optionally) performs peer oscillation damping if the
-            //   DampPeerOscillations attribute is set to TRUE, and
+            // optionally performs peer oscillation damping if the
+            // DampPeerOscillations attribute is set to TRUE, and
             if (stateMachine->getDampPeerOscillations()) {
+                // performs peer oscillation damping
+                // <-- Not implemented
             }
 
-            // - changes its state to Idle.
+            // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
 
+            handled = false;
             break;
+
         case BGPEvent::NotifMsgVerErr:
-            // - sets the ConnectRetryTimer to zero,
+            // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // TODO releases all BGP resources,
 
             // drops the TCP connection,
-            stateMachine->connection->dropConnection();
+            stateMachine->connection->dropConnection(false);
 
-            // - changes its state to Idle.
+            // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
+
         case BGPEvent::ConnectRetryTimer_Expires:
         case BGPEvent::KeepaliveTimer_Expires:
         case BGPEvent::DelayOpenTimer_Expires:
@@ -192,27 +223,32 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEvent::UpdateMsg:
         case BGPEvent::UpdateMsgErr:
             // TODO sends the NOTIFICATION with the Error Code Finite State
-            //   Machine Error,
+            // Machine Error
 
-            // - sets the ConnectRetryTimer to zero,
+            // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // TODO releases all BGP resources,
 
             // drops the TCP connection,
-            stateMachine->connection->dropConnection();
+            stateMachine->connection->dropConnection(false);
 
-            // - increments the ConnectRetryCounter by 1,
+            // increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
 
-            // - (optionally) performs peer oscillation damping if the
-            //   DampPeerOscillations attribute is set to TRUE, and
+            // optionally performs peer oscillation damping if the
+            // DampPeerOscillations attribute is set to TRUE, and
             if (stateMachine->getDampPeerOscillations()) {
+                // performs peer oscillation damping
+                // <-- Not implemented
             }
 
-            // - changes its state to Idle.
+            // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+
+            handled = false;
             break;
+
         default:
             handled = false;
             break;

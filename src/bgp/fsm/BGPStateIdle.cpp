@@ -17,14 +17,14 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
         case BGPEvent::AutomaticStart:
             // TODO initializes all BGP resources for the peer connection,
 
-            // - sets ConnectRetryCounter to zero,
+            // sets ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
 
-            // - starts the ConnectRetryTimer with the initial value,
+            // starts the ConnectRetryTimer with the initial value,
             stateMachine->connectRetryTimer->start();
 
-            // TODO initiates a TCP connection to the other BGP peer,
-            // initiateTCPConnection();
+            // initiates a TCP connection to the other BGP peer,
+            stateMachine->connection->asyncConnectToPeer();
 
             // listens for a connection that may be initiated by the remote BGP
             // peer
@@ -32,7 +32,6 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             // and changes its state to Connect.
             stateMachine->changeState(new BGPStateConnect(stateMachine));
-
             break;
 
         case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
@@ -40,10 +39,10 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             // TODO initializes all BGP resources,
 
-            // - sets the ConnectRetryCounter to zero,
+            // sets the ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
 
-            // - starts the ConnectRetryTimer with the initial value,
+            // starts the ConnectRetryTimer with the initial value,
             stateMachine->connectRetryTimer->start();
 
             // listens for a connection that may be initiated by the remote BGP
@@ -52,7 +51,6 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             // and changes its state to Active.
             stateMachine->changeState(new BGPStateActive(stateMachine));
-
             break;
 
         case BGPEvent::AutomaticStart_with_DampPeerOscillations:
@@ -68,6 +66,7 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
                 // of this document.
             }
 
+            handled = false;
             break;
 
         default:

@@ -82,16 +82,23 @@ void BGPConnection::processMessage(
 
             // TODO write the logic of the handling
             L_FATAL("BGPConnection", "TODO write the logic of the handling");
+            // TODO probably this must be managed with events (e.g.
+            // BGPEvent::UpdateMsg). Therefore the logic should be moved inside
+            // the states and here we just enqueue the right event while pushing
+            // the received Message in a queue that will be read from inside the
+            // states. Check that.
+            // Something similar (but different) is the SegmentArrives event of
+            // TCP
             switch (bgpHeader->type) {
                 case BGPLayer::BGPMessageType::OPEN:
                     L_DEBUG(owner->ID, "OPEN message arrived");
-                    //                    bgpOpenLayer_weak =
-                    //                        dynamic_cast<BGPOpenLayer*>(bgpLayer_weak);
-                    //                    holdTime =
-                    //                    std::chrono::seconds(be16toh(
-                    //                        bgpOpenLayer_weak->getOpenHeaderOrNull()->holdTime_be));
-                    //                    bgpApplication->collisionDetection(this);
-                    //                    enqueueEvent(BGPEvent::BGPOpen);
+                    // bgpOpenLayer_weak =
+                    //     dynamic_cast<BGPOpenLayer*>(bgpLayer_weak);
+                    // holdTime =
+                    // std::chrono::seconds(be16toh(
+                    //     bgpOpenLayer_weak->getOpenHeaderOrNull()->holdTime_be));
+                    // bgpApplication->collisionDetection(this);
+                    // enqueueEvent(BGPEvent::BGPOpen);
                     break;
                 case BGPLayer::BGPMessageType::UPDATE:
                     L_DEBUG(owner->ID, "UPDATE message arrived");
@@ -111,29 +118,34 @@ void BGPConnection::processMessage(
 }
 
 void BGPConnection::startReceivingThread() {
-    assert(receivingThread == nullptr);
-    receivingThread = new std::thread([&]() {
-        while (running) {
-            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-                getConnectedSocket()->recv();
+    if (receivingThread != nullptr) {
+        L_WARNING(owner->ID + " " + stateMachine->name,
+                  "receivingThread already set");
+    } else {
+        receivingThread = new std::thread([&]() {
+            while (running) {
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers = getConnectedSocket()->recv();
 
-            if (running) {
-                if (layers != nullptr) {
-                    processMessage(std::move(layers));
-                } else {
-                    // if layers == nullptr it means that the TCP state machine
-                    // is not running anymore so we should shutdown this
-                    // connection. Ideally this should not happen because the
-                    // TCP connection should notify the Socket about the
-                    // shutdown and the Socket should notify the BGP connection.
-                    // TODO this notify mechanism is not yet implemented at
-                    // 2021-06-15.
+                if (running) {
+                    if (layers != nullptr) {
+                        processMessage(std::move(layers));
+                    } else {
+                        // if layers == nullptr it means that the TCP state
+                        // machine is not running anymore so we should shutdown
+                        // this connection. Ideally this should not happen
+                        // because the TCP connection should notify the Socket
+                        // about the shutdown and the Socket should notify the
+                        // BGP connection.
+                        // TODO this notify mechanism is not yet implemented at
+                        // 2021-06-15.
 
-                    shutdown();
+                        shutdown();
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 }
 
 void BGPConnection::closeConnection() {
@@ -156,6 +168,7 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
     // socketListen_weak can't be null except for bugs
     assert(socketListen_weak);
 
+    assert(listeningThread == nullptr);
     listeningThread = new thread([&, socketListen_weak]() {
         socketListen_weak->listen();
 
@@ -167,7 +180,7 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
                 if (newArrivedSocket) {
                     // Bind connected Socket to this (or a new) BGP Connection
                     BGPConnection* bgpConnection_weak =
-                        setConnectedSocket(newArrivedSocket);
+                        setConnectedSocketToAvailableBGPConn(newArrivedSocket);
 
                     if (bgpConnection_weak != this) {
                         // If it is a new BGPConnection set it up
@@ -188,7 +201,8 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
 void BGPConnection::asyncConnectToPeer() {
     // TODO this is probably an async task
 
-    BGPConnection* bgpConnection_weak = setConnectedSocket(new Socket(owner));
+    BGPConnection* bgpConnection_weak =
+        setConnectedSocketToAvailableBGPConn(new Socket(owner));
 
     assert(bgpConnection_weak->getConnectedSocket() != nullptr);
     assert(bgpConnection_weak->connectThread == nullptr);
@@ -203,11 +217,18 @@ void BGPConnection::asyncConnectToPeer() {
     });
 }
 
-void BGPConnection::dropConnection() {
+void BGPConnection::dropConnection(bool gentle) {
     running = false;
 
     if (getConnectedSocket()) {
-        getConnectedSocket()->close();
+        if (gentle) {
+            // Close with FIN
+            getConnectedSocket()->close();
+        } else {
+            // Close with RST
+            // TODO implement a forced CLOSE with RST
+            getConnectedSocket()->close();
+        }
     }
     delete getConnectedSocket();
 #pragma clang diagnostic push
@@ -225,9 +246,14 @@ void BGPConnection::dropConnection() {
 void BGPConnection::shutdown() {
     running = false;
     enqueueEvent(BGPEvent::ManualStop);
+    // TODO wait for the shutdown call to be completed
+    L_DEBUG(stateMachine->connection->owner->ID,
+            "TODO wait for the shutdown call to be completed");
+    std::this_thread::sleep_for(1000ms);  // TODO remove
 }
 
-BGPConnection* BGPConnection::setConnectedSocket(Socket* newConnectedSocket) {
+BGPConnection* BGPConnection::setConnectedSocketToAvailableBGPConn(
+    Socket* newConnectedSocket) {
     BGPConnection*          filledBGPConnection;
     std::unique_lock<mutex> connectedSocket_uniqueLock(connectedSocket_mutex);
 

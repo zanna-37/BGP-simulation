@@ -30,7 +30,7 @@ BGPApplication::~BGPApplication() {
     }
 }
 
-void BGPApplication::passiveOpen() {
+void BGPApplication::passiveOpenAll() {
     running = true;
     // Foreach BGP peer in the BGP Routing table
     for (pcpp::IPv4Address peerAddr : router->peer_addresses) {
@@ -38,16 +38,10 @@ void BGPApplication::passiveOpen() {
             router->getNextHopNetworkCardOrNull(peerAddr);
 
         if (egressNetCard == nullptr) {
-            L_ERROR(router->ID,
+            L_ERROR(router->ID + " BGP App",
                     peerAddr.toString() + ": Destination unreachable");
         } else {
             pcpp::IPv4Address srcAddr = egressNetCard->IP;
-
-            // Pre-create the socketListen that will be referenced from the
-            // BgpConnection
-            auto* socketListen = new Socket(router);
-            listeningSockets.push_back(socketListen);
-            socketListen->bind(srcAddr, BGPApplication::BGPDefaultPort);
 
             auto* bgpConnection = new BGPConnection(router, this);
             bgpConnections.push_back(bgpConnection);
@@ -81,12 +75,30 @@ BGPConnection* BGPApplication::createNewBgpConnection() {
 
 Socket* BGPApplication::getCorrespondingListeningSocket(
     pcpp::IPv4Address srcAddress, uint16_t srcPort) {
+    std::mutex mutex;
+    mutex.lock();
+    Socket* result;
+    // Search existing listening socket
     for (auto* listeningSocket : listeningSockets) {
-        // TODO check null ↓
         if (listeningSocket->tcpConnection->srcAddr == srcAddress &&
             listeningSocket->tcpConnection->srcPort == srcPort) {
-            return listeningSocket;
+            result = listeningSocket;
+            L_DEBUG(router->ID + " BGP App",
+                    "Reusing listening Socket at " + srcAddress.toString() +
+                        ":" + std::to_string(srcPort));
         }
     }
-    return nullptr;
+    if (result == nullptr) {
+        // Create a new listening socket if it doesn't already exist
+        L_DEBUG(router->ID + " BGP App",
+                "Creating new listening Socket listen at " +
+                    srcAddress.toString() + ":" + std::to_string(srcPort));
+        auto* newSocketListen = new Socket(router);
+        listeningSockets.push_back(newSocketListen);
+        newSocketListen->bind(srcAddress, BGPApplication::BGPDefaultPort);
+        result = newSocketListen;
+    }
+    mutex.unlock();
+
+    return result;
 }

@@ -45,7 +45,7 @@ TCPConnection::~TCPConnection() {
 
 void TCPConnection::abort() {
     stateMachine->enqueueEvent(TCPEvent::Abort);
-    // TODO wait for the close abort to be completed
+    // TODO wait for the abort call to be completed
     L_DEBUG(stateMachine->connection->owner->ID,
             "TODO wait for the abort call to be completed");
     std::this_thread::sleep_for(3000ms);  // TODO remove

@@ -21,5 +21,5 @@ void Router::forwardMessage(
 
 void Router::bootUpInternal() {
     bgpApplication = new BGPApplication(this);
-    bgpApplication->passiveOpen();
+    bgpApplication->passiveOpenAll();
 }
