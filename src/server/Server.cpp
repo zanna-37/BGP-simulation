@@ -1019,7 +1019,7 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
                     std::string currentID =
                         itr->FindMember("ID")->value.GetString();
                     if (currentID == ID) {
-                        itr == doc["routers"].Erase(itr);
+                        itr = doc["routers"].Erase(itr);
                         L_DEBUG("Server",
                                 "Router removed from doc. Endpoint ID: " + ID);
                         L_DEBUG("Server",
@@ -1056,7 +1056,7 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
                     std::string currentID =
                         itr->FindMember("ID")->value.GetString();
                     if (currentID == ID) {
-                        itr == doc["endpoints"].Erase(itr);
+                        itr = doc["endpoints"].Erase(itr);
                         L_DEBUG(
                             "Server",
                             "Endpoint removed from doc. Endpoint ID: " + ID);
