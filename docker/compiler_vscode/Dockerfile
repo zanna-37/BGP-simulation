@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     gdb \
     cmake \
     valgrind \
+    clang-format \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \
