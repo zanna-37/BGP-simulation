@@ -15,7 +15,8 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
     switch (event) {
         case BGPEvent::ManualStart:
         case BGPEvent::AutomaticStart:
-            // TODO initializes all BGP resources for the peer connection,
+            // TODO initializes all BGP resources for the peer connection,  All
+            // done?
 
             // sets ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
@@ -34,10 +35,15 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateConnect(stateMachine));
             break;
 
+        case BGPEvent::ManualStop:
+        case BGPEvent::AutomaticStop:
+            // The events must be ingnored in Indle state
+            break;
+
         case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
         case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
 
-            // TODO initializes all BGP resources,
+            // TODO initializes all BGP resources, All done?
 
             // sets the ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
@@ -68,7 +74,27 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             handled = false;
             break;
-
+        case BGPEvent::ConnectRetryTimer_Expires:
+        case BGPEvent::HoldTimer_Expires:
+        case BGPEvent::KeepaliveTimer_Expires:
+        case BGPEvent::DelayOpenTimer_Expires:
+        case BGPEvent::Tcp_CR_Invalid:
+        case BGPEvent::Tcp_CR_Acked:
+        case BGPEvent::TcpConnectionConfirmed:
+        case BGPEvent::TcpConnectionFails:
+        case BGPEvent::BGPOpen:
+        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:
+        case BGPEvent::BGPHeaderErr:
+        case BGPEvent::BGPOpenMsgErr:
+        case BGPEvent::OpenCollisionDump:
+        case BGPEvent::NotifMsgVerErr:
+        case BGPEvent::NotifMsg:
+        case BGPEvent::KeepAliveMsg:
+        case BGPEvent::UpdateMsg:
+        case BGPEvent::UpdateMsgErr:
+            // (Events 9-12, 15-28) received in the Idle state
+            // does not cause change in the state of the local system.
+            break;
         default:
             handled = false;
             break;
