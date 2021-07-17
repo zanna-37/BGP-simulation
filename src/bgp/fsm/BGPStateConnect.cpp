@@ -8,6 +8,7 @@
 
 #include "../../entities/Router.h"
 #include "../../utils/Timer.h"
+#include "../BGPApplication.h"
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "../BGPTimer.h"
@@ -26,11 +27,20 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
     bool handled = true;
 
     switch (event) {
+        case BGPEvent::ManualStart:
+        case BGPEvent::AutomaticStart:
+        case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
+        case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
+        case BGPEvent::AutomaticStart_with_DampPeerOscillations:
+        case BGPEvent::
+            AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
+            // (Events 1, 3-7) are ignored in the Connect state.
+            break;
         case BGPEvent::ManualStop:
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
 
-            // TODO releases all BGP resources,
+            // TODO releases all BGP resources, It should be done.
 
             // sets ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
@@ -61,6 +71,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             break;
 
         case BGPEvent::DelayOpenTimer_Expires:
+            // Optional events
             // TODO sends an OPEN message to its peer,
 
             // sets the HoldTimer to a large value, and
@@ -76,15 +87,18 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
 
         case BGPEvent::TcpConnection_Valid:
             // TODO the TCP connection is processed, OPTIONAL
+            handled = false;
             break;
 
         case BGPEvent::Tcp_CR_Invalid:
             // TODO the local system rejects the TCP connection, OPTIONAL
+            handled = false;
             break;
 
         case BGPEvent::Tcp_CR_Acked:
         case BGPEvent::TcpConnectionConfirmed: {
             if (stateMachine->getDelayOpen()) {
+                // OPTIONAL
                 // If the DelayOpen attribute is set to TRUE, the local system:
                 // stops the ConnectRetryTimer (if running) and sets the
                 // ConnectRetryTimer to zero,
@@ -100,19 +114,24 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 // ConnectRetryTimer to zero,
                 stateMachine->resetConnectRetryTimer();
 
-                // TODO completes BGP initialization
+                // TODO completes BGP initialization, should be done.
 
-                // TODO sends an OPEN message to its peer,
-
-                // FIXME correct the hardcoded AS_number
+                // sends an OPEN message to its peer,
                 std::unique_ptr<BGPLayer> bgpOpenLayer =
                     std::make_unique<BGPOpenLayer>(
-                        /* TODO wait for bgp-table branch to be merged then put
-                           stateMachine->connection->owner->AS_number*/
-                        1111,
-                        (uint16_t)(stateMachine->getHoldTime().count()),
-                        pcpp::IPv4Address(stateMachine->connection->srcAddr));
+                        stateMachine->connection->owner->AS_number,
+                        stateMachine->getHoldTime().count(),
+                        stateMachine->connection->bgpApplication
+                            ->getBGPIdentifier());
                 bgpOpenLayer->computeCalculateFields();
+
+                // Commented code below is for tests
+                /* BGPOpenLayer bgpOpenMessage =
+                    BGPOpenLayer(stateMachine->connection->owner->AS_number,
+                                 stateMachine->getHoldTime().count(),
+                                 stateMachine->connection->bgpApplication
+                                     ->getBGPIdentifier());
+                std::cout << bgpOpenMessage.toString() << std::endl; */
 
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                     layers =
@@ -129,14 +148,13 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
 
                 // changes its state to OpenSent.
                 stateMachine->changeState(new BGPStateOpenSent(stateMachine));
-
-                handled = false;
             }
             break;
         }
         case BGPEvent::TcpConnectionFails:
             // If the DelayOpenTimer is running, the local system:
             if (stateMachine->delayOpenTimer->getState() == TICKING) {
+                // OPTIONAL
                 // restarts the ConnectRetryTimer with the initial value,
                 stateMachine->resetConnectRetryTimer();
                 stateMachine->connectRetryTimer->start();
@@ -158,15 +176,15 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 // drops the TCP connection,
                 stateMachine->connection->dropConnection(false);
 
-                // TODO releases all BGP resources, and
+                // TODO releases all BGP resources, and - should be done
 
                 // changes its state to Idle.
-                stateMachine->changeState(new BGPStateActive(stateMachine));
+                stateMachine->changeState(new BGPStateIdle(stateMachine));
             }
             break;
 
-        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:
-            // stops the ConnectRetryTimer (if running) and sets the
+        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:  // OPTIONAL
+            /* // stops the ConnectRetryTimer (if running) and sets the
             // ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -199,7 +217,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->resetHoldTimer();
             }
             // - and changes its state to OpenConfirm.
-            stateMachine->changeState(new BGPStateOpenConfirm(stateMachine));
+            stateMachine->changeState(new BGPStateOpenConfirm(stateMachine)); */
 
             handled = false;
             break;
@@ -207,7 +225,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
         case BGPEvent::BGPHeaderErr:
         case BGPEvent::BGPOpenMsgErr:
             if (stateMachine->getSendNOTIFICATIONwithoutOPEN()) {
-                // TODO
+                // OPTIONAL
                 // - (optionally) If the SendNOTIFICATIONwithoutOPEN attribute
                 // is
                 //   set to TRUE, then the local system first sends a
@@ -219,7 +237,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             // ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources,
+            // TODO releases all BGP resources, - done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -230,18 +248,18 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             // optionally performs peer oscillation damping if the
             // DampPeerOscillations attribute is set to TRUE, and
             if (stateMachine->getDampPeerOscillations()) {
+                // OPTIONAL
                 // performs peer oscillation damping
                 // <-- Not implemented
             }
 
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
-
-            handled = false;
             break;
 
         case BGPEvent::NotifMsgVerErr:
             if (stateMachine->delayOpenTimer->getState() == TICKING) {
+                // OPTIONAL
                 // stops the ConnectRetryTimer (if running) and sets the
                 // ConnectRetryTimer to zero,
                 stateMachine->resetConnectRetryTimer();
@@ -253,13 +271,15 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
 
                 // drops the TCP connection,
                 stateMachine->connection->dropConnection(false);
+                // changes its state to Idle.
+                stateMachine->changeState(new BGPStateIdle(stateMachine));
             } else {
                 // If the DelayOpenTimer is not running, the local system:
                 // stops the ConnectRetryTimer and sets the ConnectRetryTimer to
                 // zero,
                 stateMachine->resetConnectRetryTimer();
 
-                // TODO releases all BGP resources,
+                // TODO releases all BGP resources, done
 
                 // drops the TCP connection,
                 stateMachine->connection->dropConnection(false);
@@ -270,17 +290,19 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 // optionally performs peer oscillation damping if the
                 // DampPeerOscillations attribute is set to TRUE, and
                 if (stateMachine->getDampPeerOscillations()) {
+                    // OPTIONAL
                     // performs peer oscillation damping
                     // <-- Not implemented
                 }
+                // changes its state to Idle.
+                stateMachine->changeState(new BGPStateIdle(stateMachine));
             }
-            // changes its state to Idle.
-            stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
         case BGPEvent::AutomaticStop:
         case BGPEvent::HoldTimer_Expires:
         case BGPEvent::KeepaliveTimer_Expires:
+        case BGPEvent::IdleHoldTimer_Expires:
         case BGPEvent::BGPOpen:
         case BGPEvent::OpenCollisionDump:
         case BGPEvent::NotifMsg:
@@ -292,9 +314,9 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
             // if the DelayOpenTimer is running, stops and resets the
             // DelayOpenTimer (sets to zero),
-            stateMachine->resetDelayOpenTimer();
+            stateMachine->resetDelayOpenTimer(); // This is an optional attribute
 
-            // TODO releases all BGP resources,
+            // TODO releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -305,6 +327,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             // optionally performs peer oscillation damping if the
             // DampPeerOscillations attribute is set to TRUE, and
             if (stateMachine->getDampPeerOscillations()) {
+                // OPTIONAL
                 // performs peer oscillation damping
                 // <-- Not implemented
             }
