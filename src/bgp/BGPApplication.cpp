@@ -11,7 +11,7 @@
 #include "BGPConnection.h"
 #include "BGPEvent.h"
 
-BGPApplication::BGPApplication(Router* router) : router(router) {}
+BGPApplication::BGPApplication(Router* router, pcpp::IPv4Address BGPIdentifier) : router(router), BGPIdentifier(BGPIdentifier) {}
 
 BGPApplication::~BGPApplication() {
     running = false;

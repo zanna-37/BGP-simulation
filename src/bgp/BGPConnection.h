@@ -28,9 +28,8 @@ class BGPConnection {
     BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
 
-    BGPApplication* bgpApplication;
 
-    std::thread* listeningThread;
+    std::thread* listeningThread = nullptr;
 
     /**
      * The thread that manages any incoming application packet.
@@ -40,6 +39,8 @@ class BGPConnection {
     std::thread* connectThread = nullptr;
 
    public:
+    BGPApplication* bgpApplication;
+    
     /**
      * The owner of the connection, necessary in simulation context
      */
