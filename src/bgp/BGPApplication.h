@@ -76,8 +76,7 @@ class BGPApplication {
     Socket*        getCorrespondingListeningSocket(pcpp::IPv4Address srcAddress,
                                                    uint16_t          srcPort);
 
-    pcpp::IPv4Address getBGPIdentifier() {return BGPIdentifier;}
-
+    pcpp::IPv4Address getBGPIdentifier() { return BGPIdentifier; }
 };
 
 #endif  // BGPSIMULATION_BGP_BGPAPPLICATION_H

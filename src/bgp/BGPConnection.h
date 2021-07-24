@@ -40,7 +40,7 @@ class BGPConnection {
 
    public:
     BGPApplication* bgpApplication;
-    
+
     /**
      * The owner of the connection, necessary in simulation context
      */
@@ -62,7 +62,7 @@ class BGPConnection {
     Socket* connectedSocket [[deprecated(
         "Do not use directly. Use setConnectedSocketToAvailableBGPConn() or "
         "getConnectedSocket()")]] =
-            nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
+        nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
 
     // Constructors
     BGPConnection(Router* owner, BGPApplication* bgpApplication);

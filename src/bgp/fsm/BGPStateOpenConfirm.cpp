@@ -15,17 +15,17 @@
 bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
     bool handled = true;
 
-    switch (event) {
-        case BGPEvent::ManualStart:
-        case BGPEvent::AutomaticStart:
-        case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
-        case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
-        case BGPEvent::AutomaticStart_with_DampPeerOscillations:
-        case BGPEvent::
+    switch (event.eventList) {
+        case BGPEventList::ManualStart:
+        case BGPEventList::AutomaticStart:
+        case BGPEventList::ManualStart_with_PassiveTcpEstablishment:
+        case BGPEventList::AutomaticStart_with_PassiveTcpEstablishment:
+        case BGPEventList::AutomaticStart_with_DampPeerOscillations:
+        case BGPEventList::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             // (Events 1, 3-7) are ignored in the Active state.
             break;
-        case BGPEvent::ManualStop:
+        case BGPEventList::ManualStop:
             // sends the NOTIFICATION message with a Cease,
 
             {
@@ -58,7 +58,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::AutomaticStop:
+        case BGPEventList::AutomaticStop:
             // OPTIONAL
             // TODO remove if not necessary
             // sends the NOTIFICATION message with a Cease,
@@ -104,7 +104,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::HoldTimer_Expires:
+        case BGPEventList::HoldTimer_Expires:
             // sends the NOTIFICATION message with the Error Code Hold
             // Timer Expired,
 
@@ -146,7 +146,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::KeepaliveTimer_Expires:
+        case BGPEventList::KeepaliveTimer_Expires:
             // TODO sends a KEEPALIVE message,
 
             {
@@ -169,24 +169,24 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // and remains in the OpenConfirmed state.
             break;
 
-        case BGPEvent::TcpConnection_Valid:
-        case BGPEvent::Tcp_CR_Acked:
-        case BGPEvent::TcpConnectionConfirmed:
+        case BGPEventList::TcpConnection_Valid:
+        case BGPEventList::Tcp_CR_Acked:
+        case BGPEventList::TcpConnectionConfirmed:
             // TODO MANDATORY TO BE DONE!
-            // TODO the local system needs to track the second connection. 
+            // TODO the local system needs to track the second connection.
 
             handled = false;
             break;
 
-        case BGPEvent::Tcp_CR_Invalid:
-        // OPTIONAL
+        case BGPEventList::Tcp_CR_Invalid:
+            // OPTIONAL
             // TODO the local system will ignore the second connection attempt.
 
             handled = false;
             break;
 
-        case BGPEvent::TcpConnectionFails:
-        case BGPEvent::NotifMsg:
+        case BGPEventList::TcpConnectionFails:
+        case BGPEventList::NotifMsg:
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -210,7 +210,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::NotifMsgVerErr:
+        case BGPEventList::NotifMsgVerErr:
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -223,8 +223,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::BGPOpen:
-            // TODO MANDATORY TO BE DONE!s
+        case BGPEventList::BGPOpen:
+            // TODO MANDATORY TO BE DONE!
             // TODO If this connection is to be dropped due to connection
             // collision, the local system:
             // TODO sends a NOTIFICATION with a Cease,
@@ -253,9 +253,9 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::BGPHeaderErr:
-        case BGPEvent::BGPOpenMsgErr:
-        // TODO MANDATORY
+        case BGPEventList::BGPHeaderErr:
+        case BGPEventList::BGPOpenMsgErr:
+            // TODO MANDATORY
             // TODO sends a NOTIFICATION message with the appropriate error code
 
             // sets the ConnectRetryTimer to zero,
@@ -282,7 +282,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::OpenCollisionDump:
+        case BGPEventList::OpenCollisionDump:
             // OPTIONAL
             /* // TODO sends a NOTIFICATION with a Cease,
 
@@ -310,9 +310,9 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::KeepAliveMsg:
+        case BGPEventList::KeepAliveMsg:
             // TODO check if it works
-            // FIXME restarts the HoldTimer and 
+            // FIXME restarts the HoldTimer and
             stateMachine->resetHoldTimer();
             stateMachine->holdTimer->start();
 
@@ -320,12 +320,12 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateEstablished(stateMachine));
             break;
 
-        case BGPEvent::ConnectRetryTimer_Expires:
-        case BGPEvent::DelayOpenTimer_Expires:
-        case BGPEvent::IdleHoldTimer_Expires:
-        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:
-        case BGPEvent::UpdateMsg:
-        case BGPEvent::UpdateMsgErr:
+        case BGPEventList::ConnectRetryTimer_Expires:
+        case BGPEventList::DelayOpenTimer_Expires:
+        case BGPEventList::IdleHoldTimer_Expires:
+        case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
+        case BGPEventList::UpdateMsg:
+        case BGPEventList::UpdateMsgErr:
             // sends a NOTIFICATION with a code of Finite State Machine
             // Error
 

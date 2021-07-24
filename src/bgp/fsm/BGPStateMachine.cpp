@@ -37,11 +37,12 @@ void BGPStateMachine::resetConnectRetryTimer() {
         connectRetryTimer->stop();
         delete connectRetryTimer;
     }
-
-    connectRetryTimer = new BGPTimer("ConnectRetryTimer",
-                                     this,
-                                     BGPEvent::ConnectRetryTimer_Expires,
-                                     kConnectRetryTime_defaultVal);
+    BGPEvent event = {
+        BGPEventList::ConnectRetryTimer_Expires,
+        nullptr,
+    };
+    connectRetryTimer = new BGPTimer(
+        "ConnectRetryTimer", this, event, kConnectRetryTime_defaultVal);
 }
 
 void BGPStateMachine::resetHoldTimer() {
@@ -49,9 +50,11 @@ void BGPStateMachine::resetHoldTimer() {
         holdTimer->stop();
         delete holdTimer;
     }
-
-    holdTimer = new BGPTimer(
-        "HoldTimer", this, BGPEvent::HoldTimer_Expires, kHoldTime_defaultVal);
+    BGPEvent event = {
+        BGPEventList::HoldTimer_Expires,
+        nullptr,
+    };
+    holdTimer = new BGPTimer("HoldTimer", this, event, kHoldTime_defaultVal);
 }
 
 void BGPStateMachine::resetKeepAliveTimer() {
@@ -59,11 +62,12 @@ void BGPStateMachine::resetKeepAliveTimer() {
         keepAliveTimer->stop();
         delete keepAliveTimer;
     }
-
-    keepAliveTimer = new BGPTimer("KeepAliveTimer",
-                                  this,
-                                  BGPEvent::KeepaliveTimer_Expires,
-                                  kKeepaliveTime_defaultVal);
+    BGPEvent event = {
+        BGPEventList::KeepaliveTimer_Expires,
+        nullptr,
+    };
+    keepAliveTimer =
+        new BGPTimer("KeepAliveTimer", this, event, kKeepaliveTime_defaultVal);
 }
 
 void BGPStateMachine::resetDelayOpenTimer() {
@@ -71,10 +75,12 @@ void BGPStateMachine::resetDelayOpenTimer() {
         delayOpenTimer->stop();
         delete delayOpenTimer;
     }
-    delayOpenTimer = new BGPTimer("DelayOpenTimer",
-                                  this,
-                                  BGPEvent::DelayOpenTimer_Expires,
-                                  delayOpenTime);
+    BGPEvent event = {
+        BGPEventList::DelayOpenTimer_Expires,
+        nullptr,
+    };
+
+    delayOpenTimer = new BGPTimer("DelayOpenTimer", this, event, delayOpenTime);
 }
 
 void BGPStateMachine::initializeTimers() {

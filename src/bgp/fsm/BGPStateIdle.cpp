@@ -12,9 +12,9 @@
 bool BGPStateIdle ::onEvent(BGPEvent event) {
     bool handled = true;
 
-    switch (event) {
-        case BGPEvent::ManualStart:
-        case BGPEvent::AutomaticStart:
+    switch (event.eventList) {
+        case BGPEventList::ManualStart:
+        case BGPEventList::AutomaticStart:
             // TODO initializes all BGP resources for the peer connection,  All
             // done?
 
@@ -35,13 +35,13 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateConnect(stateMachine));
             break;
 
-        case BGPEvent::ManualStop:
-        case BGPEvent::AutomaticStop:
+        case BGPEventList::ManualStop:
+        case BGPEventList::AutomaticStop:
             // The events must be ingnored in Indle state
             break;
 
-        case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
-        case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
+        case BGPEventList::ManualStart_with_PassiveTcpEstablishment:
+        case BGPEventList::AutomaticStart_with_PassiveTcpEstablishment:
 
             // TODO initializes all BGP resources, All done?
 
@@ -59,10 +59,10 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateActive(stateMachine));
             break;
 
-        case BGPEvent::AutomaticStart_with_DampPeerOscillations:
-        case BGPEvent::
+        case BGPEventList::AutomaticStart_with_DampPeerOscillations:
+        case BGPEventList::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
-        case BGPEvent::IdleHoldTimer_Expires:
+        case BGPEventList::IdleHoldTimer_Expires:
 
             if (stateMachine->getDampPeerOscillations()) {
                 // TODO: Do we need to implement DampPeerOscillations?
@@ -74,24 +74,24 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             handled = false;
             break;
-        case BGPEvent::ConnectRetryTimer_Expires:
-        case BGPEvent::HoldTimer_Expires:
-        case BGPEvent::KeepaliveTimer_Expires:
-        case BGPEvent::DelayOpenTimer_Expires:
-        case BGPEvent::Tcp_CR_Invalid:
-        case BGPEvent::Tcp_CR_Acked:
-        case BGPEvent::TcpConnectionConfirmed:
-        case BGPEvent::TcpConnectionFails:
-        case BGPEvent::BGPOpen:
-        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:
-        case BGPEvent::BGPHeaderErr:
-        case BGPEvent::BGPOpenMsgErr:
-        case BGPEvent::OpenCollisionDump:
-        case BGPEvent::NotifMsgVerErr:
-        case BGPEvent::NotifMsg:
-        case BGPEvent::KeepAliveMsg:
-        case BGPEvent::UpdateMsg:
-        case BGPEvent::UpdateMsgErr:
+        case BGPEventList::ConnectRetryTimer_Expires:
+        case BGPEventList::HoldTimer_Expires:
+        case BGPEventList::KeepaliveTimer_Expires:
+        case BGPEventList::DelayOpenTimer_Expires:
+        case BGPEventList::Tcp_CR_Invalid:
+        case BGPEventList::Tcp_CR_Acked:
+        case BGPEventList::TcpConnectionConfirmed:
+        case BGPEventList::TcpConnectionFails:
+        case BGPEventList::BGPOpen:
+        case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
+        case BGPEventList::BGPHeaderErr:
+        case BGPEventList::BGPOpenMsgErr:
+        case BGPEventList::OpenCollisionDump:
+        case BGPEventList::NotifMsgVerErr:
+        case BGPEventList::NotifMsg:
+        case BGPEventList::KeepAliveMsg:
+        case BGPEventList::UpdateMsg:
+        case BGPEventList::UpdateMsgErr:
             // (Events 9-12, 15-28) received in the Idle state
             // does not cause change in the state of the local system.
             break;

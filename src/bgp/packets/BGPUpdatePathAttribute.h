@@ -114,9 +114,8 @@ class PathAttribute {
          * [out]       newAttributeTypeFlags 01001000
          * \endverbatim
          */
-        this->attributeTypeFlags =
-            (AttributeTypeFlags_uint8_t)((this->attributeTypeFlags | mask) |
-                                         value_bits);
+        this->attributeTypeFlags = (AttributeTypeFlags_uint8_t)(
+            (this->attributeTypeFlags | mask) | value_bits);
     }
 
     /**

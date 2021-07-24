@@ -11,7 +11,8 @@
 #include "BGPConnection.h"
 #include "BGPEvent.h"
 
-BGPApplication::BGPApplication(Router* router, pcpp::IPv4Address BGPIdentifier) : router(router), BGPIdentifier(BGPIdentifier) {}
+BGPApplication::BGPApplication(Router* router, pcpp::IPv4Address BGPIdentifier)
+    : router(router), BGPIdentifier(BGPIdentifier) {}
 
 BGPApplication::~BGPApplication() {
     running = false;
@@ -49,8 +50,12 @@ void BGPApplication::passiveOpenAll() {
             bgpConnection->srcPort = BGPApplication::BGPDefaultPort;
             bgpConnection->dstAddr = peerAddr;
 
-            bgpConnection->enqueueEvent(
-                BGPEvent::ManualStart_with_PassiveTcpEstablishment);
+            BGPEvent event = {
+                BGPEventList::ManualStart_with_PassiveTcpEstablishment,
+                nullptr,
+            };
+
+            bgpConnection->enqueueEvent(event);
         }
     }
 }
@@ -59,10 +64,14 @@ void BGPApplication::collisionDetection(BGPConnection* connectionToCheck) {
     for (BGPConnection* connection : bgpConnections) {
         if (connectionToCheck->dstAddr == connection->dstAddr &&
             connection != connectionToCheck) {
+            BGPEvent event = {
+                BGPEventList::ManualStop,
+                nullptr,
+            };
             if (connectionToCheck->srcAddr < connection->dstAddr) {
-                connectionToCheck->enqueueEvent(BGPEvent::ManualStop);
+                connectionToCheck->enqueueEvent(event);
             } else {
-                connection->enqueueEvent(BGPEvent::ManualStop);
+                connection->enqueueEvent(event);
             }
         }
     }

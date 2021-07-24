@@ -13,8 +13,8 @@
 bool BGPStateEstablished ::onEvent(BGPEvent event) {
     bool handled = true;
 
-    switch (event) {
-        case BGPEvent::ManualStop:
+    switch (event.eventList) {
+        case BGPEventList::ManualStop:
             // TODO sends the NOTIFICATION message with a Cease,
 
             // sets the ConnectRetryTimer to zero,
@@ -36,7 +36,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::AutomaticStop:
+        case BGPEventList::AutomaticStop:
             // TODO sends a NOTIFICATION with a Cease,
 
             // sets the ConnectRetryTimer to zero
@@ -65,7 +65,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::HoldTimer_Expires:
+        case BGPEventList::HoldTimer_Expires:
             // TODO sends a NOTIFICATION message with the Error Code Hold Timer
             // Expired,
 
@@ -93,7 +93,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::KeepaliveTimer_Expires:
+        case BGPEventList::KeepaliveTimer_Expires:
             // TODO sends a KEEPALIVE message, and
 
             // FIXME restarts its KeepaliveTimer, unless the negotiated HoldTime
@@ -106,22 +106,22 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::TcpConnection_Valid:
+        case BGPEventList::TcpConnection_Valid:
             // TODO received for a valid port, will cause the second connection
             // to be tracked.
 
             handled = false;
             break;
 
-        case BGPEvent::Tcp_CR_Acked:
-        case BGPEvent::TcpConnectionConfirmed:
+        case BGPEventList::Tcp_CR_Acked:
+        case BGPEventList::TcpConnectionConfirmed:
             // TODO the second connection SHALL be tracked until it sends an
             // OPEN message.
 
             handled = false;
             break;
 
-        case BGPEvent::BGPOpen:
+        case BGPEventList::BGPOpen:
             // TODO If a valid OPEN message (BGPOpen (Event 19)) is received,
             // and if the CollisionDetectEstablishedState optional attribute is
             // TRUE, the OPEN message will be checked to see if it collides
@@ -129,7 +129,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::OpenCollisionDump:
+        case BGPEventList::OpenCollisionDump:
             // TODO sends a NOTIFICATION with a Cease,
 
             // sets the ConnectRetryTimer to zero,
@@ -158,9 +158,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::NotifMsgVerErr:
-        case BGPEvent::NotifMsg:
-        case BGPEvent::TcpConnectionFails:
+        case BGPEventList::NotifMsgVerErr:
+        case BGPEventList::NotifMsg:
+        case BGPEventList::TcpConnectionFails:
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -180,7 +180,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::KeepAliveMsg:
+        case BGPEventList::KeepAliveMsg:
             // FIXME restarts its HoldTimer, if the negotiated HoldTime value is
             // non-zero, and
             if (stateMachine->getHoldTime() != 0ms) {
@@ -193,7 +193,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::UpdateMsg:
+        case BGPEventList::UpdateMsg:
             // TODO processes the message,
 
             // restarts its HoldTimer, if the negotiated HoldTime value is
@@ -208,7 +208,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::UpdateMsgErr:
+        case BGPEventList::UpdateMsgErr:
             // TODO sends a NOTIFICATION message with an Update error,
 
             // sets the ConnectRetryTimer to zero,
@@ -237,12 +237,12 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::ConnectRetryTimer_Expires:
-        case BGPEvent::DelayOpenTimer_Expires:
-        case BGPEvent::IdleHoldTimer_Expires:
-        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:
-        case BGPEvent::BGPHeaderErr:
-        case BGPEvent::BGPOpenMsgErr:
+        case BGPEventList::ConnectRetryTimer_Expires:
+        case BGPEventList::DelayOpenTimer_Expires:
+        case BGPEventList::IdleHoldTimer_Expires:
+        case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
+        case BGPEventList::BGPHeaderErr:
+        case BGPEventList::BGPOpenMsgErr:
             // TODO sends a NOTIFICATION message with the Error Code Finite
             // State Machine Error,
 

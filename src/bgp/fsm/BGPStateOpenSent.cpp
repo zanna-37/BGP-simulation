@@ -16,17 +16,17 @@
 bool BGPStateOpenSent ::onEvent(BGPEvent event) {
     bool handled = true;
 
-    switch (event) {
-        case BGPEvent::ManualStart:
-        case BGPEvent::AutomaticStart:
-        case BGPEvent::ManualStart_with_PassiveTcpEstablishment:
-        case BGPEvent::AutomaticStart_with_PassiveTcpEstablishment:
-        case BGPEvent::AutomaticStart_with_DampPeerOscillations:
-        case BGPEvent::
+    switch (event.eventList) {
+        case BGPEventList::ManualStart:
+        case BGPEventList::AutomaticStart:
+        case BGPEventList::ManualStart_with_PassiveTcpEstablishment:
+        case BGPEventList::AutomaticStart_with_PassiveTcpEstablishment:
+        case BGPEventList::AutomaticStart_with_DampPeerOscillations:
+        case BGPEventList::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             // (Events 1, 3-7) are ignored in the Active state.
             break;
-        case BGPEvent::ManualStop:
+        case BGPEventList::ManualStop:
             // sends the NOTIFICATION with a Cease,
 
             {
@@ -68,7 +68,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::AutomaticStop:
+        case BGPEventList::AutomaticStop:
             // sends the NOTIFICATION with a Cease,
 
             {
@@ -109,7 +109,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::HoldTimer_Expires:
+        case BGPEventList::HoldTimer_Expires:
             // sends a NOTIFICATION message with the error code Hold Timer
             // Expired
 
@@ -151,9 +151,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::TcpConnection_Valid:
-        case BGPEvent::Tcp_CR_Acked:
-        case BGPEvent::TcpConnectionConfirmed:
+        case BGPEventList::TcpConnection_Valid:
+        case BGPEventList::Tcp_CR_Acked:
+        case BGPEventList::TcpConnectionConfirmed:
             // TODO a second TCP connection may be in progress. This second TCP
             // connection is tracked per Connection Collision processing
             // (Section 6.8) until an OPEN message is received.
@@ -161,12 +161,12 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::Tcp_CR_Invalid:
+        case BGPEventList::Tcp_CR_Invalid:
             // A TCP Connection Request for an Invalid port (Tcp_CR_Invalid
             // (Event 15)) is ignored.
             break;
 
-        case BGPEvent::TcpConnectionFails:
+        case BGPEventList::TcpConnectionFails:
             // TODO closes the BGP connection,
 
             // restarts the ConnectRetryTimer,
@@ -182,7 +182,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::BGPOpen:
+        case BGPEventList::BGPOpen:
 
             // TODO, probably handle this event in the process message
 
@@ -233,8 +233,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::BGPHeaderErr:
-        case BGPEvent::BGPOpenMsgErr:
+        case BGPEventList::BGPHeaderErr:
+        case BGPEventList::BGPOpenMsgErr:
             // TODO handle in the message process
             //  TODO sends a NOTIFICATION message with the appropriate error
             //  code
@@ -264,7 +264,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             handled = false;
             break;
 
-        case BGPEvent::OpenCollisionDump:
+        case BGPEventList::OpenCollisionDump:
             // OPTIONAL
             // TODO remove if not needed
             // sends a NOTIFICATION with a Cease,
@@ -307,7 +307,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::NotifMsgVerErr:
+        case BGPEventList::NotifMsgVerErr:
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -320,15 +320,15 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
-        case BGPEvent::ConnectRetryTimer_Expires:
-        case BGPEvent::KeepaliveTimer_Expires:
-        case BGPEvent::DelayOpenTimer_Expires:
-        case BGPEvent::IdleHoldTimer_Expires:
-        case BGPEvent::BGPOpen_with_DelayOpenTimer_running:
-        case BGPEvent::NotifMsg:
-        case BGPEvent::KeepAliveMsg:
-        case BGPEvent::UpdateMsg:
-        case BGPEvent::UpdateMsgErr:
+        case BGPEventList::ConnectRetryTimer_Expires:
+        case BGPEventList::KeepaliveTimer_Expires:
+        case BGPEventList::DelayOpenTimer_Expires:
+        case BGPEventList::IdleHoldTimer_Expires:
+        case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
+        case BGPEventList::NotifMsg:
+        case BGPEventList::KeepAliveMsg:
+        case BGPEventList::UpdateMsg:
+        case BGPEventList::UpdateMsgErr:
             // sends the NOTIFICATION with the Error Code Finite State
             // Machine Error
 

@@ -149,7 +149,11 @@ void BGPConnection::startReceivingThread() {
 }
 
 void BGPConnection::closeConnection() {
-    enqueueEvent(BGPEvent::TcpConnectionFails);
+    BGPEvent event = {
+        BGPEventList::TcpConnectionFails,
+        nullptr,
+    };
+    enqueueEvent(event);
 }
 
 void BGPConnection::sendData(
@@ -184,11 +188,18 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
 
                     if (bgpConnection_weak != this) {
                         // If it is a new BGPConnection set it up
-                        bgpConnection_weak->enqueueEvent(
-                            BGPEvent::ManualStart_with_PassiveTcpEstablishment);
+                        BGPEvent event = {
+                            BGPEventList::
+                                ManualStart_with_PassiveTcpEstablishment,
+                            nullptr,
+                        };
+                        bgpConnection_weak->enqueueEvent(event);
                     }
-                    bgpConnection_weak->enqueueEvent(
-                        BGPEvent::TcpConnectionConfirmed);
+                    BGPEvent event = {
+                        BGPEventList::TcpConnectionConfirmed,
+                        nullptr,
+                    };
+                    bgpConnection_weak->enqueueEvent(event);
                     bgpConnection_weak->startReceivingThread();
                 }
             } else {
@@ -212,7 +223,11 @@ void BGPConnection::asyncConnectToPeer() {
                 bgpConnection_weak->dstAddr, BGPApplication::BGPDefaultPort) ==
             0) {
             bgpConnection_weak->startReceivingThread();
-            bgpConnection_weak->enqueueEvent(BGPEvent::TcpConnection_Valid);
+            BGPEvent event = {
+                BGPEventList::TcpConnection_Valid,
+                nullptr,
+            };
+            bgpConnection_weak->enqueueEvent(event);
         }
     });
 }
@@ -244,8 +259,12 @@ void BGPConnection::dropConnection(bool gentle) {
 }
 
 void BGPConnection::shutdown() {
-    running = false;
-    enqueueEvent(BGPEvent::ManualStop);
+    running        = false;
+    BGPEvent event = {
+        BGPEventList::ManualStop,
+        nullptr,
+    };
+    enqueueEvent(event);
     // TODO wait for the shutdown call to be completed
     L_DEBUG(stateMachine->connection->owner->ID,
             "TODO wait for the shutdown call to be completed");
