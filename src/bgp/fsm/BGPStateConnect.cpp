@@ -75,7 +75,7 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             // TODO sends an OPEN message to its peer,
 
             // sets the HoldTimer to a large value, and
-            stateMachine->setHoldTime(
+            stateMachine->setNegotiatedHoldTime(
                 BGPStateMachine::kHoldTime_large_defaultVal);
             stateMachine->holdTimer->start();  // TODO do we need to start it?
 
@@ -116,11 +116,14 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
 
                 // TODO completes BGP initialization, should be done.
 
-                // sends an OPEN message to its peer,
+                // TODO the hold time in the open message is the same of the one
+                // setted as a large time? or it should be the old one? sends an
+
+                // OPEN message to its peer,
                 std::unique_ptr<BGPLayer> bgpOpenLayer =
                     std::make_unique<BGPOpenLayer>(
                         stateMachine->connection->owner->AS_number,
-                        stateMachine->getHoldTime().count(),
+                        stateMachine->getNegotiatedHoldTime().count(),
                         stateMachine->connection->bgpApplication
                             ->getBGPIdentifier());
                 bgpOpenLayer->computeCalculateFields();
@@ -141,8 +144,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->connection->sendData(std::move(layers));
 
                 // sets the HoldTimer to a large value, and
-                stateMachine->setHoldTime(
-                    BGPStateMachine::kHoldTime_large_defaultVal);
+                stateMachine->setNegotiatedHoldTime(BGPStateMachine::kHoldTime_large_defaultVal);
+                stateMachine->resetHoldTimer();
                 stateMachine->holdTimer
                     ->start();  // TODO do we need to start it?
 

@@ -75,6 +75,12 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     void initializeTimers();
 
     /**
+     * @brief Initialize the negotiated time values used for this connection
+     *
+     */
+    void initializeTimes();
+
+    /**
      * Get the connectRetrycounter
      * @return the connectRetryCounter value
      */
@@ -142,28 +148,34 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     }
 
     /**
-     * Get the holdTime default value. Used by holdTimer
+     * @brief Get the holdTime negotiated value.
      * @return the holdTime value
      */
-    std::chrono::seconds getHoldTime() const { return holdTime; }
+    std::chrono::seconds getNegotiatedHoldTime() const {
+        return negotiatedHoldTime;
+    }
 
     /**
-     * Set the holdTime default value
-     * @param value the value of holdTime
+     * Set the holdTime negotiated value
+     * @param value the value of negotiatedHoldTime
      */
-    void setHoldTime(const std::chrono::seconds& value) { holdTime = value; }
+    void setNegotiatedHoldTime(const std::chrono::seconds& value) {
+        negotiatedHoldTime = value;
+    }
 
     /**
      * Get the keepAliveTime default value. Used by keepAliveTimer
      * @return the keepAliveTime value
      */
-    std::chrono::seconds getKeepaliveTime() const { return keepaliveTime; }
+    std::chrono::seconds getNegotiatedKeepaliveTime() const {
+        return negotiatedKeepaliveTime;
+    }
     /**
      * Set the keepAliveTime default value
      * @param value the value of keepAliveTime
      */
-    void setKeepaliveTime(const std::chrono::seconds& value) {
-        keepaliveTime = value;
+    void setNegotiatedKeepaliveTime(const std::chrono::seconds& value) {
+        negotiatedKeepaliveTime = value;
     }
 
     /**
@@ -239,9 +251,12 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     // TODO print name of the current BGPState
 
    private:
-    std::chrono::seconds connectRetryTime = 120s;
-    std::chrono::seconds holdTime         = 90s;
-    std::chrono::seconds keepaliveTime    = holdTime / 3;
+    // TODO from the RFC, the following "ConnectRetryTime" "HoldTime"
+    // "KeepaliveTime" should be the default values, but they are already set
+    // above, Do we need to follow word by word the RFC?
+    std::chrono::seconds connectRetryTime        = 0s;
+    std::chrono::seconds negotiatedHoldTime      = 0s;
+    std::chrono::seconds negotiatedKeepaliveTime = 0s;
 
     // Mandatory session attributes
     int connectRetryCounter = 0;

@@ -51,7 +51,6 @@ class BGPConnection {
     pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;  // TODO remove(?)
     uint16_t          srcPort = 179;                      // TODO remove!!
 
-    std::chrono::seconds holdTime = 0s;
 
     std::mutex connectedSocket_mutex;
 
@@ -93,6 +92,8 @@ class BGPConnection {
      * Close the BGP connection and notifies the state machine
      */
     void closeConnection();
+
+    std::chrono::seconds getNegotiatedHoldTime();
 
     /**
      * Starts the receiving thread. This thread will wait for new messages

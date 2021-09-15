@@ -42,7 +42,7 @@ void BGPStateMachine::resetConnectRetryTimer() {
         nullptr,
     };
     connectRetryTimer = new BGPTimer(
-        "ConnectRetryTimer", this, event, kConnectRetryTime_defaultVal);
+        "ConnectRetryTimer", this, event, getConnectRetryTime());
 }
 
 void BGPStateMachine::resetHoldTimer() {
@@ -54,7 +54,7 @@ void BGPStateMachine::resetHoldTimer() {
         BGPEventList::HoldTimer_Expires,
         nullptr,
     };
-    holdTimer = new BGPTimer("HoldTimer", this, event, kHoldTime_defaultVal);
+    holdTimer = new BGPTimer("HoldTimer", this, event, getNegotiatedHoldTime());
 }
 
 void BGPStateMachine::resetKeepAliveTimer() {
@@ -67,7 +67,7 @@ void BGPStateMachine::resetKeepAliveTimer() {
         nullptr,
     };
     keepAliveTimer =
-        new BGPTimer("KeepAliveTimer", this, event, kKeepaliveTime_defaultVal);
+        new BGPTimer("KeepAliveTimer", this, event, getNegotiatedKeepaliveTime());
 }
 
 void BGPStateMachine::resetDelayOpenTimer() {
@@ -84,10 +84,18 @@ void BGPStateMachine::resetDelayOpenTimer() {
 }
 
 void BGPStateMachine::initializeTimers() {
+    //Reset just first time to the default values, after that, use the default values
+    initializeTimes();
     resetConnectRetryTimer();
     resetHoldTimer();
     resetKeepAliveTimer();
     resetDelayOpenTimer();
+}
+
+void BGPStateMachine::initializeTimes() {
+    setConnectRetryTime(kConnectRetryTime_defaultVal);
+    setNegotiatedHoldTime(kHoldTime_defaultVal);
+    setNegotiatedKeepaliveTime(kKeepaliveTime_defaultVal);
 }
 
 std::string BGPStateMachine::toString() {
