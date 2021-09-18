@@ -102,6 +102,8 @@ class BGPNotificationLayer : public BGPLayer {
     size_t getNotificationData_be(uint8_t* bufferToFill,
                                   size_t   maxLength) const;
 
+    bool checkMessageErr(uint8_t subcode) const override;
+
    private:
     std::string toStringInternal() const override;
     void        computeCalculateFieldsInternal() const override;

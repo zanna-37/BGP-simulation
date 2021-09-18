@@ -145,7 +145,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 std::unique_ptr<BGPLayer> bgpOpenLayer =
                     std::make_unique<BGPOpenLayer>(
                         stateMachine->connection->owner->AS_number,
-                        stateMachine->getHoldTime().count(),
+                        stateMachine->getNegotiatedHoldTime().count(),
                         stateMachine->connection->bgpApplication
                             ->getBGPIdentifier());
                 bgpOpenLayer->computeCalculateFields();
@@ -166,6 +166,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 stateMachine->connection->sendData(std::move(layers));
 
                 // sets its HoldTimer to a large value, and
+                stateMachine->setNegotiatedHoldTime(BGPStateMachine::kHoldTime_large_defaultVal);
                 stateMachine->resetHoldTimer();
                 stateMachine->holdTimer->setDuration(
                     BGPStateMachine::kHoldTime_large_defaultVal);
