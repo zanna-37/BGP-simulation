@@ -43,7 +43,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 stateMachine->connection->sendData(std::move(layers));
             }
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -60,7 +60,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
         case BGPEventList::AutomaticStop:
             // OPTIONAL
-            // TODO remove if not necessary
+            // XXX remove if not necessary
             // sends the NOTIFICATION message with a Cease,
 
             {
@@ -82,7 +82,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -126,7 +126,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -147,7 +147,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::KeepaliveTimer_Expires:
-            // TODO sends a KEEPALIVE message,
+            // sends a KEEPALIVE message,
 
             {
                 std::unique_ptr<BGPLayer> bgpKeepaliveLayer =
@@ -172,7 +172,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
         case BGPEventList::TcpConnection_Valid:
         case BGPEventList::Tcp_CR_Acked:
         case BGPEventList::TcpConnectionConfirmed:
-            // TODO MANDATORY TO BE DONE!
+            // TODO MANDATORY TO BE DONE! but How?
             // TODO the local system needs to track the second connection.
 
             handled = false;
@@ -180,7 +180,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
         case BGPEventList::Tcp_CR_Invalid:
             // OPTIONAL
-            // TODO the local system will ignore the second connection attempt.
+            // XXX the local system will ignore the second connection attempt.
 
             handled = false;
             break;
@@ -190,7 +190,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -214,7 +214,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -227,12 +227,33 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // TODO MANDATORY TO BE DONE!
             // TODO If this connection is to be dropped due to connection
             // collision, the local system:
-            // TODO sends a NOTIFICATION with a Cease,
+
+            // And if it does not need to be dropped? The message is ignored??
+
+            // FIXME maybe the collision detection should work in some other way
+            // stateMachine->connection->bgpApplication->collisionDetection(stateMachine->connection);
+
+
+            // sends a NOTIFICATION with a Cease,
+            {
+                std::unique_ptr<BGPLayer> bgpNotificationLayer =
+                    std::make_unique<BGPNotificationLayer>(
+                        BGPNotificationLayer::CEASE,
+                        BGPNotificationLayer::ERR_X_NO_SUB_ERR);
+                bgpNotificationLayer->computeCalculateFields();
+
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpNotificationLayer));
+
+                stateMachine->connection->sendData(std::move(layers));
+            }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources,
+            // XXX releases all BGP resources,
 
             // drops the TCP connection (send TCP FIN),
             stateMachine->connection->dropConnection(true);
@@ -255,13 +276,26 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
         case BGPEventList::BGPHeaderErr:
         case BGPEventList::BGPOpenMsgErr:
-            // TODO MANDATORY
-            // TODO sends a NOTIFICATION message with the appropriate error code
+            // MANDATORY
+            // sends a NOTIFICATION message with the appropriate error code
+
+            {
+                std::unique_ptr<BGPLayer> bgpNotificationLayer =
+                    std::make_unique<BGPNotificationLayer>(
+                        dynamic_cast<BGPNotificationLayer*>(event.layers));
+
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpNotificationLayer));
+
+                stateMachine->connection->sendData(std::move(layers));
+            }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources,
+            // XXX releases all BGP resources,
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -284,12 +318,12 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
         case BGPEventList::OpenCollisionDump:
             // OPTIONAL
-            /* // TODO sends a NOTIFICATION with a Cease,
+            /* // XXX sends a NOTIFICATION with a Cease,
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources
+            // XXX releases all BGP resources
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -347,7 +381,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);

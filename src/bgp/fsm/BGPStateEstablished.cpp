@@ -6,9 +6,9 @@
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "../BGPTimer.h"
+#include "../packets/BGPKeepaliveLayer.h"
 #include "../packets/BGPLayer.h"
 #include "../packets/BGPNotificationLayer.h"
-#include "../packets/BGPKeepaliveLayer.h"
 #include "BGPStateIdle.h"
 #include "BGPStateMachine.h"
 
@@ -50,7 +50,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // TODO deletes all routes associated with this connection,
             // TODO BGP table needed
 
-            // TODO releases BGP resources, done
+            // XXX releases BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -65,7 +65,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::AutomaticStop:
-            // OPTIONAL  
+            // OPTIONAL
             // sends a NOTIFICATION with a Cease,
 
             {
@@ -87,10 +87,10 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero
             stateMachine->resetConnectRetryTimer();
 
-            // TODO deletes all routes associated with this connection,
-            // TODO copy from above
+            // XXX deletes all routes associated with this connection,
+            // XXX copy from above
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -113,7 +113,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::HoldTimer_Expires:
-            // TODO sends a NOTIFICATION message with the Error Code Hold Timer
+            // sends a NOTIFICATION message with the Error Code Hold Timer
             // Expired,
 
             {
@@ -135,7 +135,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -175,9 +175,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
 
             // FIXME restarts its KeepaliveTimer, unless the negotiated HoldTime
-            // value is zero.
-            // TODO Understand if for the above fixme there is a reason
-            if (stateMachine->holdTimer->getDuration() != 0ms) {
+            // value is zero. --> Should be correct now
+            if (stateMachine->getNegotiatedHoldTime() != 0ms) {
                 stateMachine->resetKeepAliveTimer();
                 stateMachine->keepAliveTimer->start();
             }
@@ -185,7 +184,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
         case BGPEventList::TcpConnection_Valid:
             // OPTIONAL
-            // TODO received for a valid port, will cause the second connection
+            // XXX received for a valid port, will cause the second connection
             // to be tracked.
 
             handled = false;
@@ -197,7 +196,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
         case BGPEventList::Tcp_CR_Acked:
         case BGPEventList::TcpConnectionConfirmed:
-            // TODO MANDATORY
+            // MANDATORY  -- How?
             // TODO the second connection SHALL be tracked until it sends an
             // OPEN message.
 
@@ -205,24 +204,32 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::BGPOpen:
-            // TODO when handle all the messages
-            // TODO If a valid OPEN message (BGPOpen (Event 19)) is received,
+
+            // If a valid OPEN message (BGPOpen (Event 19)) is received,
             // and if the CollisionDetectEstablishedState optional attribute is
             // TRUE, the OPEN message will be checked to see if it collides
             // (Section 6.8) with any other connection.
-            handled = false;
+
+            if (stateMachine->getCollisionDetectEstablishedState()) {
+                // OPTIONAL
+            }
+
+            // FIXME If the CollisionDetectEstablishedState is FALSE the RFC does not
+            // give any instructions I suppose that the message needs to be
+            // ignored
+
             break;
 
         case BGPEventList::OpenCollisionDump:
             // OPTIONAL
-            // TODO sends a NOTIFICATION with a Cease,
+            // XXX sends a NOTIFICATION with a Cease,
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO deletes all routes associated with this connection,
+            // XXX deletes all routes associated with this connection,
 
-            // TODO releases all BGP resources,
+            // XXX releases all BGP resources,
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -253,8 +260,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // bgp table needed
 
 
-
-            // TODO releases all the BGP resources, done
+            // XXX releases all the BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -298,13 +304,13 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
         case BGPEventList::UpdateMsgErr:
             // MANDATORY
             // sends a NOTIFICATION message with an Update error,
-            // TODO take the message error to insert in the notification
+            // take the message error to insert in the notification
+
+            // FIXME the error of the UPDATE message is not wll computed yet
             {
                 std::unique_ptr<BGPLayer> bgpNotificationLayer =
                     std::make_unique<BGPNotificationLayer>(
-                        BGPNotificationLayer::UPDATE_MSG_ERR,
-                        BGPNotificationLayer::ERR_X_NO_SUB_ERR);
-                bgpNotificationLayer->computeCalculateFields();
+                        dynamic_cast<BGPNotificationLayer *>(event.layers));
 
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                     layers =
@@ -320,7 +326,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // TODO deletes all routes associated with this connection,
             // table needed
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -338,8 +344,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
-
-            handled = false;
             break;
 
         case BGPEventList::ConnectRetryTimer_Expires:
@@ -372,7 +376,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);

@@ -7,6 +7,7 @@
 #include "../packets/BGPKeepaliveLayer.h"
 #include "../packets/BGPLayer.h"
 #include "../packets/BGPNotificationLayer.h"
+#include "../packets/BGPOpenLayer.h"
 #include "BGPStateActive.h"
 #include "BGPStateIdle.h"
 #include "BGPStateMachine.h"
@@ -37,7 +38,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 bgpNotificationLayer->computeCalculateFields();
 
                 // Commented code below is for tests
-                // TODO change it to test notification
+                // XXX change it to test notification
                 /* BGPOpenLayer bgpOpenMessage =
                     BGPOpenLayer(stateMachine->connection->owner->AS_number,
                                  stateMachine->getHoldTime().count(),
@@ -56,7 +57,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -89,7 +90,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all the BGP resources, done
+            // XXX releases all the BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -131,7 +132,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -154,6 +155,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEventList::TcpConnection_Valid:
         case BGPEventList::Tcp_CR_Acked:
         case BGPEventList::TcpConnectionConfirmed:
+            // MANDATORY -- How?
             // TODO a second TCP connection may be in progress. This second TCP
             // connection is tracked per Connection Collision processing
             // (Section 6.8) until an OPEN message is received.
@@ -167,7 +169,11 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::TcpConnectionFails:
-            // TODO closes the BGP connection,
+            // closes the BGP connection,
+
+            // FIXME Check if it is ok, because by dropping the connection also
+            // the state machine will be deallocated :)
+            stateMachine->connection->closeConnection();
 
             // restarts the ConnectRetryTimer,
             stateMachine->resetConnectRetryTimer();
@@ -184,8 +190,6 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
 
         case BGPEventList::BGPOpen:
 
-            // TODO, probably handle this event in the process message
-
             // When an OPEN message is received, all fields are checked for
             // correctness.  If there are no errors in the OPEN message (Event
             // 19), the local system:
@@ -194,74 +198,110 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // applied
             // when a valid BGP OPEN message is received (Event 19 or Event 20).
 
+            // FIXME check how to call collision detection
+            // stateMachine->connection->bgpApplication->collisionDetection(stateMachine->connection);
 
-            /*             // resets the DelayOpenTimer to zero,
-                        stateMachine->resetDelayOpenTimer();
 
-                        // sets the BGP ConnectRetryTimer to zero,
-                        stateMachine->resetConnectRetryTimer();
+            // resets the DelayOpenTimer to zero,
+            stateMachine->resetDelayOpenTimer();
 
-                        // sends a KEEPALIVE message, and
-                        // TODO test KEEPALIVE message
-                        {
-                            std::unique_ptr<BGPLayer> bgpKeepaliveLayer =
-                                std::make_unique<BGPKeepaliveLayer>();
-                            bgpKeepaliveLayer->computeCalculateFields();
+            // sets the BGP ConnectRetryTimer to zero,
+            stateMachine->resetConnectRetryTimer();
 
-                            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                                layers =
-                                    make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
-                            layers->push(std::move(bgpKeepaliveLayer));
+            // sends a KEEPALIVE message, and
+            // TODO test KEEPALIVE message
+            {
+                std::unique_ptr<BGPLayer> bgpKeepaliveLayer =
+                    std::make_unique<BGPKeepaliveLayer>();
+                bgpKeepaliveLayer->computeCalculateFields();
 
-                            stateMachine->connection->sendData(std::move(layers));
-                        }
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpKeepaliveLayer));
 
-                        // TODO sets a KeepaliveTimer (via the text below)
+                stateMachine->connection->sendData(std::move(layers));
+            }
 
-                        // TODO sets the HoldTimer according to the negotiated
-               value (see
-                        //   Section 4.2),
-                        stateMachine->resetHoldTimer();
-                        stateMachine->holdTimer->setDuration(
-                            stateMachine->connection->holdTime);  // ← probably
-               wrong stateMachine->holdTimer->start();
+            // sets a KeepaliveTimer (via the text below)
 
-                        // changes its state to OpenConfirm.
-                        stateMachine->changeState(new
-               BGPStateOpenConfirm(stateMachine)); */
+            // sets the HoldTimer according to the negotiated value (see
+            // Section 4.2),
+            {
+                BGPOpenLayer *openLayer =
+                    dynamic_cast<BGPOpenLayer *>(event.layers);
 
-            handled = false;
+                BGPOpenLayer::BGPOpenHeader *openHeader =
+                    openLayer->getOpenHeaderOrNull();
+
+                if (openHeader->holdTime_be <
+                    stateMachine->getNegotiatedHoldTime().count()) {
+                    stateMachine->setNegotiatedKeepaliveTime(
+                        std::chrono::seconds(openHeader->holdTime_be / 3));
+                    stateMachine->setNegotiatedHoldTime(
+                        std::chrono::seconds(openHeader->holdTime_be));
+                }
+            }
+
+            // If the negotiated hold time value is zero, then the HoldTimer and
+            // KeepaliveTimer are not started.
+
+            if (stateMachine->getNegotiatedHoldTime() != 0s) {
+                stateMachine->resetHoldTimer();
+                stateMachine->resetKeepAliveTimer();
+                stateMachine->holdTimer->start();
+                stateMachine->keepAliveTimer->start();
+            }
+
+            // changes its state to OpenConfirm.
+            stateMachine->changeState(new BGPStateOpenConfirm(stateMachine));
+
+            // TODO If the value of the Autonomous
+            // System field is the same as the local Autonomous System number,
+            // then the connection is an "internal" connection; otherwise, it is
+            // an "external" connection.
+
             break;
 
         case BGPEventList::BGPHeaderErr:
         case BGPEventList::BGPOpenMsgErr:
-            // TODO handle in the message process
-            //  TODO sends a NOTIFICATION message with the appropriate error
+            //  sends a NOTIFICATION message with the appropriate error
             //  code
 
-            /*             // sets the ConnectRetryTimer to zero,
-                        stateMachine->resetConnectRetryTimer();
+            {
+                std::unique_ptr<BGPLayer> bgpNotificationLayer =
+                    std::make_unique<BGPNotificationLayer>(
+                        dynamic_cast<BGPNotificationLayer *>(event.layers));
 
-                        // TODO releases all BGP resources,
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpNotificationLayer));
 
-                        // drops the TCP connection,
-                        stateMachine->connection->dropConnection(false);
+                stateMachine->connection->sendData(std::move(layers));
+            }
 
-                        // increments the ConnectRetryCounter by 1,
-                        stateMachine->incrementConnectRetryCounter();
+            // sets the ConnectRetryTimer to zero,
+            stateMachine->resetConnectRetryTimer();
 
-                        // optionally performs peer oscillation damping if the
-                        // DampPeerOscillations attribute is set to TRUE, and
-                        if (stateMachine->getDampPeerOscillations()) {
-                            // performs peer oscillation damping
-                            // <-- Not implemented
-                        }
+            // XXX releases all BGP resources,
 
-                        // changes its state to Idle.
-                        stateMachine->changeState(new
-               BGPStateIdle(stateMachine)); */
+            // drops the TCP connection,
+            stateMachine->connection->dropConnection(false);
 
-            handled = false;
+            // increments the ConnectRetryCounter by 1,
+            stateMachine->incrementConnectRetryCounter();
+
+            // optionally performs peer oscillation damping if the
+            // DampPeerOscillations attribute is set to TRUE, and
+            if (stateMachine->getDampPeerOscillations()) {
+                // OPTIONAL
+                // performs peer oscillation damping
+                // <-- Not implemented
+            }
+
+            // changes its state to Idle.
+            stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
         case BGPEventList::OpenCollisionDump:
@@ -287,7 +327,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -311,7 +351,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -350,7 +390,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources,
+            // XXX releases all BGP resources,
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);

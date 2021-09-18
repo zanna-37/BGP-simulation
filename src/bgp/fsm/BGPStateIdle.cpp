@@ -15,7 +15,7 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
     switch (event.eventList) {
         case BGPEventList::ManualStart:
         case BGPEventList::AutomaticStart:
-            // TODO initializes all BGP resources for the peer connection,  All
+            // XXX initializes all BGP resources for the peer connection,  All
             // done?
 
             // sets ConnectRetryCounter to zero,
@@ -43,7 +43,7 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
         case BGPEventList::ManualStart_with_PassiveTcpEstablishment:
         case BGPEventList::AutomaticStart_with_PassiveTcpEstablishment:
 
-            // TODO initializes all BGP resources, All done?
+            // XXX initializes all BGP resources, All done?
 
             // sets the ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
@@ -65,7 +65,7 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
         case BGPEventList::IdleHoldTimer_Expires:
 
             if (stateMachine->getDampPeerOscillations()) {
-                // TODO: Do we need to implement DampPeerOscillations?
+                // XXX: Do we need to implement DampPeerOscillations?
                 // Upon receiving these 3 events, the local system will use
                 // these events to prevent peer oscillations.  The method of
                 // preventing persistent peer oscillation is outside the scope

@@ -43,7 +43,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 //   local system sends a NOTIFICATION with a Cease,
             }
 
-            // TODO releases all BGP resources including stopping the
+            // XXX releases all BGP resources including stopping the
             //   DelayOpenTimer
             stateMachine->resetDelayOpenTimer();  // optional value
 
@@ -85,9 +85,9 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             // - stops and clears the DelayOpenTimer (set to zero),
             stateMachine->resetDelayOpenTimer();
 
-            // TODO completes the BGP initialization,
+            // XXX completes the BGP initialization,
 
-            // TODO sends the OPEN message to its remote peer,
+            // XXX sends the OPEN message to its remote peer,
 
             // sets its hold timer to a large value ( A HoldTimer value of 4
             // minutes is also suggested for this state transition.), and
@@ -105,14 +105,14 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
 
         case BGPEventList::TcpConnection_Valid:
             // OPTIONAL
-            // TODO the local system processes the TCP connection flags and
+            // XXX the local system processes the TCP connection flags and
             // stays in the Active state.
             handled = false;
             break;
 
         case BGPEventList::Tcp_CR_Invalid:
             // OPTIONAL
-            // TODO the local system rejects the TCP connection and stays in the
+            // XXX the local system rejects the TCP connection and stays in the
             // Active State.
             handled = false;
             break;
@@ -139,7 +139,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 // ets the ConnectRetryTimer to zero,
                 stateMachine->resetConnectRetryTimer();
 
-                //   TODO completes the BGP initialization, should be done
+                //   XXX completes the BGP initialization, should be done
 
                 //   sends the OPEN message to its peer,1
                 std::unique_ptr<BGPLayer> bgpOpenLayer =
@@ -186,7 +186,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             // stops and clears the DelayOpenTimer (sets the value to zero),
             stateMachine->resetDelayOpenTimer();
 
-            // TODO releases all BGP resource, - done
+            // XXX releases all BGP resource, - done
 
             // increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -212,11 +212,11 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             // stops and clears the DelayOpenTimer (sets to zero),
             stateMachine->resetDelayOpenTimer();
 
-            // TODO completes the BGP initialization,
+            // XXX completes the BGP initialization,
 
-            // TODO sends an OPEN message,
+            // XXX sends an OPEN message,
 
-            // TODO sends a KEEPALIVE message,
+            // XXX sends a KEEPALIVE message,
 
             // - if the HoldTimer value is non-zero, // FIXME
             if (stateMachine->holdTimer->getDuration() != 0ms) {
@@ -252,13 +252,13 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             //   to TRUE,
             if (stateMachine->getSendNOTIFICATIONwithoutOPEN()) {
                 // OPTIONAL
-                // TODO
+                // XXX
             }
 
             // - sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -301,7 +301,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 // ConnectRetryTimer to zero,
                 stateMachine->resetConnectRetryTimer();
 
-                // TODO releases all BGP resources, done
+                // XXX releases all BGP resources, done
 
                 // drops the TCP connection,
                 stateMachine->connection->dropConnection(false);
@@ -334,7 +334,7 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO releases all BGP resources, done
+            // XXX releases all BGP resources, done
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);

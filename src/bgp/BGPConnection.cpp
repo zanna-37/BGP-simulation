@@ -157,19 +157,14 @@ void BGPConnection::processMessage(
                                     "OPEN message Error event added + "
                                     "notification message");
                         }
-                        // bgpOpenLayer_weak =
-                        //     dynamic_cast<BGPOpenLayer*>(bgpLayer_weak);
-                        // holdTime =
-                        // std::chrono::seconds(be16toh(
-                        //     bgpOpenLayer_weak->getOpenHeaderOrNull()->holdTime_be));
-                        // bgpApplication->collisionDetection(this);
-                        // enqueueEvent(BGPEvent::BGPOpen);
                         break;
                     case BGPLayer::BGPMessageType::UPDATE:
                         L_DEBUG(owner->ID, "UPDATE message arrived");
                         bgpUpdateLayer =
                             dynamic_cast<BGPUpdateLayer*>(bgpLayer_weak);
 
+                        // FIXME The UPDATE message error checking needs to be
+                        // completely implemented
                         if (bgpUpdateLayer->checkMessageErr(subcode)) {
                             BGPEvent event = {BGPEventList::UpdateMsg,
                                               bgpUpdateLayer};
