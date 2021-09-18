@@ -35,8 +35,16 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
         case BGPEventList::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             // (Events 1, 3-7) are ignored in the Connect state.
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ManualStart, AutomaticStart, "
+                    "ManualStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_DampPeerOscillations, "
+                    "AutomaticStart_with_DampPeerOscillations_and_"
+                    "PassiveTcpEstablishment");
             break;
         case BGPEventList::ManualStop:
+            L_DEBUG(stateMachine->connection->owner->ID, "Event -> ManualStop");
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
 
@@ -53,6 +61,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::ConnectRetryTimer_Expires:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ConnectRetryTimer_Expires");
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
             // restarts the ConnectRetryTimer,
@@ -71,6 +81,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::DelayOpenTimer_Expires:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> DelayOpenTimer_Expires");
             // Optional events
             // XXX sends an OPEN message to its peer,
 
@@ -86,17 +98,23 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::TcpConnection_Valid:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> TcpConnection_Valid");
             // XXX the TCP connection is processed, OPTIONAL
             handled = false;
             break;
 
         case BGPEventList::Tcp_CR_Invalid:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> Tcp_CR_Invalid");
             // XXX the local system rejects the TCP connection, OPTIONAL
             handled = false;
             break;
 
         case BGPEventList::Tcp_CR_Acked:
-        case BGPEventList::TcpConnectionConfirmed: {
+        case BGPEventList::TcpConnectionConfirmed:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> Tcp_CR_Acked, TcpConnectionConfirmed");
             if (stateMachine->getDelayOpen()) {
                 // OPTIONAL
                 // If the DelayOpen attribute is set to TRUE, the local system:
@@ -144,7 +162,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->connection->sendData(std::move(layers));
 
                 // sets the HoldTimer to a large value, and
-                stateMachine->setNegotiatedHoldTime(BGPStateMachine::kHoldTime_large_defaultVal);
+                stateMachine->setNegotiatedHoldTime(
+                    BGPStateMachine::kHoldTime_large_defaultVal);
                 stateMachine->resetHoldTimer();
                 stateMachine->holdTimer
                     ->start();  // TODO do we need to start it?
@@ -153,8 +172,10 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->changeState(new BGPStateOpenSent(stateMachine));
             }
             break;
-        }
+
         case BGPEventList::TcpConnectionFails:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> TcpConnectionFails");
             // If the DelayOpenTimer is running, the local system:
             if (stateMachine->delayOpenTimer->getState() == TICKING) {
                 // OPTIONAL
@@ -186,7 +207,10 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             }
             break;
 
-        case BGPEventList::BGPOpen_with_DelayOpenTimer_running:  // OPTIONAL
+        case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> BGPOpen_with_DelayOpenTimer_running");
+            // OPTIONAL
             /* // stops the ConnectRetryTimer (if running) and sets the
             // ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
@@ -227,6 +251,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
 
         case BGPEventList::BGPHeaderErr:
         case BGPEventList::BGPOpenMsgErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> BGPHeaderErr, BGPOpenMsgErr");
             if (stateMachine->getSendNOTIFICATIONwithoutOPEN()) {
                 // OPTIONAL
                 // - (optionally) If the SendNOTIFICATIONwithoutOPEN attribute
@@ -261,6 +287,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::NotifMsgVerErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> NotifMsgVerErr");
             if (stateMachine->delayOpenTimer->getState() == TICKING) {
                 // OPTIONAL
                 // stops the ConnectRetryTimer (if running) and sets the
@@ -312,6 +340,11 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
         case BGPEventList::KeepAliveMsg:
         case BGPEventList::UpdateMsg:
         case BGPEventList::UpdateMsgErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> AutomaticStop, HoldTimer_Expires, "
+                    "KeepaliveTimer_Expires, IdleHoldTimer_Expires, BGPOpen:, "
+                    "OpenCollisionDump, NotifMsg, KeepAliveMsg, UpdateMsg, "
+                    "UpdateMsgErr");
             // if the ConnectRetryTimer is running, stops and resets the
             // ConnectRetryTimer (sets to zero),
             stateMachine->resetConnectRetryTimer();

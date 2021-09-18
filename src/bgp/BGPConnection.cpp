@@ -240,7 +240,7 @@ void BGPConnection::processMessage(
                     case BGPLayer::BGPMessageType::KEEPALIVE:
                         L_DEBUG(owner->ID, "KEEPALIVE message arrived");
                         {
-                            BGPEvent event = {BGPEventList::KeepAliveMsg, NULL};
+                            BGPEvent event = {BGPEventList::KeepAliveMsg, nullptr};
                             enqueueEvent(event);
                         }
                         L_DEBUG(

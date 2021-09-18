@@ -15,6 +15,8 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
     switch (event.eventList) {
         case BGPEventList::ManualStart:
         case BGPEventList::AutomaticStart:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ManualStart, AutomaticStart");
             // XXX initializes all BGP resources for the peer connection,  All
             // done?
 
@@ -37,11 +39,17 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
         case BGPEventList::ManualStop:
         case BGPEventList::AutomaticStop:
+
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ManualStop, AutomaticStop");
             // The events must be ingnored in Indle state
             break;
 
         case BGPEventList::ManualStart_with_PassiveTcpEstablishment:
         case BGPEventList::AutomaticStart_with_PassiveTcpEstablishment:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ManualStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_PassiveTcpEstablishment");
 
             // XXX initializes all BGP resources, All done?
 
@@ -63,6 +71,11 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
         case BGPEventList::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
         case BGPEventList::IdleHoldTimer_Expires:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> AutomaticStart_with_DampPeerOscillations, "
+                    "AutomaticStart_with_DampPeerOscillations_and_"
+                    "PassiveTcpEstablishment, IdleHoldTimer_Expires");
+
 
             if (stateMachine->getDampPeerOscillations()) {
                 // XXX: Do we need to implement DampPeerOscillations?
@@ -92,6 +105,14 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
         case BGPEventList::KeepAliveMsg:
         case BGPEventList::UpdateMsg:
         case BGPEventList::UpdateMsgErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ConnectRetryTimer_Expires, HoldTimer_Expires, "
+                    "KeepaliveTimer_Expires, DelayOpenTimer_Expires, "
+                    "Tcp_CR_Invalid, Tcp_CR_Acked, TcpConnectionConfirmed, "
+                    "TcpConnectionFails, BGPOpen, "
+                    "BGPOpen_with_DelayOpenTimer_running, BGPHeaderErr, "
+                    "BGPOpenMsgErr, OpenCollisionDump, NotifMsgVerErr, "
+                    "NotifMsg, KeepAliveMsg, UpdateMsg, UpdateMsgErr");
             // (Events 9-12, 15-28) received in the Idle state
             // does not cause change in the state of the local system.
             break;

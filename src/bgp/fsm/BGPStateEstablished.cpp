@@ -25,8 +25,16 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
         case BGPEventList::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             // (Events 1, 3-7) are ignored in the Active state.
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ManualStart, AutomaticStart, "
+                    "ManualStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_DampPeerOscillations, "
+                    "AutomaticStart_with_DampPeerOscillations_and_"
+                    "PassiveTcpEstablishment");
             break;
         case BGPEventList::ManualStop:
+            L_DEBUG(stateMachine->connection->owner->ID, "Event -> ManualStop");
             // sends the NOTIFICATION message with a Cease,
 
             {
@@ -65,6 +73,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::AutomaticStop:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> AutomaticStop");
             // OPTIONAL
             // sends a NOTIFICATION with a Cease,
 
@@ -113,6 +123,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::HoldTimer_Expires:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> HoldTimer_Expires");
             // sends a NOTIFICATION message with the Error Code Hold Timer
             // Expired,
 
@@ -154,10 +166,11 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
 
-            handled = false;
             break;
 
         case BGPEventList::KeepaliveTimer_Expires:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> KeepaliveTimer_Expires");
             // sends a KEEPALIVE message, and
 
             {
@@ -183,6 +196,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::TcpConnection_Valid:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> TcpConnection_Valid");
             // OPTIONAL
             // XXX received for a valid port, will cause the second connection
             // to be tracked.
@@ -191,11 +206,15 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::Tcp_CR_Invalid:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> Tcp_CR_Invalid");
 
             break;
 
         case BGPEventList::Tcp_CR_Acked:
         case BGPEventList::TcpConnectionConfirmed:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> Tcp_CR_Acked, TcpConnectionConfirmed");
             // MANDATORY  -- How?
             // TODO the second connection SHALL be tracked until it sends an
             // OPEN message.
@@ -204,6 +223,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::BGPOpen:
+            L_DEBUG(stateMachine->connection->owner->ID, "Event -> BGPOpen");
 
             // If a valid OPEN message (BGPOpen (Event 19)) is received,
             // and if the CollisionDetectEstablishedState optional attribute is
@@ -221,6 +241,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::OpenCollisionDump:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> OpenCollisionDump");
             // OPTIONAL
             // XXX sends a NOTIFICATION with a Cease,
 
@@ -253,6 +275,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
         case BGPEventList::NotifMsgVerErr:
         case BGPEventList::NotifMsg:
         case BGPEventList::TcpConnectionFails:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> NotifMsgVerErr, NotifMsg, TcpConnectionFails");
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -275,6 +299,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::KeepAliveMsg:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> KeepAliveMsg");
             // restarts its HoldTimer, if the negotiated HoldTime value is
             // non-zero, and
             if (stateMachine->getNegotiatedHoldTime() != 0ms) {
@@ -286,6 +312,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::UpdateMsg:
+            L_DEBUG(stateMachine->connection->owner->ID, "Event -> UpdateMsg");
             // MANDATORY
             // TODO processes the message,
 
@@ -302,6 +329,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::UpdateMsgErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> UpdateMsgErr");
             // MANDATORY
             // sends a NOTIFICATION message with an Update error,
             // take the message error to insert in the notification
@@ -351,6 +380,11 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
         case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
         case BGPEventList::BGPHeaderErr:
         case BGPEventList::BGPOpenMsgErr:
+            L_DEBUG(
+                stateMachine->connection->owner->ID,
+                "Event -> ConnectRetryTimer_Expires, DelayOpenTimer_Expires, "
+                "IdleHoldTimer_Expires, BGPOpen_with_DelayOpenTimer_running, "
+                "BGPHeaderErr, BGPOpenMsgErr");
             // sends a NOTIFICATION message with the Error Code Finite
             // State Machine Error,
 
@@ -393,8 +427,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
-
-            handled = false;
             break;
 
         default:

@@ -24,8 +24,16 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
         case BGPEventList::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             // (Events 1, 3-7) are ignored in the Active state.
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ManualStart, AutomaticStart, "
+                    "ManualStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_DampPeerOscillations, "
+                    "AutomaticStart_with_DampPeerOscillations_and_"
+                    "PassiveTcpEstablishment");
             break;
         case BGPEventList::ManualStop:
+            L_DEBUG(stateMachine->connection->owner->ID, "Event -> ManualStop");
             // sends the NOTIFICATION message with a Cease,
 
             {
@@ -59,6 +67,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::AutomaticStop:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> AutomaticStop");
             // OPTIONAL
             // XXX remove if not necessary
             // sends the NOTIFICATION message with a Cease,
@@ -105,6 +115,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::HoldTimer_Expires:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> HoldTimer_Expires");
             // sends the NOTIFICATION message with the Error Code Hold
             // Timer Expired,
 
@@ -147,6 +159,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::KeepaliveTimer_Expires:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> KeepaliveTimer_Expires");
             // sends a KEEPALIVE message,
 
             {
@@ -172,6 +186,9 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
         case BGPEventList::TcpConnection_Valid:
         case BGPEventList::Tcp_CR_Acked:
         case BGPEventList::TcpConnectionConfirmed:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> TcpConnection_Valid, Tcp_CR_Acked, "
+                    "TcpConnectionConfirmed");
             // TODO MANDATORY TO BE DONE! but How?
             // TODO the local system needs to track the second connection.
 
@@ -179,6 +196,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::Tcp_CR_Invalid:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> Tcp_CR_Invalid");
             // OPTIONAL
             // XXX the local system will ignore the second connection attempt.
 
@@ -187,6 +206,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
         case BGPEventList::TcpConnectionFails:
         case BGPEventList::NotifMsg:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> TcpConnectionFails, NotifMsg");
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -211,6 +232,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::NotifMsgVerErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> NotifMsgVerErr");
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -224,6 +247,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::BGPOpen:
+            L_DEBUG(stateMachine->connection->owner->ID, "Event -> BGPOpen");
             // TODO MANDATORY TO BE DONE!
             // TODO If this connection is to be dropped due to connection
             // collision, the local system:
@@ -271,17 +295,18 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
 
-            handled = false;
             break;
 
         case BGPEventList::BGPHeaderErr:
         case BGPEventList::BGPOpenMsgErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> BGPHeaderErr, BGPOpenMsgErr");
             // MANDATORY
             // sends a NOTIFICATION message with the appropriate error code
 
             {
                 std::unique_ptr<BGPLayer> bgpNotificationLayer(
-                        dynamic_cast<BGPNotificationLayer*>(event.layers));
+                    dynamic_cast<BGPNotificationLayer*>(event.layers));
 
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                     layers =
@@ -312,10 +337,11 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
 
-            handled = false;
             break;
 
         case BGPEventList::OpenCollisionDump:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> OpenCollisionDump");
             // OPTIONAL
             /* // XXX sends a NOTIFICATION with a Cease,
 
@@ -344,6 +370,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::KeepAliveMsg:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> KeepAliveMsg");
             // TODO check if it works
             // FIXME restarts the HoldTimer and
             stateMachine->resetHoldTimer();
@@ -359,6 +387,11 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
         case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
         case BGPEventList::UpdateMsg:
         case BGPEventList::UpdateMsgErr:
+            L_DEBUG(
+                stateMachine->connection->owner->ID,
+                "Event -> ConnectRetryTimer_Expires, DelayOpenTimer_Expires, "
+                "IdleHoldTimer_Expires, BGPOpen_with_DelayOpenTimer_running, "
+                "UpdateMsg, UpdateMsgErr");
             // sends a NOTIFICATION with a code of Finite State Machine
             // Error
 

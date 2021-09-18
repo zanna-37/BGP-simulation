@@ -26,8 +26,16 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEventList::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             // (Events 1, 3-7) are ignored in the Active state.
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> ManualStart, AutomaticStart, "
+                    "ManualStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_PassiveTcpEstablishment, "
+                    "AutomaticStart_with_DampPeerOscillations, "
+                    "AutomaticStart_with_DampPeerOscillations_and_"
+                    "PassiveTcpEstablishment");
             break;
         case BGPEventList::ManualStop:
+            L_DEBUG(stateMachine->connection->owner->ID, "Event -> ManualStop");
             // sends the NOTIFICATION with a Cease,
 
             {
@@ -70,6 +78,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::AutomaticStop:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> AutomaticStop");
             // sends the NOTIFICATION with a Cease,
 
             {
@@ -111,6 +121,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::HoldTimer_Expires:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> HoldTimer_Expires");
             // sends a NOTIFICATION message with the error code Hold Timer
             // Expired
 
@@ -155,6 +167,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEventList::TcpConnection_Valid:
         case BGPEventList::Tcp_CR_Acked:
         case BGPEventList::TcpConnectionConfirmed:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> TcpConnection_Valid, Tcp_CR_Acked, "
+                    "TcpConnectionConfirmed");
             // MANDATORY -- How?
             // TODO a second TCP connection may be in progress. This second TCP
             // connection is tracked per Connection Collision processing
@@ -164,11 +179,15 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::Tcp_CR_Invalid:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> Tcp_CR_Invalid");
             // A TCP Connection Request for an Invalid port (Tcp_CR_Invalid
             // (Event 15)) is ignored.
             break;
 
         case BGPEventList::TcpConnectionFails:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> TcpConnectionFails");
             // closes the BGP connection,
 
             // FIXME Check if it is ok, because by dropping the connection also
@@ -185,10 +204,10 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // changes its state to Active.
             stateMachine->changeState(new BGPStateActive(stateMachine));
 
-            handled = false;
             break;
 
         case BGPEventList::BGPOpen:
+            L_DEBUG(stateMachine->connection->owner->ID, "Event -> BGPOpen");
 
             // When an OPEN message is received, all fields are checked for
             // correctness.  If there are no errors in the OPEN message (Event
@@ -265,6 +284,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
 
         case BGPEventList::BGPHeaderErr:
         case BGPEventList::BGPOpenMsgErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> BGPHeaderErr, BGPOpenMsgErr");
             //  sends a NOTIFICATION message with the appropriate error
             //  code
 
@@ -304,6 +325,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::OpenCollisionDump:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> OpenCollisionDump");
             // OPTIONAL
             // TODO remove if not needed
             // sends a NOTIFICATION with a Cease,
@@ -347,6 +370,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventList::NotifMsgVerErr:
+            L_DEBUG(stateMachine->connection->owner->ID,
+                    "Event -> NotifMsgVerErr");
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -368,6 +393,12 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEventList::KeepAliveMsg:
         case BGPEventList::UpdateMsg:
         case BGPEventList::UpdateMsgErr:
+            L_DEBUG(
+                stateMachine->connection->owner->ID,
+                "Event -> ManualConnectRetryTimer_Expires, "
+                "KeepaliveTimer_Expires, DelayOpenTimer_Expires, "
+                "IdleHoldTimer_Expires, BGPOpen_with_DelayOpenTimer_running, "
+                "NotifMsg, KeepAliveMsg, UpdateMsg, UpdateMsgErrStop");
             // sends the NOTIFICATION with the Error Code Finite State
             // Machine Error
 
