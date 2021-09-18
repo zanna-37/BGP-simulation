@@ -214,9 +214,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 // OPTIONAL
             }
 
-            // FIXME If the CollisionDetectEstablishedState is FALSE the RFC does not
-            // give any instructions I suppose that the message needs to be
-            // ignored
+            // FIXME If the CollisionDetectEstablishedState is FALSE the RFC
+            // does not give any instructions I suppose that the message needs
+            // to be ignored
 
             break;
 
@@ -306,11 +306,10 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // sends a NOTIFICATION message with an Update error,
             // take the message error to insert in the notification
 
-            // FIXME the error of the UPDATE message is not wll computed yet
+            // FIXME the error of the UPDATE message is not well computed yet
             {
-                std::unique_ptr<BGPLayer> bgpNotificationLayer =
-                    std::make_unique<BGPNotificationLayer>(
-                        dynamic_cast<BGPNotificationLayer *>(event.layers));
+                std::unique_ptr<BGPLayer> bgpNotificationLayer(
+                    dynamic_cast<BGPNotificationLayer *>(event.layers));
 
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                     layers =

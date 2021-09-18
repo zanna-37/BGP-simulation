@@ -269,9 +269,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             //  code
 
             {
-                std::unique_ptr<BGPLayer> bgpNotificationLayer =
-                    std::make_unique<BGPNotificationLayer>(
-                        dynamic_cast<BGPNotificationLayer *>(event.layers));
+                std::unique_ptr<BGPLayer> bgpNotificationLayer(
+                    dynamic_cast<BGPNotificationLayer *>(event.layers));
 
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                     layers =

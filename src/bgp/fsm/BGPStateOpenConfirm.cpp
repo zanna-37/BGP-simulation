@@ -280,8 +280,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             // sends a NOTIFICATION message with the appropriate error code
 
             {
-                std::unique_ptr<BGPLayer> bgpNotificationLayer =
-                    std::make_unique<BGPNotificationLayer>(
+                std::unique_ptr<BGPLayer> bgpNotificationLayer(
                         dynamic_cast<BGPNotificationLayer*>(event.layers));
 
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
