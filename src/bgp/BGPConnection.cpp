@@ -384,6 +384,7 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
                     bgpConnection_weak->startReceivingThread();
                 }
             } else {
+                delete newArrivedSocket;
                 L_DEBUG(owner->ID, "accept() failed");
             }
         }
