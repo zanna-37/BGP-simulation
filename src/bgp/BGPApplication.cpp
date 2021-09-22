@@ -86,7 +86,7 @@ Socket* BGPApplication::getCorrespondingListeningSocket(
     pcpp::IPv4Address srcAddress, uint16_t srcPort) {
     std::mutex mutex;
     mutex.lock();
-    Socket* result;
+    Socket* result = nullptr;
     // Search existing listening socket
     for (auto* listeningSocket : listeningSockets) {
         if (listeningSocket->tcpConnection->srcAddr == srcAddress &&
