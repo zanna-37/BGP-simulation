@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y \
     gdb \
     cmake \
     valgrind \
-    clang-format \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update && apt-get install -y \
@@ -70,6 +69,7 @@ RUN apt-get update && apt-get install -y \
 # vscode requirements
 RUN apt-get update && apt-get install -y \
     git \
+    clang-format \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /project
