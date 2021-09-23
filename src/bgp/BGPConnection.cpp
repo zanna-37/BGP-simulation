@@ -138,6 +138,7 @@ void BGPConnection::processMessage(
                                                 MSG_HEADER_ERR,
                                             (BGPNotificationLayer::
                                                  ErrorSubcode_uint8_t)subcode);
+                                    break;
                                 default:
                                     L_FATAL(owner->ID,
                                             "This State in Open message error "
@@ -248,7 +249,6 @@ void BGPConnection::processMessage(
                             "Arrived KEEPALIVE message inserted into events");
 
                         break;
-
                     default:
                         L_FATAL(owner->ID,
                                 "This state in the messages processing should "
@@ -272,6 +272,7 @@ void BGPConnection::processMessage(
                                 BGPNotificationLayer::ERR_1_BAD_MSG_LENGTH,
                                 (const uint8_t*)&(bgpHeader->length_be),
                                 (size_t)sizeof(bgpHeader->length_be));
+                        break;
                     case 3:
                         bgpNotificationLayer =
                             std::make_unique<BGPNotificationLayer>(
@@ -279,6 +280,7 @@ void BGPConnection::processMessage(
                                 BGPNotificationLayer::ERR_1_BAD_MSG_TYPE,
                                 &(bgpHeader->type),
                                 (size_t)sizeof(bgpHeader->type));
+                        break;
                     default:
                         L_FATAL(owner->ID,
                                 "This State in Common header handling "
