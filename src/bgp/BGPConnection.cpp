@@ -94,7 +94,7 @@ void BGPConnection::processMessage(
             // Something similar (but different) is the SegmentArrives event of
             // TCP
 
-            L_DEBUG("BGPConnection", "Handling the packet arrived to the BGP");
+            L_DEBUG(owner->ID, "BGP Connection : Handling the packet arrived to the BGP");
 
             uint8_t subcode = 0;
 
@@ -295,6 +295,8 @@ void BGPConnection::processMessage(
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_WARNING(owner->ID + " " + stateMachine->name,
+                  "Sending Notification message");
             }
         }
     }

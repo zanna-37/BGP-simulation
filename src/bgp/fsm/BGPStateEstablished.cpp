@@ -50,6 +50,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -91,6 +94,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
 
@@ -141,6 +147,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
 
@@ -184,6 +193,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpKeepaliveLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending KEEPALIVE message");
             }
 
 
@@ -346,6 +358,10 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(
+                    stateMachine->connection->owner->ID + " " +
+                        stateMachine->name,
+                    "Sending NOTIFICATION message FIXME -> No uptdate error");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -401,6 +417,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // TODO deletes all routes associated with this connection,

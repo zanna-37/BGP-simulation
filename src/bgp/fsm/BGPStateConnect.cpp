@@ -160,7 +160,9 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpOpenLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending OPEN message");
                 // sets the HoldTimer to a large value, and
                 stateMachine->setNegotiatedHoldTime(
                     BGPStateMachine::kHoldTime_large_defaultVal);

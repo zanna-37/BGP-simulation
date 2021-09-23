@@ -60,6 +60,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -95,6 +98,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -139,6 +145,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -240,6 +249,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpKeepaliveLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending KEEPALIVE message");
             }
 
             // sets a KeepaliveTimer (via the text below)
@@ -256,7 +268,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 if (be16toh(openHeader->holdTime_be) <
                     stateMachine->getNegotiatedHoldTime().count()) {
                     stateMachine->setNegotiatedKeepaliveTime(
-                        std::chrono::seconds(be16toh(openHeader->holdTime_be) / 3));
+                        std::chrono::seconds(be16toh(openHeader->holdTime_be) /
+                                             3));
                     stateMachine->setNegotiatedHoldTime(
                         std::chrono::seconds(be16toh(openHeader->holdTime_be)));
                 }
@@ -299,6 +312,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -344,6 +360,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -415,6 +434,9 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
