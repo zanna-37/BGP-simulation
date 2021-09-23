@@ -71,6 +71,7 @@ bool BGPLayer::checkMessageHeader(BGPLayer::BGPCommonHeader* header,
                header->type != BGPLayer::BGPMessageType::NOTIFICATION) {
         *subcode = 3;
         L_ERROR("BGPLayer", "The BGP message type is not recognized");
+        return false;
     } else if (header->type == BGPLayer::BGPMessageType::OPEN &&
                header->length_be < 29) {
         *subcode = 2;
