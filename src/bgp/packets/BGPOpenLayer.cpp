@@ -87,7 +87,7 @@ bool BGPOpenLayer::checkMessageErr(uint8_t subcode) const {
         subcode = 2;
         L_ERROR("OpenMSGErr", "Peer AS number invalid");
         return false;
-    } else if (openHeader->holdTime_be == 1 || openHeader->holdTime_be == 2) {
+    } else if (be16toh(openHeader->holdTime_be) == 1 || be16toh(openHeader->holdTime_be) == 2) {
         subcode = 6;
         L_ERROR("OpenMSGErr", "Unacceptable Hold Time");
         return false;

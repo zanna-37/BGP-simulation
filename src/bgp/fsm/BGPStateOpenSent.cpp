@@ -253,12 +253,12 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 BGPOpenLayer::BGPOpenHeader *openHeader =
                     openLayer->getOpenHeaderOrNull();
 
-                if (openHeader->holdTime_be <
+                if (be16toh(openHeader->holdTime_be) <
                     stateMachine->getNegotiatedHoldTime().count()) {
                     stateMachine->setNegotiatedKeepaliveTime(
-                        std::chrono::seconds(openHeader->holdTime_be / 3));
+                        std::chrono::seconds(be16toh(openHeader->holdTime_be) / 3));
                     stateMachine->setNegotiatedHoldTime(
-                        std::chrono::seconds(openHeader->holdTime_be));
+                        std::chrono::seconds(be16toh(openHeader->holdTime_be)));
                 }
             }
 

@@ -285,7 +285,7 @@ bool BGPUpdateLayer::checkMessageErr(uint8_t subcode) const {
 
     // NOTE: The error checkin can be done also later on from the table update
     // algorithm
-    if (updateHeader->length_be < wrLength + tpaLength + 23) {
+    if (be16toh(updateHeader->length_be) < wrLength + tpaLength + 23) {
         subcode = 1;
         L_ERROR("UpdatMSGErr", "fields length bigger than total length");
         return false;

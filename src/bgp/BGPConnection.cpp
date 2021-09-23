@@ -86,7 +86,6 @@ void BGPConnection::processMessage(
             // packet to our peer
 
             // TODO write the logic of the handling
-            L_FATAL("BGPConnection", "TODO write the logic of the handling");
             // TODO probably this must be managed with events (e.g.
             // BGPEvent::UpdateMsg). Therefore the logic should be moved inside
             // the states and here we just enqueue the right event while pushing
@@ -95,6 +94,7 @@ void BGPConnection::processMessage(
             // Something similar (but different) is the SegmentArrives event of
             // TCP
 
+            L_DEBUG("BGPConnection", "Handling the packet arrived to the BGP");
 
             uint8_t subcode = 0;
 

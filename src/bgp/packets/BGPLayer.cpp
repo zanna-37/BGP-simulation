@@ -50,13 +50,13 @@ bool BGPLayer::checkMarker(uint8_t marker[16]) {
 
 bool BGPLayer::checkMessageHeader(BGPLayer::BGPCommonHeader* header,
                                   uint8_t*                   subcode) {
-    if (header->length_be < sizeof(BGPCommonHeader)) {
+    if (be16toh(header->length_be) < sizeof(BGPCommonHeader)) {
         // sizeof(BGPCommonHeader) --> 19
         L_ERROR("BGPLayer",
                 "The packet is to small to fit the BGP common header");
         *subcode = 2;
         return false;
-    } else if (header->length_be > 4096) {
+    } else if (be16toh(header->length_be) > 4096) {
         L_ERROR("BGPLayer",
                 "The packet is to big to fit the BGP common header");
         *subcode = 2;
@@ -73,23 +73,23 @@ bool BGPLayer::checkMessageHeader(BGPLayer::BGPCommonHeader* header,
         L_ERROR("BGPLayer", "The BGP message type is not recognized");
         return false;
     } else if (header->type == BGPLayer::BGPMessageType::OPEN &&
-               header->length_be < 29) {
+               be16toh(header->length_be) < 29) {
         *subcode = 2;
         L_ERROR("BGPLayer", "Header length field to short for OPEN message");
         return false;
     } else if (header->type == BGPLayer::BGPMessageType::UPDATE &&
-               header->length_be < 23) {
+               be16toh(header->length_be) < 23) {
         *subcode = 2;
         L_ERROR("BGPLayer", "Header length field to short for UPDATE message");
         return false;
     } else if (header->type == BGPLayer::BGPMessageType::KEEPALIVE &&
-               header->length_be != 19) {
+               be16toh(header->length_be) != 19) {
         *subcode = 2;
         L_ERROR("BGPLayer",
                 "Header length field to short for KEEPALIVE message");
         return false;
     } else if (header->type == BGPLayer::BGPMessageType::NOTIFICATION &&
-               header->length_be < 21) {
+               be16toh(header->length_be) < 21) {
         *subcode = 2;
         L_ERROR("BGPLayer",
                 "Header length field to short for NOTIFICATION message");
