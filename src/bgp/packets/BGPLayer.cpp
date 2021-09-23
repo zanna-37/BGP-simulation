@@ -61,7 +61,7 @@ bool BGPLayer::checkMessageHeader(BGPLayer::BGPCommonHeader* header,
                 "The packet is to big to fit the BGP common header");
         *subcode = 2;
         return false;
-    } else if (checkMarker(header->marker)) {
+    } else if (!checkMarker(header->marker)) {
         *subcode = 1;
         L_ERROR("BGPLayer", "The BGP message is not synchronized");
         return false;
@@ -169,9 +169,8 @@ void BGPLayer::computeCalculateFields() {
     if (header) {
         // every bit of the marker should be filled with ones as per RFC
         memset(header,
-               UINT_MAX,
-               sizeof(BGPCommonHeader::marker));  // FIXME Check if the header
-                                                  // is really filled with ones
+               0xFF,
+               sizeof(BGPCommonHeader::marker));
         header->type = getBGPMessageType();
 
         computeCalculateFieldsInternal();
