@@ -2,107 +2,107 @@
 
 #include "../logger/Logger.h"
 
-std::string getEventName(BGPEvent event) {
-    switch (event.eventList) {
-        case BGPEventList::ManualStart:
-            return "[" + std::to_string(BGPEventList::ManualStart) +
+std::string getEventName(BGPEvent &event) {
+    switch (event.eventType) {
+        case BGPEventType::ManualStart:
+            return "[" + std::to_string(BGPEventType::ManualStart) +
                    "-Manual start]";
-        case BGPEventList::ManualStop:
-            return "[" + std::to_string(BGPEventList::ManualStop) +
+        case BGPEventType::ManualStop:
+            return "[" + std::to_string(BGPEventType::ManualStop) +
                    "-Manual stop]";
-        case BGPEventList::AutomaticStart:
-            return "[" + std::to_string(BGPEventList::AutomaticStart) +
+        case BGPEventType::AutomaticStart:
+            return "[" + std::to_string(BGPEventType::AutomaticStart) +
                    "-Automatic start]";
-        case BGPEventList::ManualStart_with_PassiveTcpEstablishment:
+        case BGPEventType::ManualStart_with_PassiveTcpEstablishment:
             return "[" +
                    std::to_string(
-                       BGPEventList::ManualStart_with_PassiveTcpEstablishment) +
+                       BGPEventType::ManualStart_with_PassiveTcpEstablishment) +
                    "-Manual start with Passive Tcp Establishment]";
-        case BGPEventList::AutomaticStart_with_PassiveTcpEstablishment:
+        case BGPEventType::AutomaticStart_with_PassiveTcpEstablishment:
             return "[" +
                    std::to_string(
-                       BGPEventList::
+                       BGPEventType::
                            AutomaticStart_with_PassiveTcpEstablishment) +
                    "-Automatic start with Passive Tcp Establishment]";
-        case BGPEventList::AutomaticStart_with_DampPeerOscillations:
+        case BGPEventType::AutomaticStart_with_DampPeerOscillations:
             return "[" +
                    std::to_string(
-                       BGPEventList::AutomaticStart_with_DampPeerOscillations) +
+                       BGPEventType::AutomaticStart_with_DampPeerOscillations) +
                    "-Automatic start with Damp Peer Oscillations]";
-        case BGPEventList::
+        case BGPEventType::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             return "[" +
                    std::to_string(
-                       BGPEventList::
+                       BGPEventType::
                            AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment) +
                    "-Automatic start with Damp Peer Oscillations and Passive "
                    "Tcp Establishment]";
-        case BGPEventList::AutomaticStop:
-            return "[" + std::to_string(BGPEventList::AutomaticStop) +
+        case BGPEventType::AutomaticStop:
+            return "[" + std::to_string(BGPEventType::AutomaticStop) +
                    "-Automatic stop]";
-        case BGPEventList::ConnectRetryTimer_Expires:
+        case BGPEventType::ConnectRetryTimer_Expires:
             return "[" +
-                   std::to_string(BGPEventList::ConnectRetryTimer_Expires) +
+                   std::to_string(BGPEventType::ConnectRetryTimer_Expires) +
                    "-ConnectRetryTimer expires]";
-        case BGPEventList::HoldTimer_Expires:
-            return "[" + std::to_string(BGPEventList::HoldTimer_Expires) +
+        case BGPEventType::HoldTimer_Expires:
+            return "[" + std::to_string(BGPEventType::HoldTimer_Expires) +
                    "-HoldTimer expires]";
-        case BGPEventList::KeepaliveTimer_Expires:
-            return "[" + std::to_string(BGPEventList::KeepaliveTimer_Expires) +
+        case BGPEventType::KeepaliveTimer_Expires:
+            return "[" + std::to_string(BGPEventType::KeepaliveTimer_Expires) +
                    "-KeepaliveTimer expires]";
-        case BGPEventList::DelayOpenTimer_Expires:
-            return "[" + std::to_string(BGPEventList::DelayOpenTimer_Expires) +
+        case BGPEventType::DelayOpenTimer_Expires:
+            return "[" + std::to_string(BGPEventType::DelayOpenTimer_Expires) +
                    "-DelayOpenTimer expires]";
-        case BGPEventList::IdleHoldTimer_Expires:
-            return "[" + std::to_string(BGPEventList::IdleHoldTimer_Expires) +
+        case BGPEventType::IdleHoldTimer_Expires:
+            return "[" + std::to_string(BGPEventType::IdleHoldTimer_Expires) +
                    "-IdleHoldTimer expires]";
-        case BGPEventList::TcpConnection_Valid:
-            return "[" + std::to_string(BGPEventList::TcpConnection_Valid) +
+        case BGPEventType::TcpConnection_Valid:
+            return "[" + std::to_string(BGPEventType::TcpConnection_Valid) +
                    "-Tcp connection valid]";
-        case BGPEventList::Tcp_CR_Invalid:
-            return "[" + std::to_string(BGPEventList::Tcp_CR_Invalid) +
+        case BGPEventType::Tcp_CR_Invalid:
+            return "[" + std::to_string(BGPEventType::Tcp_CR_Invalid) +
                    "-Tcp CR Invalid]";
-        case BGPEventList::Tcp_CR_Acked:
-            return "[" + std::to_string(BGPEventList::Tcp_CR_Acked) +
+        case BGPEventType::Tcp_CR_Acked:
+            return "[" + std::to_string(BGPEventType::Tcp_CR_Acked) +
                    "-Tcp CR Acked]";
-        case BGPEventList::TcpConnectionConfirmed:
-            return "[" + std::to_string(BGPEventList::TcpConnectionConfirmed) +
+        case BGPEventType::TcpConnectionConfirmed:
+            return "[" + std::to_string(BGPEventType::TcpConnectionConfirmed) +
                    "-Tcp connection confirmed]";
-        case BGPEventList::TcpConnectionFails:
-            return "[" + std::to_string(BGPEventList::TcpConnectionFails) +
+        case BGPEventType::TcpConnectionFails:
+            return "[" + std::to_string(BGPEventType::TcpConnectionFails) +
                    "-Tcp connection fails]";
-        case BGPEventList::BGPOpen:
-            return "[" + std::to_string(BGPEventList::BGPOpen) + "-BGP open]";
-        case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
+        case BGPEventType::BGPOpen:
+            return "[" + std::to_string(BGPEventType::BGPOpen) + "-BGP open]";
+        case BGPEventType::BGPOpen_with_DelayOpenTimer_running:
             return "[" +
                    std::to_string(
-                       BGPEventList::BGPOpen_with_DelayOpenTimer_running) +
+                       BGPEventType::BGPOpen_with_DelayOpenTimer_running) +
                    "-BGP open with DelayOpenTimer running]";
-        case BGPEventList::BGPHeaderErr:
-            return "[" + std::to_string(BGPEventList::BGPHeaderErr) +
+        case BGPEventType::BGPHeaderErr:
+            return "[" + std::to_string(BGPEventType::BGPHeaderErr) +
                    "-BGP header error]";
-        case BGPEventList::BGPOpenMsgErr:
-            return "[" + std::to_string(BGPEventList::BGPOpenMsgErr) +
+        case BGPEventType::BGPOpenMsgErr:
+            return "[" + std::to_string(BGPEventType::BGPOpenMsgErr) +
                    "-BGPOpenMsg error]";
-        case BGPEventList::OpenCollisionDump:
-            return "[" + std::to_string(BGPEventList::OpenCollisionDump) +
+        case BGPEventType::OpenCollisionDump:
+            return "[" + std::to_string(BGPEventType::OpenCollisionDump) +
                    "-Open collision dump]";
-        case BGPEventList::NotifMsgVerErr:
-            return "[" + std::to_string(BGPEventList::NotifMsgVerErr) +
+        case BGPEventType::NotifMsgVerErr:
+            return "[" + std::to_string(BGPEventType::NotifMsgVerErr) +
                    "-NotifMsgVer error]";
-        case BGPEventList::NotifMsg:
-            return "[" + std::to_string(BGPEventList::NotifMsg) + "-NotifMsg]";
-        case BGPEventList::KeepAliveMsg:
-            return "[" + std::to_string(BGPEventList::KeepAliveMsg) +
+        case BGPEventType::NotifMsg:
+            return "[" + std::to_string(BGPEventType::NotifMsg) + "-NotifMsg]";
+        case BGPEventType::KeepAliveMsg:
+            return "[" + std::to_string(BGPEventType::KeepAliveMsg) +
                    "-KeepAliveMsg]";
-        case BGPEventList::UpdateMsg:
-            return "[" + std::to_string(BGPEventList::UpdateMsg) +
+        case BGPEventType::UpdateMsg:
+            return "[" + std::to_string(BGPEventType::UpdateMsg) +
                    "-UpdateMsg]";
-        case BGPEventList::UpdateMsgErr:
-            return "[" + std::to_string(event.eventList) + "-UpdateMsg error]";
+        case BGPEventType::UpdateMsgErr:
+            return "[" + std::to_string(event.eventType) + "-UpdateMsg error]";
         default:
-            L_ERROR("BGPEventList",
+            L_ERROR("BGPEventType",
                     "THIS SHOULD NEVER HAPPEN: unknown BGP Event");
-            return "[" + std::to_string(event.eventList) + "-Unknown]";
+            return "[" + std::to_string(event.eventType) + "-Unknown]";
     }
 }

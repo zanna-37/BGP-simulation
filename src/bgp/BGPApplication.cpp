@@ -51,11 +51,11 @@ void BGPApplication::passiveOpenAll() {
             bgpConnection->dstAddr = peerAddr;
 
             BGPEvent event = {
-                BGPEventList::ManualStart_with_PassiveTcpEstablishment,
+                BGPEventType::ManualStart_with_PassiveTcpEstablishment,
                 nullptr,
             };
 
-            bgpConnection->enqueueEvent(event);
+            bgpConnection->enqueueEvent(std::move(event));
         }
     }
 }
@@ -65,13 +65,13 @@ void BGPApplication::collisionDetection(BGPConnection* connectionToCheck) {
         if (connectionToCheck->dstAddr == connection->dstAddr &&
             connection != connectionToCheck) {
             BGPEvent event = {
-                BGPEventList::ManualStop,
+                BGPEventType::ManualStop,
                 nullptr,
             };
             if (connectionToCheck->srcAddr < connection->dstAddr) {
-                connectionToCheck->enqueueEvent(event);
+                connectionToCheck->enqueueEvent(std::move(event));
             } else {
-                connection->enqueueEvent(event);
+                connection->enqueueEvent(std::move(event));
             }
         }
     }

@@ -1,6 +1,7 @@
 #ifndef BGPSIMULATION_BGP_BGPEVENT_H
 #define BGPSIMULATION_BGP_BGPEVENT_H
 
+#include <memory>
 #include <string>
 
 #include "packets/BGPLayer.h"
@@ -10,7 +11,7 @@
  * A list of event the BGP State Machine is able to handle (mandatory and
  * optional)
  */
-enum BGPEventList {
+enum BGPEventType {
     ManualStart                                 = 1,  // Mandatory
     ManualStop                                  = 2,  // Mandatory
     AutomaticStart                              = 3,  // Optional
@@ -43,8 +44,8 @@ enum BGPEventList {
 };
 
 struct BGPEvent {
-    BGPEventList eventList;
-    BGPLayer*    layers;
+    BGPEventType              eventType;
+    std::unique_ptr<BGPLayer> layers;
 };
 
 /**
@@ -52,6 +53,6 @@ struct BGPEvent {
  * @param event the event code
  * @return string name of the event
  */
-std::string getEventName(BGPEvent event);
+std::string getEventName(BGPEvent &event);
 
 #endif  // BGPSIMULATION_BGP_BGPEVENT_H

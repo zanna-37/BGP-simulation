@@ -12,9 +12,9 @@
 bool BGPStateIdle ::onEvent(BGPEvent event) {
     bool handled = true;
 
-    switch (event.eventList) {
-        case BGPEventList::ManualStart:
-        case BGPEventList::AutomaticStart:
+    switch (event.eventType) {
+        case BGPEventType::ManualStart:
+        case BGPEventType::AutomaticStart:
             L_DEBUG(stateMachine->connection->owner->ID,
                     "Event -> ManualStart, AutomaticStart");
             // XXX initializes all BGP resources for the peer connection,  All
@@ -37,16 +37,16 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateConnect(stateMachine));
             break;
 
-        case BGPEventList::ManualStop:
-        case BGPEventList::AutomaticStop:
+        case BGPEventType::ManualStop:
+        case BGPEventType::AutomaticStop:
 
             L_DEBUG(stateMachine->connection->owner->ID,
                     "Event -> ManualStop, AutomaticStop");
             // The events must be ingnored in Indle state
             break;
 
-        case BGPEventList::ManualStart_with_PassiveTcpEstablishment:
-        case BGPEventList::AutomaticStart_with_PassiveTcpEstablishment:
+        case BGPEventType::ManualStart_with_PassiveTcpEstablishment:
+        case BGPEventType::AutomaticStart_with_PassiveTcpEstablishment:
             L_DEBUG(stateMachine->connection->owner->ID,
                     "Event -> ManualStart_with_PassiveTcpEstablishment, "
                     "AutomaticStart_with_PassiveTcpEstablishment");
@@ -67,10 +67,10 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateActive(stateMachine));
             break;
 
-        case BGPEventList::AutomaticStart_with_DampPeerOscillations:
-        case BGPEventList::
+        case BGPEventType::AutomaticStart_with_DampPeerOscillations:
+        case BGPEventType::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
-        case BGPEventList::IdleHoldTimer_Expires:
+        case BGPEventType::IdleHoldTimer_Expires:
             L_DEBUG(stateMachine->connection->owner->ID,
                     "Event -> AutomaticStart_with_DampPeerOscillations, "
                     "AutomaticStart_with_DampPeerOscillations_and_"
@@ -87,24 +87,24 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             handled = false;
             break;
-        case BGPEventList::ConnectRetryTimer_Expires:
-        case BGPEventList::HoldTimer_Expires:
-        case BGPEventList::KeepaliveTimer_Expires:
-        case BGPEventList::DelayOpenTimer_Expires:
-        case BGPEventList::Tcp_CR_Invalid:
-        case BGPEventList::Tcp_CR_Acked:
-        case BGPEventList::TcpConnectionConfirmed:
-        case BGPEventList::TcpConnectionFails:
-        case BGPEventList::BGPOpen:
-        case BGPEventList::BGPOpen_with_DelayOpenTimer_running:
-        case BGPEventList::BGPHeaderErr:
-        case BGPEventList::BGPOpenMsgErr:
-        case BGPEventList::OpenCollisionDump:
-        case BGPEventList::NotifMsgVerErr:
-        case BGPEventList::NotifMsg:
-        case BGPEventList::KeepAliveMsg:
-        case BGPEventList::UpdateMsg:
-        case BGPEventList::UpdateMsgErr:
+        case BGPEventType::ConnectRetryTimer_Expires:
+        case BGPEventType::HoldTimer_Expires:
+        case BGPEventType::KeepaliveTimer_Expires:
+        case BGPEventType::DelayOpenTimer_Expires:
+        case BGPEventType::Tcp_CR_Invalid:
+        case BGPEventType::Tcp_CR_Acked:
+        case BGPEventType::TcpConnectionConfirmed:
+        case BGPEventType::TcpConnectionFails:
+        case BGPEventType::BGPOpen:
+        case BGPEventType::BGPOpen_with_DelayOpenTimer_running:
+        case BGPEventType::BGPHeaderErr:
+        case BGPEventType::BGPOpenMsgErr:
+        case BGPEventType::OpenCollisionDump:
+        case BGPEventType::NotifMsgVerErr:
+        case BGPEventType::NotifMsg:
+        case BGPEventType::KeepAliveMsg:
+        case BGPEventType::UpdateMsg:
+        case BGPEventType::UpdateMsgErr:
             L_DEBUG(stateMachine->connection->owner->ID,
                     "Event -> ConnectRetryTimer_Expires, HoldTimer_Expires, "
                     "KeepaliveTimer_Expires, DelayOpenTimer_Expires, "
