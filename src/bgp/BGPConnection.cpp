@@ -116,7 +116,7 @@ void BGPConnection::processMessage(
                                 owner->ID,
                                 "Arrived Open message inserted into events");
                         } else {
-                            uint16_t  two_octet_version = BGPOpenLayer::version;
+                            uint16_t two_octet_version = BGPOpenLayer::version;
 
                             switch (subcode) {
                                 case 1:
@@ -359,8 +359,8 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
             // wait for the socket to have TCP bgpConnection pending
             Socket* newArrivedSocket = socketListen_weak->accept();
 
-            if (running) {
-                if (newArrivedSocket) {
+            if (newArrivedSocket) {
+                if (running) {
                     // Bind connected Socket to this (or a new) BGP Connection
                     BGPConnection* bgpConnection_weak =
                         setConnectedSocketToAvailableBGPConn(newArrivedSocket);
@@ -380,13 +380,14 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
                     };
                     bgpConnection_weak->enqueueEvent(std::move(event));
                     bgpConnection_weak->startReceivingThread();
-                }
-            } else {
-                L_DEBUG(owner->ID,
+                } else {
+                    L_DEBUG(
+                        owner->ID,
                         "connection is dropped, discarding wrongly accepted "
                         "socket");
-                newArrivedSocket->close();
-                delete newArrivedSocket;
+                    newArrivedSocket->close();
+                    delete newArrivedSocket;
+                }
             }
         }
     });
