@@ -388,8 +388,11 @@ void BGPConnection::listenForRemotelyInitiatedConnections() {
                     bgpConnection_weak->startReceivingThread();
                 }
             } else {
+                L_DEBUG(owner->ID,
+                        "connection is dropped, discarding wrongly accepted "
+                        "socket");
+                newArrivedSocket->close();
                 delete newArrivedSocket;
-                L_DEBUG(owner->ID, "accept() failed");
             }
         }
     });
@@ -410,7 +413,7 @@ void BGPConnection::asyncConnectToPeer() {
             0) {
             bgpConnection_weak->startReceivingThread();
             BGPEvent event = {
-                BGPEventList::TcpConnection_Valid,
+                BGPEventList::TcpConnectionConfirmed,
                 nullptr,
             };
             bgpConnection_weak->enqueueEvent(event);
