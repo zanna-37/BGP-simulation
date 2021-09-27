@@ -69,6 +69,7 @@ RUN apt-get update && apt-get install -y \
 # vscode requirements
 RUN apt-get update && apt-get install -y \
     git \
+    clang-format \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /project

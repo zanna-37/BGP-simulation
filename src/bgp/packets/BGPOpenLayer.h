@@ -27,6 +27,8 @@ class BGPOpenLayer : public BGPLayer {
     };
 #pragma pack(pop)
 
+    static const uint8_t version = 4;
+
     BGPOpenHeader* getOpenHeaderOrNull() const;
 
     uint8_t getBGPMessageType() const override { return BGPMessageType::OPEN; }
@@ -62,6 +64,24 @@ class BGPOpenLayer : public BGPLayer {
                  uint16_t                 holdTime,
                  const pcpp::IPv4Address& BGPIdentifier);
 
+    bool checkMessageErr(uint8_t subcode) const override;
+
+    /**
+     * @brief The check of the AS number is out of the scope of the RFC 4271
+     *
+     * @return true Valid AS
+     * @return false Invalid AS
+     */
+    bool checkAS() const { return true; }
+    // TODO We may need to implement the AS checking but I don't think so
+
+    /**
+     * @brief Check that the address is not private and not multicast
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool checkValidIP() const;
    private:
     std::string toStringInternal() const override;
     void        computeCalculateFieldsInternal() const override;

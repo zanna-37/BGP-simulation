@@ -48,6 +48,26 @@ class BGPLayer : public pcpp::Layer {
 
     BGPCommonHeader* getCommonHeaderOrNull() const;
 
+    /**
+     * @brief Check the common header for errors
+     *
+     * @param header Message header received
+     * @param subcode Subcode error for invalid header
+     * @return true Header valid
+     * @return false Header invalid
+     */
+    static bool checkMessageHeader(BGPLayer::BGPCommonHeader* header,
+                                   uint8_t*                   subcode);
+
+    /**
+     * @brief Check the Marker of the common header to be all ones
+     *
+     * @param marker
+     * @return true
+     * @return false
+     */
+    static bool checkMarker(uint8_t marker[16]);
+
     size_t getHeaderLen() const override;
 
     static std::string getBGPMessageTypeName(BGPMessageType type);
@@ -74,6 +94,15 @@ class BGPLayer : public pcpp::Layer {
 
     virtual std::string toStringInternal() const               = 0;
     virtual void        computeCalculateFieldsInternal() const = 0;
+
+    /**
+     * @brief Check if the specific message contains any error
+     *
+     * @param subcode Message specific subcode
+     * @return true
+     * @return false
+     */
+    virtual bool checkMessageErr(uint8_t subcode) const = 0;
 };
 
 

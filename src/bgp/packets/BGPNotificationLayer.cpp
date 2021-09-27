@@ -6,6 +6,8 @@
 #include <bitset>
 #include <cstring>
 
+#include "../../logger/Logger.h"
+
 
 BGPNotificationLayer::BGPNotificationHeader*
 BGPNotificationLayer::getNotificationHeaderOrNull() const {
@@ -110,4 +112,84 @@ size_t BGPNotificationLayer::getNotificationData_be(uint8_t* bufferToFill,
     }
 
     return notificationDataLength;
+}
+
+bool BGPNotificationLayer::checkMessageErr(uint8_t subcode) const {
+    BGPNotificationHeader* notificationHeader = getNotificationHeaderOrNull();
+
+    switch (notificationHeader->errorCode) {
+        case BGPNotificationLayer::MSG_HEADER_ERR:
+            switch (notificationHeader->errorSubcode) {
+                case BGPNotificationLayer::ERR_1_CONN_NOT_SYNC:
+                case BGPNotificationLayer::ERR_1_BAD_MSG_LENGTH:
+                case BGPNotificationLayer::ERR_1_BAD_MSG_TYPE:
+                    break;
+
+                default:
+                    L_ERROR(
+                        "NotiMSGErr",
+                        "Subcode not recognized in ErrorCode: MSG_HEADER_ERR");
+                    return false;
+                    break;
+            }
+            break;
+
+        case BGPNotificationLayer::OPEN_MSG_ERR:
+            switch (notificationHeader->errorSubcode) {
+                case BGPNotificationLayer::ERR_2_UNSUPPORTED_VERSION_NUM:
+                case BGPNotificationLayer::ERR_2_BAD_PEER_AS:
+                case BGPNotificationLayer::ERR_2_BAD_BGP_IDENTIFIER:
+                case BGPNotificationLayer::ERR_2_UNSUPPORTED_OPTIONAL_PARAM:
+                case BGPNotificationLayer::ERR_2_UNACCEPTABLE_HOLD_TIME:
+                    break;
+
+                default:
+                    L_ERROR(
+                        "NotiMSGErr",
+                        "Subcode not recognized in ErrorCode: OPEN_MSG_ERR");
+                    return false;
+                    break;
+            }
+            break;
+
+        case BGPNotificationLayer::UPDATE_MSG_ERR:
+            switch (notificationHeader->errorSubcode) {
+                case BGPNotificationLayer::ERR_3_MALFORMED_ATTR_LIST:
+                case BGPNotificationLayer::ERR_3_UNRECOGNIZED_WELLKNOWN_ATTR:
+                case BGPNotificationLayer::ERR_3_MISSING_WELLKNOWN_ATTR:
+                case BGPNotificationLayer::ERR_3_ATTRIBUTE_FLAGS_ERR:
+                case BGPNotificationLayer::ERR_3_ATTRIBUTE_LENGTH_ERR:
+                case BGPNotificationLayer::ERR_3_INVALID_ORIGIN_ATTRIBUTE:
+                case BGPNotificationLayer::ERR_3_INVALID_NEXTHOP_ATTRIBUTE:
+                case BGPNotificationLayer::ERR_3_OPTIONAL_ATTR_ERR:
+                case BGPNotificationLayer::ERR_3_INVALID_NETWORK_FIELD:
+                case BGPNotificationLayer::ERR_3_MALFORMED_AS_PATH:
+                    break;
+
+                default:
+                    L_ERROR(
+                        "NotiMSGErr",
+                        "Subcode not recognized in ErrorCode: UPDATE_MSG_ERR");
+                    return false;
+                    break;
+            }
+            break;
+
+        case BGPNotificationLayer::HOLD_TIMER_EXPIRED:
+        case BGPNotificationLayer::FSM_ERR:
+        case BGPNotificationLayer::CEASE:
+            if (notificationHeader->errorSubcode !=
+                BGPNotificationLayer::ERR_X_NO_SUB_ERR) {
+                L_ERROR("NotiMSGErr",
+                        "Subcode not recognized in ErrorCode: UPDATE_MSG_ERR");
+                return false;
+            }
+
+            break;
+
+        default:
+            break;
+    }
+
+    return true;
 }

@@ -21,6 +21,7 @@ class BGPNotificationLayer : public BGPLayer {
     };
 
     enum ErrorSubcode_uint8_t : uint8_t {
+        ERR_X_NO_SUB_ERR                 = 0,
         ERR_1_CONN_NOT_SYNC              = 1,
         ERR_1_BAD_MSG_LENGTH             = 2,
         ERR_1_BAD_MSG_TYPE               = 3,
@@ -100,6 +101,8 @@ class BGPNotificationLayer : public BGPLayer {
 
     size_t getNotificationData_be(uint8_t* bufferToFill,
                                   size_t   maxLength) const;
+
+    bool checkMessageErr(uint8_t subcode) const override;
 
    private:
     std::string toStringInternal() const override;

@@ -15,6 +15,12 @@
 
 
 class BGPApplication {
+   private:
+    // The value of the BGP Identifier is determined upon
+    // startup and is the same for every local interface and BGP peer.
+    // TODO define if we want to leave the first nework card as bgpIdentifier
+    pcpp::IPv4Address BGPIdentifier = nullptr;
+
    public:
     static const int BGPDefaultPort = 179;  // TODO change to uint16_t
 
@@ -37,7 +43,7 @@ class BGPApplication {
     Router* router = nullptr;
 
 
-    BGPApplication(Router* router);
+    BGPApplication(Router* router, pcpp::IPv4Address BGPIdentifier);
     ~BGPApplication();
 
     /**
@@ -69,6 +75,8 @@ class BGPApplication {
     BGPConnection* createNewBgpConnection();
     Socket*        getCorrespondingListeningSocket(pcpp::IPv4Address srcAddress,
                                                    uint16_t          srcPort);
+
+    pcpp::IPv4Address getBGPIdentifier() { return BGPIdentifier; }
 };
 
 #endif  // BGPSIMULATION_BGP_BGPAPPLICATION_H

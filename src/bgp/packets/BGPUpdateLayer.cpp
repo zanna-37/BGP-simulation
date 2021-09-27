@@ -5,6 +5,8 @@
 
 #include <cassert>
 
+#include "../../logger/Logger.h"
+
 
 void BGPUpdateLayer::computeCalculateFieldsInternal() const {
     // There is no field to calculate in this layer.
@@ -250,4 +252,44 @@ void BGPUpdateLayer::getNetworkLayerReachabilityInfo(
 
         LengthAndIpPrefix::parsePrefixAndIPData(dataPtr, nlriSize, nlri);
     }
+}
+
+bool BGPUpdateLayer::checkMessageErr(uint8_t subcode) const {
+    // UPDATE Message Error subcodes:
+
+    //          1 - Malformed Attribute List.
+    //          2 - Unrecognized Well-known Attribute.
+    //          3 - Missing Well-known Attribute.
+    //          4 - Attribute Flags Error.
+    //          5 - Attribute Length Error.
+    //          6 - Invalid ORIGIN Attribute.
+    //          7 - [Deprecated - see Appendix A].
+    //          8 - Invalid NEXT_HOP Attribute.
+    //          9 - Optional Attribute Error.
+    //         10 - Invalid Network Field.
+    //         11 - Malformed AS_PATH.
+
+    size_t wrLength  = getWithdrawnRoutesBytesLength();
+    size_t tpaLength = getPathAttributesBytesLength();
+
+    BGPCommonHeader* updateHeader = getCommonHeaderOrNull();
+    // TODO Attribute checking not handled -> subcode 4
+    // TODO Attribute length not checked -> subcode 5
+    // TODO Well-known attributes not handled -> subcode 2
+    // TODO ORIGIN attribute not handled -> subcode 6
+    // TODO NEXT-HOP attribute not handled -> subcode 8
+    // TODO AS_PATH attribute not handled -> subcode 11
+    // TODO Optional attribute not handled -> subcode 9
+    // TODO multiple instances of the same attribute not handled -> subcode 1
+    // TODO NLRI not checked to be syntattically correct -> subcode 10
+
+    // NOTE: The error checkin can be done also later on from the table update
+    // algorithm
+    if (be16toh(updateHeader->length_be) < wrLength + tpaLength + 23) {
+        subcode = 1;
+        L_ERROR("UpdatMSGErr", "fields length bigger than total length");
+        return false;
+    }
+
+    return true;
 }

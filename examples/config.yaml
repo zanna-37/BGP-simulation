@@ -1,7 +1,7 @@
 ---
 routers:
   - id: R1
-    AS_number: AS_1
+    AS_number: 1
     networkCard:
       - interface: eth0
         IP: 90.36.25.1
@@ -12,7 +12,7 @@ routers:
     peers: [ 85.90.20.2 ]
 
   - id: R2
-    AS_number: AS_2
+    AS_number: 2
     default_gateway: 85.90.20.1
     networkCard:
       - interface: eth0

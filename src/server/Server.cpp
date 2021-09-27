@@ -239,8 +239,7 @@ void ApiEndpoint::initDoc() {
         }
 
         if (auto *x = dynamic_cast<Router *>(device)) {
-            asNumber.SetString(
-                x->AS_number.c_str(), x->AS_number.length(), allocator);
+            asNumber.SetInt(x->AS_number);
             ob.AddMember("asNumber", asNumber, allocator);
 
             ob.AddMember("networkCards", networkCards, allocator);
@@ -736,13 +735,10 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
         device.AddMember("defaultGateway", gateway, doc.GetAllocator());
 
 
-        if (postDoc.HasMember("asNumber") &&
-            postDoc.FindMember("asNumber")->value.GetString() != "undefined") {
-            std::string AS_number =
-                postDoc.FindMember("asNumber")->value.GetString();
+        if (postDoc.HasMember("asNumber")) {
+            int AS_number = postDoc.FindMember("asNumber")->value.GetInt();
             rapidjson::Value asNumber;
-            asNumber.SetString(
-                AS_number.c_str(), AS_number.length(), doc.GetAllocator());
+            asNumber.SetInt(AS_number);
             device.AddMember("asNumber", asNumber, doc.GetAllocator());
 
             router = new Router(
@@ -1023,7 +1019,7 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
                     std::string currentID =
                         itr->FindMember("ID")->value.GetString();
                     if (currentID == ID) {
-                        itr == doc["routers"].Erase(itr);
+                        itr = doc["routers"].Erase(itr);
                         L_DEBUG("Server",
                                 "Router removed from doc. Endpoint ID: " + ID);
                         L_DEBUG("Server",
@@ -1060,7 +1056,7 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
                     std::string currentID =
                         itr->FindMember("ID")->value.GetString();
                     if (currentID == ID) {
-                        itr == doc["endpoints"].Erase(itr);
+                        itr = doc["endpoints"].Erase(itr);
                         L_DEBUG(
                             "Server",
                             "Endpoint removed from doc. Endpoint ID: " + ID);

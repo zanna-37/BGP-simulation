@@ -68,6 +68,14 @@ class BGPUpdateLayer : public BGPLayer {
 
     void getNetworkLayerReachabilityInfo(
         std::vector<LengthAndIpPrefix>& nlri) const;
+    /**
+     * @brief Check some of the errors in the Update message
+     *
+     * @param subcode
+     * @return true
+     * @return false
+     */
+    bool checkMessageErr(uint8_t subcode) const override;
 
    private:
     std::string toStringInternal() const override;

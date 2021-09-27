@@ -37,11 +37,12 @@ void BGPStateMachine::resetConnectRetryTimer() {
         connectRetryTimer->stop();
         delete connectRetryTimer;
     }
-
-    connectRetryTimer = new BGPTimer("ConnectRetryTimer",
-                                     this,
-                                     BGPEvent::ConnectRetryTimer_Expires,
-                                     kConnectRetryTime_defaultVal);
+    BGPEvent event = {
+        BGPEventType::ConnectRetryTimer_Expires,
+        nullptr,
+    };
+    connectRetryTimer = new BGPTimer(
+        "ConnectRetryTimer", this, std::move(event), getConnectRetryTime());
 }
 
 void BGPStateMachine::resetHoldTimer() {
@@ -49,9 +50,12 @@ void BGPStateMachine::resetHoldTimer() {
         holdTimer->stop();
         delete holdTimer;
     }
-
+    BGPEvent event = {
+        BGPEventType::HoldTimer_Expires,
+        nullptr,
+    };
     holdTimer = new BGPTimer(
-        "HoldTimer", this, BGPEvent::HoldTimer_Expires, kHoldTime_defaultVal);
+        "HoldTimer", this, std::move(event), getNegotiatedHoldTime());
 }
 
 void BGPStateMachine::resetKeepAliveTimer() {
@@ -59,11 +63,12 @@ void BGPStateMachine::resetKeepAliveTimer() {
         keepAliveTimer->stop();
         delete keepAliveTimer;
     }
-
-    keepAliveTimer = new BGPTimer("KeepAliveTimer",
-                                  this,
-                                  BGPEvent::KeepaliveTimer_Expires,
-                                  kKeepaliveTime_defaultVal);
+    BGPEvent event = {
+        BGPEventType::KeepaliveTimer_Expires,
+        nullptr,
+    };
+    keepAliveTimer = new BGPTimer(
+        "KeepAliveTimer", this, std::move(event), getNegotiatedKeepaliveTime());
 }
 
 void BGPStateMachine::resetDelayOpenTimer() {
@@ -71,17 +76,28 @@ void BGPStateMachine::resetDelayOpenTimer() {
         delayOpenTimer->stop();
         delete delayOpenTimer;
     }
-    delayOpenTimer = new BGPTimer("DelayOpenTimer",
-                                  this,
-                                  BGPEvent::DelayOpenTimer_Expires,
-                                  delayOpenTime);
+    BGPEvent event = {
+        BGPEventType::DelayOpenTimer_Expires,
+        nullptr,
+    };
+
+    delayOpenTimer =
+        new BGPTimer("DelayOpenTimer", this, std::move(event), delayOpenTime);
 }
 
 void BGPStateMachine::initializeTimers() {
+    //Reset just first time to the default values, after that, use the default values
+    initializeTimes();
     resetConnectRetryTimer();
     resetHoldTimer();
     resetKeepAliveTimer();
     resetDelayOpenTimer();
+}
+
+void BGPStateMachine::initializeTimes() {
+    setConnectRetryTime(kConnectRetryTime_defaultVal);
+    setNegotiatedHoldTime(kHoldTime_defaultVal);
+    setNegotiatedKeepaliveTime(kKeepaliveTime_defaultVal);
 }
 
 std::string BGPStateMachine::toString() {

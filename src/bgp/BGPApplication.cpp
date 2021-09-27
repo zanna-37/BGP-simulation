@@ -11,7 +11,8 @@
 #include "BGPConnection.h"
 #include "BGPEvent.h"
 
-BGPApplication::BGPApplication(Router* router) : router(router) {}
+BGPApplication::BGPApplication(Router* router, pcpp::IPv4Address BGPIdentifier)
+    : router(router), BGPIdentifier(BGPIdentifier) {}
 
 BGPApplication::~BGPApplication() {
     running = false;
@@ -49,8 +50,12 @@ void BGPApplication::passiveOpenAll() {
             bgpConnection->srcPort = BGPApplication::BGPDefaultPort;
             bgpConnection->dstAddr = peerAddr;
 
-            bgpConnection->enqueueEvent(
-                BGPEvent::ManualStart_with_PassiveTcpEstablishment);
+            BGPEvent event = {
+                BGPEventType::ManualStart_with_PassiveTcpEstablishment,
+                nullptr,
+            };
+
+            bgpConnection->enqueueEvent(std::move(event));
         }
     }
 }
@@ -59,10 +64,14 @@ void BGPApplication::collisionDetection(BGPConnection* connectionToCheck) {
     for (BGPConnection* connection : bgpConnections) {
         if (connectionToCheck->dstAddr == connection->dstAddr &&
             connection != connectionToCheck) {
+            BGPEvent event = {
+                BGPEventType::ManualStop,
+                nullptr,
+            };
             if (connectionToCheck->srcAddr < connection->dstAddr) {
-                connectionToCheck->enqueueEvent(BGPEvent::ManualStop);
+                connectionToCheck->enqueueEvent(std::move(event));
             } else {
-                connection->enqueueEvent(BGPEvent::ManualStop);
+                connection->enqueueEvent(std::move(event));
             }
         }
     }
@@ -77,7 +86,7 @@ Socket* BGPApplication::getCorrespondingListeningSocket(
     pcpp::IPv4Address srcAddress, uint16_t srcPort) {
     std::mutex mutex;
     mutex.lock();
-    Socket* result;
+    Socket* result = nullptr;
     // Search existing listening socket
     for (auto* listeningSocket : listeningSockets) {
         if (listeningSocket->tcpConnection->srcAddr == srcAddress &&

@@ -71,7 +71,7 @@ class Timer {
           std::chrono::seconds totalDuration)
         : name(std::move(name)),
           stateMachine(stateMachine),
-          eventToSendUponExpire(eventToSendUponExpire),
+          eventToSendUponExpire(std::move(eventToSendUponExpire)),
           totalDuration(totalDuration),
           duration(std::chrono::milliseconds::min()) {}
     ~Timer() {
@@ -129,7 +129,8 @@ class Timer {
                                 stateMachine->name,
                             "TIMEOUT " + name + ": performing actions");
                     timerState = EXECUTING_SCHEDULED_TASK;
-                    stateMachine->enqueueEvent(eventToSendUponExpire);
+                    stateMachine->enqueueEvent(
+                        std::move(eventToSendUponExpire));
                     timerState = COMPLETED;
 
                 } else {

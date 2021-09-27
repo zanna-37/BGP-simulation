@@ -45,24 +45,26 @@ class StateMachine {
                     }
                 }
                 if (running) {
-                    Event event = eventQueue.front();
+                    Event event = std::move(eventQueue.front());
                     eventQueue.pop();
                     stateMachineEventQueue_uniqueLock.unlock();
 
+                    std::string eventName = getEventName(event);
                     L_DEBUG(connection->owner->ID + " " + name,
-                            "Passing event " + getEventName(event) +
+                            "Passing event " + eventName +
                                 " to the current state (" + currentState->name +
                                 ") " + toString());
 
                     State* hanglingState_forlogs =
                         currentState;  // only used in the logs
-                    bool result = currentState && currentState->onEvent(event);
+                    bool result =
+                        currentState && currentState->onEvent(std::move(event));
 
                     {
                         std::string owner_str =
                             connection->owner->ID + " " + name;
                         std::string message_str =
-                            "Event " + getEventName(event) +
+                            "Event " + eventName +
                             (result ? " handled" : " NOT handled") + " by " +
                             hanglingState_forlogs->name + " " + toString();
 
@@ -113,7 +115,7 @@ class StateMachine {
      */
     void enqueueEvent(Event event) {
         eventQueue_mutex.lock();
-        eventQueue.push(event);
+        eventQueue.push(std::move(event));
         eventQueue_mutex.unlock();
 
         eventQueue_ready.notify_one();

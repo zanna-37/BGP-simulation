@@ -1,11 +1,11 @@
 #include "BGPLayer.h"
 
-#include <Logger.h>
 #include <endian.h>
 
 #include <climits>
 #include <cstring>
 
+#include "../../logger/Logger.h"
 #include "BGPKeepaliveLayer.h"
 #include "BGPNotificationLayer.h"
 #include "BGPOpenLayer.h"
@@ -38,11 +38,72 @@ BGPLayer* BGPLayer::parseBGPLayerOrNull(uint8_t*      data,
     }
 }
 
+bool BGPLayer::checkMarker(uint8_t marker[16]) {
+    bool res = true;
+    for (int i = 0; i < 16; i++) {
+        if (marker[i] != 0xFF) {
+            res = false;
+        }
+    }
+    return res;
+}
+
+bool BGPLayer::checkMessageHeader(BGPLayer::BGPCommonHeader* header,
+                                  uint8_t*                   subcode) {
+    if (be16toh(header->length_be) < sizeof(BGPCommonHeader)) {
+        // sizeof(BGPCommonHeader) --> 19
+        L_ERROR("BGPLayer",
+                "The packet is to small to fit the BGP common header");
+        *subcode = 2;
+        return false;
+    } else if (be16toh(header->length_be) > 4096) {
+        L_ERROR("BGPLayer",
+                "The packet is to big to fit the BGP common header");
+        *subcode = 2;
+        return false;
+    } else if (!checkMarker(header->marker)) {
+        *subcode = 1;
+        L_ERROR("BGPLayer", "The BGP message is not synchronized");
+        return false;
+    } else if (header->type != BGPLayer::BGPMessageType::OPEN &&
+               header->type != BGPLayer::BGPMessageType::UPDATE &&
+               header->type != BGPLayer::BGPMessageType::KEEPALIVE &&
+               header->type != BGPLayer::BGPMessageType::NOTIFICATION) {
+        *subcode = 3;
+        L_ERROR("BGPLayer", "The BGP message type is not recognized");
+        return false;
+    } else if (header->type == BGPLayer::BGPMessageType::OPEN &&
+               be16toh(header->length_be) < 29) {
+        *subcode = 2;
+        L_ERROR("BGPLayer", "Header length field to short for OPEN message");
+        return false;
+    } else if (header->type == BGPLayer::BGPMessageType::UPDATE &&
+               be16toh(header->length_be) < 23) {
+        *subcode = 2;
+        L_ERROR("BGPLayer", "Header length field to short for UPDATE message");
+        return false;
+    } else if (header->type == BGPLayer::BGPMessageType::KEEPALIVE &&
+               be16toh(header->length_be) != 19) {
+        *subcode = 2;
+        L_ERROR("BGPLayer",
+                "Header length field to short for KEEPALIVE message");
+        return false;
+    } else if (header->type == BGPLayer::BGPMessageType::NOTIFICATION &&
+               be16toh(header->length_be) < 21) {
+        *subcode = 2;
+        L_ERROR("BGPLayer",
+                "Header length field to short for NOTIFICATION message");
+        return false;
+    }
+    return true;
+}
+
 BGPLayer::BGPCommonHeader* BGPLayer::getCommonHeaderOrNull() const {
     if (m_DataLen >= sizeof(BGPCommonHeader))
         return (BGPCommonHeader*)m_Data;
     else {
-        LOG_ERROR("The packet is to small to fit the BGP common header");
+        L_ERROR("BGPLayer",
+                "The packet is to small to fit the BGP common header");
         return nullptr;
     }
 }
@@ -108,9 +169,8 @@ void BGPLayer::computeCalculateFields() {
     if (header) {
         // every bit of the marker should be filled with ones as per RFC
         memset(header,
-               UINT_MAX,
-               sizeof(BGPCommonHeader::marker));  // FIXME Check if the header
-                                                  // is really filled with ones
+               0xFF,
+               sizeof(BGPCommonHeader::marker));
         header->type = getBGPMessageType();
 
         computeCalculateFieldsInternal();

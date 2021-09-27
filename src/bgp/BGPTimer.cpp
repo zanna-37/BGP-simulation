@@ -12,6 +12,7 @@ BGPTimer ::BGPTimer(std::string          name,
                     BGPStateMachine*     stateMachine,
                     BGPEvent             eventToSendUponExpire,
                     std::chrono::seconds totalDuration)
-    : Timer(
-          std::move(name), stateMachine, eventToSendUponExpire, totalDuration) {
-}
+    : Timer(std::move(name),
+            stateMachine,
+            std::move(eventToSendUponExpire),
+            totalDuration) {}

@@ -37,6 +37,8 @@ class BGPKeepaliveLayer : public BGPLayer {
      */
     BGPKeepaliveLayer();
 
+    bool checkMessageErr(uint8_t subcode) const override;
+
    private:
     std::string toStringInternal() const override;
     void        computeCalculateFieldsInternal() const override;

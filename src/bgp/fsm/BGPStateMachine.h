@@ -75,6 +75,12 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     void initializeTimers();
 
     /**
+     * @brief Initialize the negotiated time values used for this connection
+     *
+     */
+    void initializeTimes();
+
+    /**
      * Get the connectRetrycounter
      * @return the connectRetryCounter value
      */
@@ -142,28 +148,34 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     }
 
     /**
-     * Get the holdTime default value. Used by holdTimer
+     * @brief Get the holdTime negotiated value.
      * @return the holdTime value
      */
-    std::chrono::seconds getHoldTime() const { return holdTime; }
+    std::chrono::seconds getNegotiatedHoldTime() const {
+        return negotiatedHoldTime;
+    }
 
     /**
-     * Set the holdTime default value
-     * @param value the value of holdTime
+     * Set the holdTime negotiated value
+     * @param value the value of negotiatedHoldTime
      */
-    void setHoldTime(const std::chrono::seconds& value) { holdTime = value; }
+    void setNegotiatedHoldTime(const std::chrono::seconds& value) {
+        negotiatedHoldTime = value;
+    }
 
     /**
      * Get the keepAliveTime default value. Used by keepAliveTimer
      * @return the keepAliveTime value
      */
-    std::chrono::seconds getKeepaliveTime() const { return keepaliveTime; }
+    std::chrono::seconds getNegotiatedKeepaliveTime() const {
+        return negotiatedKeepaliveTime;
+    }
     /**
      * Set the keepAliveTime default value
      * @param value the value of keepAliveTime
      */
-    void setKeepaliveTime(const std::chrono::seconds& value) {
-        keepaliveTime = value;
+    void setNegotiatedKeepaliveTime(const std::chrono::seconds& value) {
+        negotiatedKeepaliveTime = value;
     }
 
     /**
@@ -179,33 +191,103 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
         delayOpenTime = value;
     }
 
+    /**
+     * @brief Get the Accept Connections Unconfigured Peers object
+     *
+     * @return false
+     */
+    bool getAcceptConnectionsUnconfiguredPeers() const {
+        return AcceptConnectionsUnconfiguredPeers;
+    }
+    /**
+     * @brief Get the Allow Automatic Start object
+     *
+     * @return false
+     */
+    bool getAllowAutomaticStart() const { return AllowAutomaticStart; }
+    /**
+     * @brief Get the Allow Automatic Stop object
+     *
+     * @return false
+     */
+    bool getAllowAutomaticStop() const { return AllowAutomaticStop; }
+    /**
+     * @brief Get the Collision Detect Established State object
+     *
+     * @return false
+     */
+    bool getCollisionDetectEstablishedState() const {
+        return CollisionDetectEstablishedState;
+    }
+    /**
+     * @brief Get the Idle Hold Time object
+     *
+     * @return false
+     */
+    bool getIdleHoldTime() const { return IdleHoldTime; }
+    /**
+     * @brief Get the Idle Hold Timer object
+     *
+     * @return false
+     */
+    bool getIdleHoldTimer() const { return IdleHoldTimer; }
+    /**
+     * @brief Get the Passive Tcp Establishment object
+     *
+     * @return false
+     */
+    bool getPassiveTcpEstablishment() const { return PassiveTcpEstablishment; }
+    /**
+     * @brief Get the Track Tcp State object
+     *
+     * @return false
+     */
+    bool getTrackTcpState() const { return TrackTcpState; }
+
+
    protected:
     std::string toString() override;
 
     // TODO print name of the current BGPState
 
    private:
-    std::chrono::seconds connectRetryTime = 120s;
-    std::chrono::seconds holdTime         = 90s;
-    std::chrono::seconds keepaliveTime    = holdTime / 3;
+    // TODO from the RFC, the following "ConnectRetryTime" "HoldTime"
+    // "KeepaliveTime" should be the default values, but they are already set
+    // above, Do we need to follow word by word the RFC?
+    std::chrono::seconds connectRetryTime        = 0s;
+    std::chrono::seconds negotiatedHoldTime      = 0s;
+    std::chrono::seconds negotiatedKeepaliveTime = 0s;
 
     // Mandatory session attributes
     int connectRetryCounter = 0;
 
     // Optional attributes
 
-    //   1) AcceptConnectionsUnconfiguredPeers
-    //   2) AllowAutomaticStart
-    //   3) AllowAutomaticStop
-    //   4) CollisionDetectEstablishedState
-    bool                 dampPeerOscillations = false;
-    bool                 delayOpen            = false;
-    std::chrono::seconds delayOpenTime        = 0s;  // TODO
-    //   9) IdleHoldTime
-    //  10) IdleHoldTimer
-    //  11) PassiveTcpEstablishment
-    bool sendNOTIFICATIONwithoutOPEN = false;
-    //  13) TrackTcpState
+    //  1) AcceptConnectionsUnconfiguredPeers
+    //  2) AllowAutomaticStart
+    //  3) AllowAutomaticStop
+    //  4) CollisionDetectEstablishedState
+    //  5) DampPeerOscillations
+    //  6) DelayOpen
+    //  7) DelayOpenTime
+    //  8) DelayOpenTimer
+    //  9) IdleHoldTime
+    // 10) IdleHoldTimer
+    // 11) PassiveTcpEstablishment
+    // 12) SendNOTIFICATIONwithoutOPEN
+    // 13) TrackTcpState
+    bool                 AcceptConnectionsUnconfiguredPeers = false;
+    bool                 AllowAutomaticStart                = false;
+    bool                 AllowAutomaticStop                 = false;
+    bool                 CollisionDetectEstablishedState    = false;
+    bool                 dampPeerOscillations               = false;
+    bool                 delayOpen                          = false;
+    std::chrono::seconds delayOpenTime                      = 0s;  // TODO
+    bool                 IdleHoldTime                       = false;
+    bool                 IdleHoldTimer                      = false;
+    bool                 PassiveTcpEstablishment            = false;
+    bool                 sendNOTIFICATIONwithoutOPEN        = false;
+    bool                 TrackTcpState                      = false;
 };
 
 #endif  // BGPSIMULATION_BGP_FSM_BGPSTATEMACHINE_H

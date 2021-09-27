@@ -21,3 +21,7 @@ BGPKeepaliveLayer::BGPKeepaliveLayer() : BGPLayer() {
 
     bgpCommonHeader->length_be = htobe16(headerLen);
 }
+
+bool BGPKeepaliveLayer::checkMessageErr(uint8_t subcode) const {
+    return true;
+}

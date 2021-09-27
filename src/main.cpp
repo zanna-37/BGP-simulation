@@ -26,7 +26,8 @@ volatile sig_atomic_t stop;
  * @param devices Vector of the Devices parsed for the configuration of the
  * program
  */
-int start_server(unsigned short int serverPort, std::vector<Device *> *devices) {
+int start_server(unsigned short int     serverPort,
+                 std::vector<Device *> *devices) {
     Pistache::Port    port(serverPort);
     int               thr = 2;
     Pistache::Address addr(Pistache::Ipv4::any(), port);

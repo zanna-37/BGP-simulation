@@ -28,9 +28,8 @@ class BGPConnection {
     BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
 
-    BGPApplication* bgpApplication;
 
-    std::thread* listeningThread;
+    std::thread* listeningThread = nullptr;
 
     /**
      * The thread that manages any incoming application packet.
@@ -40,6 +39,8 @@ class BGPConnection {
     std::thread* connectThread = nullptr;
 
    public:
+    BGPApplication* bgpApplication;
+
     /**
      * The owner of the connection, necessary in simulation context
      */
@@ -50,7 +51,6 @@ class BGPConnection {
     pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;  // TODO remove(?)
     uint16_t          srcPort = 179;                      // TODO remove!!
 
-    std::chrono::seconds holdTime = 0s;
 
     std::mutex connectedSocket_mutex;
 
@@ -61,7 +61,7 @@ class BGPConnection {
     Socket* connectedSocket [[deprecated(
         "Do not use directly. Use setConnectedSocketToAvailableBGPConn() or "
         "getConnectedSocket()")]] =
-            nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
+        nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
 
     // Constructors
     BGPConnection(Router* owner, BGPApplication* bgpApplication);
@@ -92,6 +92,8 @@ class BGPConnection {
      * Close the BGP connection and notifies the state machine
      */
     void closeConnection();
+
+    std::chrono::seconds getNegotiatedHoldTime();
 
     /**
      * Starts the receiving thread. This thread will wait for new messages

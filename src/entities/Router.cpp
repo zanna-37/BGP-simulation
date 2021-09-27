@@ -20,6 +20,6 @@ void Router::forwardMessage(
 }
 
 void Router::bootUpInternal() {
-    bgpApplication = new BGPApplication(this);
+    bgpApplication = new BGPApplication(this, this->peer_addresses.front());
     bgpApplication->passiveOpenAll();
 }
