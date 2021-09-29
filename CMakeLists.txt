@@ -54,6 +54,7 @@ set(SOURCE_FILES
         ${SRC_IP}/TableRow.cpp
         ${SRC_BGP}/BGPApplication.cpp
         ${SRC_BGP}/BGPConnection.cpp
+        ${SRC_BGP}/BGPDecisionProcess.cpp
         ${SRC_BGP}/BGPEvent.cpp
         ${SRC_BGP}/BGPTableRow.cpp
         ${SRC_BGP}/BGPTimer.cpp

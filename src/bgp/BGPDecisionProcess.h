@@ -1,21 +1,24 @@
 #ifndef BGPDECISIONPROCESS_H
 #define BGPDECISIONPROCESS_H
 
-#include <BGPTableRow.h>
-#include <entities/Router.h>
-#include <ip/TableRow.h>
-#include <packets/BGPUpdateLayer.h>
-
 #include <vector>
 
-// forward declarations
-#include <packets/BGPUpdateLayer.h>
+#include "../entities/Router.h"
+#include "../ip/TableRow.h"
+#include "BGPTableRow.h"
+#include "packets/BGPUpdateLayer.h"
 
-void runDecisionProcess(Router *router, BGPUpdateLayer *BGPUpdateMessage);
+// forward declarations
+#include "packets/BGPUpdateLayer.h"
+
+void runDecisionProcess(Router *                         router,
+                        std::unique_ptr<BGPUpdateLayer> &BGPUpdateMessage,
+                        std::unique_ptr<BGPUpdateLayer> &newBGPUpdateMessage,
+                        pcpp::IPv4Address &              routerIP);
 
 void calculatePreferredRoute(BGPTableRow *newRoute,
                              BGPTableRow *currentPreferredRoute);
 
-void updateIPTable(std::vector<TableRow *> *IPTable, BGPTableRow *newRoute);
+void updateIPTable(std::vector<TableRow> &IPTable, BGPTableRow &newRoute);
 
 #endif

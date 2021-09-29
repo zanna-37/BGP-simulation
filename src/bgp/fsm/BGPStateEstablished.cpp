@@ -3,12 +3,15 @@
 #include <chrono>
 
 #include "../../entities/Router.h"
+#include "../../utils/SmartPointerUtils.h"
 #include "../BGPConnection.h"
+#include "../BGPDecisionProcess.h"
 #include "../BGPEvent.h"
 #include "../BGPTimer.h"
 #include "../packets/BGPKeepaliveLayer.h"
 #include "../packets/BGPLayer.h"
 #include "../packets/BGPNotificationLayer.h"
+#include "../packets/BGPUpdateLayer.h"
 #include "BGPStateIdle.h"
 #include "BGPStateMachine.h"
 
@@ -292,8 +295,31 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO deletes all routes associated with this connection,
-            // bgp table needed
+            {
+                std::unique_ptr<BGPUpdateLayer> updateLayer;
+                dynamic_pointer_move(updateLayer, event.layers);
+
+                // Run Decision Process
+                std::unique_ptr<BGPUpdateLayer> newUpdateLayer;
+                runDecisionProcess(stateMachine->connection->owner,
+                                   updateLayer,
+                                   newUpdateLayer,
+                                   stateMachine->connection->dstAddr);
+
+                // Send new BGPUpdateMessage
+                if (newUpdateLayer != nullptr) {
+                    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                        layers = make_unique<
+                            std::stack<std::unique_ptr<pcpp::Layer>>>();
+                    layers->push(std::move(newUpdateLayer));
+
+                    stateMachine->connection->sendData(std::move(layers));
+
+                    L_INFO(stateMachine->connection->owner->ID + " " +
+                               stateMachine->name,
+                           "Sending UPDATE message");
+                }
+            }
 
 
             // XXX releases all the BGP resources, done
@@ -325,8 +351,33 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
         case BGPEventType::UpdateMsg:
             L_DEBUG(stateMachine->connection->owner->ID, "Event -> UpdateMsg");
-            // MANDATORY
-            // TODO processes the message,
+            {
+                // BGPUpdateMessage to be processed
+                std::unique_ptr<BGPUpdateLayer> updateLayer;
+                dynamic_pointer_move(updateLayer, event.layers);
+
+                // Run Decision Process
+                std::unique_ptr<BGPUpdateLayer> newUpdateLayer;
+                runDecisionProcess(stateMachine->connection->owner,
+                                   updateLayer,
+                                   newUpdateLayer,
+                                   stateMachine->connection->dstAddr);
+
+                // Send new BGPUpdateMessage
+                if (newUpdateLayer != nullptr) {
+                    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                        layers = make_unique<
+                            std::stack<std::unique_ptr<pcpp::Layer>>>();
+                    layers->push(std::move(newUpdateLayer));
+
+                    stateMachine->connection->sendData(std::move(layers));
+
+                    L_INFO(stateMachine->connection->owner->ID + " " +
+                               stateMachine->name,
+                           "Sending UPDATE message");
+                }
+            }
+
 
             // restarts its HoldTimer, if the negotiated HoldTime value is
             // non-zero, and
