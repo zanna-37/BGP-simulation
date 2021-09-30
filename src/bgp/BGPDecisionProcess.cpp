@@ -135,7 +135,7 @@ void runDecisionProcess(Router *                         router,
         // NextHop PathAttribute
         uint32_t      newNextHop        = routerIP.toInt();
         uint8_t *     nextHopData       = (uint8_t *)&newNextHop;
-        uint16_t      nextHopDataLength = routerIP.toString().size();
+        uint16_t      nextHopDataLength = sizeof(newNextHop);
         PathAttribute nextHopAttribute;
         nextHopAttribute.setAttributeLengthAndValue(nextHopData,
                                                     nextHopDataLength);
@@ -149,6 +149,8 @@ void runDecisionProcess(Router *                         router,
         uint8_t *     asPathData       = (uint8_t *)&asPath;
         uint16_t      asPathDataLength = asPath.size();
         PathAttribute asPathAttribute;
+        asPathAttribute.setAttributeLengthAndValue(asPathData,
+                                                   asPathDataLength);
         asPathAttribute.attributeTypeCode =
             PathAttribute::AttributeTypeCode_uint8_t::AS_PATH;
         newPathAttributes.push_back(asPathAttribute);
@@ -156,8 +158,10 @@ void runDecisionProcess(Router *                         router,
         // Origin PathAttribute
         char          newOrigin        = '?';
         uint8_t *     originData       = (uint8_t *)&newOrigin;
-        uint16_t      originDataLength = sizeof(originData);
+        uint16_t      originDataLength = sizeof(newOrigin);
         PathAttribute originPathAttribute;
+        originPathAttribute.setAttributeLengthAndValue(originData,
+                                                       originDataLength);
         originPathAttribute.attributeTypeCode =
             PathAttribute::AttributeTypeCode_uint8_t::ORIGIN;
         newPathAttributes.push_back(originPathAttribute);
@@ -165,9 +169,11 @@ void runDecisionProcess(Router *                         router,
         // LocalPreferences PathAttribute
         uint32_t      newLocalPreferences  = 0;
         uint8_t *     localPreferencesData = (uint8_t *)&newLocalPreferences;
-        uint16_t      localPreferencesDataLength = sizeof(localPreferencesData);
+        uint16_t      localPreferencesDataLength = sizeof(newLocalPreferences);
         PathAttribute localPreferencesPathAttribute;
-        originPathAttribute.attributeTypeCode =
+        localPreferencesPathAttribute.setAttributeLengthAndValue(
+            localPreferencesData, localPreferencesDataLength);
+        localPreferencesPathAttribute.attributeTypeCode =
             PathAttribute::AttributeTypeCode_uint8_t::LOCAL_PREF;
         newPathAttributes.push_back(localPreferencesPathAttribute);
 
