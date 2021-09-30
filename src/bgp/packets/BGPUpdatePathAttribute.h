@@ -142,10 +142,10 @@ class PathAttribute {
     /**
      * Set the length of the attribute and its value taking care of setting the
      * \a EXTENDED bit flag when the size is larger that a byte.
-     * @param data The value to store.
-     * @param attributeSize The size of \a data
+     * @param data_be The value to store in BigEndian format.
+     * @param attributeSize The size of \a data_be
      */
-    void setAttributeLengthAndValue(uint8_t* data, uint16_t attributeSize) {
+    void setAttributeLengthAndValue(uint8_t* data_be, uint16_t attributeSize) {
         bool extended = attributeSize > UINT8_MAX;
         if (extended) {
             setFlags(EXTENDED, true);
@@ -156,7 +156,7 @@ class PathAttribute {
             this->attributeLength_higherBits = (attributeSize >> 8);
         }
 
-        this->attributeData_be = data;
+        this->attributeData_be = data_be;
     }
 
     /**

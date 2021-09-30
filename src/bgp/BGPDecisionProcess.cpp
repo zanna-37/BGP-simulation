@@ -81,7 +81,6 @@ void runDecisionProcess(Router *                         router,
                             *pathAttribute.getAttributeValue_be());
                     }
                     break;
-
                 default:
                     L_ERROR(
                         "DecisionProc",
@@ -98,13 +97,11 @@ void runDecisionProcess(Router *                         router,
                 jterator++;
                 pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toInt() &
                                                 nlri.prefixLength);
-
                 pcpp::IPv4Address netmaskNRLI(nlri.prefixLength);
-
-                BGPTableRow newRoute(networkIPNRLI,
+                BGPTableRow       newRoute(networkIPNRLI,
                                      netmaskNRLI,
                                      nextHop,
-                                     '?',
+                                     origin,
                                      asPath,
                                      0,
                                      localPreferences,
@@ -134,11 +131,14 @@ void runDecisionProcess(Router *                         router,
         // Create BGPUpdateMessage
         std::vector<PathAttribute> newPathAttributes;
 
-
         // NextHop PathAttribute
-        uint32_t      newNextHop        = routerIP.toInt();
-        uint8_t *     nextHopData       = (uint8_t *)&newNextHop;
-        uint16_t      nextHopDataLength = sizeof(newNextHop);
+        uint32_t     routerIp_int                   = routerIP.toInt();
+        const size_t nextHopDataLength              = 4;
+        uint8_t      nextHopData[nextHopDataLength] = {
+            (uint8_t)routerIp_int,
+            (uint8_t)(routerIp_int >> 8),
+            (uint8_t)(routerIp_int >> 16),
+            (uint8_t)(routerIp_int >> 24)};
         PathAttribute nextHopAttribute;
         nextHopAttribute.setAttributeLengthAndValue(nextHopData,
                                                     nextHopDataLength);
@@ -149,8 +149,15 @@ void runDecisionProcess(Router *                         router,
         // AS_Path PathAttribute
         uint16_t new_as_num = (uint16_t)router->AS_number;
         asPath.push_back(new_as_num);
-        uint8_t *     asPathData       = (uint8_t *)&asPath;
-        uint16_t      asPathDataLength = asPath.size();
+
+        std::vector<uint8_t> asPath_be8;
+        for (auto AS_h : asPath) {
+            uint16_t AS_be16 = htobe16(AS_h);
+            asPath_be8.push_back((uint8_t)AS_be16);
+            asPath_be8.push_back((uint8_t)AS_be16 >> 8);
+        }
+        size_t        asPathDataLength = asPath_be8.size();
+        uint8_t *     asPathData       = asPath_be8.data();
         PathAttribute asPathAttribute;
         asPathAttribute.setAttributeLengthAndValue(asPathData,
                                                    asPathDataLength);
@@ -159,9 +166,8 @@ void runDecisionProcess(Router *                         router,
         newPathAttributes.push_back(asPathAttribute);
 
         // Origin PathAttribute
-        char          newOrigin        = '?';
-        uint8_t *     originData       = (uint8_t *)&newOrigin;
-        uint16_t      originDataLength = sizeof(newOrigin);
+        const size_t  originDataLength             = 1;
+        uint8_t       originData[originDataLength] = {'?'};
         PathAttribute originPathAttribute;
         originPathAttribute.setAttributeLengthAndValue(originData,
                                                        originDataLength);
@@ -169,16 +175,7 @@ void runDecisionProcess(Router *                         router,
             PathAttribute::AttributeTypeCode_uint8_t::ORIGIN;
         newPathAttributes.push_back(originPathAttribute);
 
-        // LocalPreferences PathAttribute
-        uint32_t      newLocalPreferences  = 0;
-        uint8_t *     localPreferencesData = (uint8_t *)&newLocalPreferences;
-        uint16_t      localPreferencesDataLength = sizeof(newLocalPreferences);
-        PathAttribute localPreferencesPathAttribute;
-        localPreferencesPathAttribute.setAttributeLengthAndValue(
-            localPreferencesData, localPreferencesDataLength);
-        localPreferencesPathAttribute.attributeTypeCode =
-            PathAttribute::AttributeTypeCode_uint8_t::LOCAL_PREF;
-        newPathAttributes.push_back(localPreferencesPathAttribute);
+        // TODO LocalPreferences PathAttribute (if we have time)
 
         std::vector<LengthAndIpPrefix> new_nlri;
         for (BGPTableRow &bgpTableRow : router->bgpTable) {
