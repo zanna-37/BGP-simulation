@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "../logger/Logger.h"
 #include "packets/BGPUpdatePathAttribute.h"
 
 void runDecisionProcess(Router *                         router,
@@ -52,7 +53,8 @@ void runDecisionProcess(Router *                         router,
                     if (pathAttribute.getAttributeLength_h() != 0) {
                         // origin attribute is one byte, no need to
                         // do conversion to host byte order
-                        origin = *pathAttribute.getAttributeValue_be();
+                        origin = static_cast<char>(
+                            *pathAttribute.getAttributeValue_be());
                     }
                     break;
                 case PathAttribute::AttributeTypeCode_uint8_t::AS_PATH:
@@ -81,6 +83,10 @@ void runDecisionProcess(Router *                         router,
                     break;
 
                 default:
+                    L_ERROR(
+                        "DecisionProc",
+                        "Unhandled PathAttribute::AttributeTypeCode_uint8_t " +
+                            std::to_string(pathAttribute.attributeTypeCode));
                     break;
             }
         }
@@ -105,25 +111,21 @@ void runDecisionProcess(Router *                         router,
                                      0);
 
                 if (networkIPNRLI == BGPTableRoute.networkIP) {
-                    // TODO: use replace method (not mandatory)
-                    router->bgpTable.erase(router->bgpTable.begin() + jterator);
-                    router->bgpTable.push_back(newRoute);
+                    // Replace table row
+                    BGPTableRoute = newRoute;
 
-                    LengthAndIpPrefix newWithDrawnRoute(
+                    newWithDrawnRoutes.emplace_back(
                         BGPTableRoute.networkMask.toInt(),
                         BGPTableRoute.networkIP.toString());
-                    newWithDrawnRoutes.push_back(newWithDrawnRoute);
-
                 } else {
                     calculatePreferredRoute(&newRoute, &BGPTableRoute);
                     router->bgpTable.push_back(newRoute);
                     if (newRoute.preferred) {
                         updateIPTable(router->routingTable, newRoute);
 
-                        LengthAndIpPrefix newWithDrawnRoute(
+                        newWithDrawnRoutes.emplace_back(
                             BGPTableRoute.networkMask.toInt(),
                             BGPTableRoute.networkIP.toString());
-                        newWithDrawnRoutes.push_back(newWithDrawnRoute);
                     }
                 }
             }

@@ -1,14 +1,11 @@
-#ifndef BGPDECISIONPROCESS_H
-#define BGPDECISIONPROCESS_H
+#ifndef BGPSIMULATION_BGP_BGPDECISIONPROCESS_H
+#define BGPSIMULATION_BGP_BGPDECISIONPROCESS_H
 
 #include <vector>
 
 #include "../entities/Router.h"
 #include "../ip/TableRow.h"
 #include "BGPTableRow.h"
-#include "packets/BGPUpdateLayer.h"
-
-// forward declarations
 #include "packets/BGPUpdateLayer.h"
 
 void runDecisionProcess(Router *                         router,
@@ -21,4 +18,4 @@ void calculatePreferredRoute(BGPTableRow *newRoute,
 
 void updateIPTable(std::vector<TableRow> &IPTable, BGPTableRow &newRoute);
 
-#endif
+#endif  // BGPSIMULATION_BGP_BGPDECISIONPROCESS_H
