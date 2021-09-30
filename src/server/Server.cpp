@@ -736,7 +736,9 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
 
 
         if (postDoc.HasMember("asNumber")) {
-            int AS_number = postDoc.FindMember("asNumber")->value.GetInt();
+            std::string AS_number_string =
+                postDoc.FindMember("asNumber")->value.GetString();
+            int              AS_number = std::stoi(AS_number_string);
             rapidjson::Value asNumber;
             asNumber.SetInt(AS_number);
             device.AddMember("asNumber", asNumber, doc.GetAllocator());
