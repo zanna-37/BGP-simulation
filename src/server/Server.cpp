@@ -605,9 +605,6 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
         link.AddMember("from", Value(link_it["from"], allocator), allocator);
         link.AddMember("to", Value(link_it["to"], allocator), allocator);
 
-        style.AddMember("toDecoration", Value("arrow", allocator), allocator);
-        style.AddMember("fromDecoration", Value("arrow", allocator), allocator);
-
         extra.AddMember("from_interface",
                         Value(link_it["from_interface"], allocator),
                         allocator);
@@ -615,7 +612,6 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
                         Value(link_it["to_interface"], allocator),
                         allocator);
 
-        link.AddMember("style", style, allocator);
         link.AddMember("extra", extra, allocator);
 
         zoomDoc["links"].PushBack(link, allocator);
@@ -886,56 +882,43 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
             rapidjson::Value link(rapidjson::kObjectType),
                 link_reverse(rapidjson::kObjectType);
 
-            // Link is using copies of the values, Link_reverse is consuming the
-            // values.
+            std::string from = postDoc.FindMember("from")->value.GetString();
+            std::string to   = postDoc.FindMember("to")->value.GetString();
+            std::string from_interface =
+                postDoc.FindMember("from_interface")->value.GetString();
+            std::string to_interface =
+                postDoc.FindMember("to_interface")->value.GetString();
 
-            link.AddMember("from",
-                           rapidjson::Value(postDoc.FindMember("from")->value,
-                                            postDoc.GetAllocator()),
-                           postDoc.GetAllocator());
-            link.AddMember("to",
-                           rapidjson::Value(postDoc.FindMember("to")->value,
-                                            postDoc.GetAllocator()),
-                           postDoc.GetAllocator());
-            link.AddMember(
-                "from_interface",
-                rapidjson::Value(postDoc.FindMember("from_interface")->value,
-                                 postDoc.GetAllocator()),
-                postDoc.GetAllocator());
-            link.AddMember(
-                "to_interface",
-                rapidjson::Value(postDoc.FindMember("to_interface")->value,
-                                 postDoc.GetAllocator()),
-                postDoc.GetAllocator());
-            link.AddMember("con_status", "active", postDoc.GetAllocator());
+            // reverse link
+            std::string from_reverse           = to;
+            std::string to_reverse             = from;
+            std::string from_interface_reverse = to_interface;
+            std::string to_interface_reverse   = from_interface;
 
-            link_reverse.AddMember("from",
-                                   postDoc.FindMember("to")->value,
-                                   postDoc.GetAllocator());
-            link_reverse.AddMember("to",
-                                   postDoc.FindMember("from")->value,
-                                   postDoc.GetAllocator());
-            link_reverse.AddMember("from_interface",
-                                   postDoc.FindMember("to_interface")->value,
-                                   postDoc.GetAllocator());
-            link_reverse.AddMember("to_interface",
-                                   postDoc.FindMember("from_interface")->value,
-                                   postDoc.GetAllocator());
-            link_reverse.AddMember(
-                "con_status", "active", postDoc.GetAllocator());
-
-            for (auto &l : doc["links"].GetArray()) {
-                if ((l == link || l == link_reverse)) {
-                    rapidjson::Value::MemberIterator it =
-                        l.FindMember("con_status");
-                    it->value.SetString("failed", postDoc.GetAllocator());
+            for (auto &link : doc["links"].GetArray()) {
+                rapidjson::Value::MemberIterator itr;
+                itr                     = link.FindMember("from");
+                std::string currentFrom = itr->value.GetString();
+                itr                     = link.FindMember("to");
+                std::string currentTo   = itr->value.GetString();
+                itr                     = link.FindMember("from_interface");
+                std::string currentFromInterface = itr->value.GetString();
+                itr = link.FindMember("to_interface");
+                std::string currentToInterface = itr->value.GetString();
+                if ((from == currentFrom && to == currentTo &&
+                     from_interface == currentFromInterface &&
+                     to_interface == currentToInterface) ||
+                    (from_reverse == currentFrom && to_reverse == currentTo &&
+                     from_interface_reverse == currentFromInterface &&
+                     to_interface_reverse == currentToInterface)) {
+                    itr = link.FindMember("con_status");
+                    itr->value.SetString("failed", doc.GetAllocator());
                     L_DEBUG("Server", "Value in the the RapidJSON doc changed");
 
                     for (auto dev : *devices) {
-                        if (dev->ID.compare(link["from"].GetString())) {
+                        if (dev->ID.compare(from)) {
                             for (auto net : *dev->networkCards) {
-                                if (net->netInterface.compare(
-                                        link["from_interface"].GetString())) {
+                                if (net->netInterface.compare(from_interface)) {
                                     net->link->connection_status =
                                         FAILED;  // TODO Use setter when it will
                                                  // be ready on the class.
@@ -1131,61 +1114,99 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
         postDoc.HasMember("to") && postDoc.HasMember("from_interface") &&
         postDoc.HasMember("to_interface")) {
         // Search for the link and change the value
-        rapidjson::Value link(rapidjson::kObjectType),
-            link_reverse(rapidjson::kObjectType);
+        rapidjson::Value link(rapidjson::kObjectType);
+        rapidjson::Value link_reverse(rapidjson::kObjectType);
 
         // Link is using copies of the values, Link_reverse is consuming the
         // values.
+        std::string device1 = postDoc.FindMember("from")->value.GetString();
+        rapidjson::Value from;
+        from.SetString(device1.c_str(), device1.length(), doc.GetAllocator());
+        link.AddMember("from", from, doc.GetAllocator());
 
-        link.AddMember("from",
-                       rapidjson::Value(postDoc.FindMember("from")->value,
-                                        postDoc.GetAllocator()),
-                       postDoc.GetAllocator());
-        link.AddMember("to",
-                       rapidjson::Value(postDoc.FindMember("to")->value,
-                                        postDoc.GetAllocator()),
-                       postDoc.GetAllocator());
-        link.AddMember(
-            "from_interface",
-            rapidjson::Value(postDoc.FindMember("from_interface")->value,
-                             postDoc.GetAllocator()),
-            postDoc.GetAllocator());
-        link.AddMember(
-            "to_interface",
-            rapidjson::Value(postDoc.FindMember("to_interface")->value,
-                             postDoc.GetAllocator()),
-            postDoc.GetAllocator());
-        link.AddMember("con_status", "active", postDoc.GetAllocator());
+        std::string      device2 = postDoc.FindMember("to")->value.GetString();
+        rapidjson::Value to;
+        to.SetString(device2.c_str(), device2.length(), doc.GetAllocator());
+        link.AddMember("to", to, doc.GetAllocator());
 
+        std::string interface1 =
+            postDoc.FindMember("from_interface")->value.GetString();
+        rapidjson::Value from_interface;
+        from_interface.SetString(
+            interface1.c_str(), interface1.length(), doc.GetAllocator());
+        link.AddMember("from_interface", from_interface, doc.GetAllocator());
+
+        std::string interface2 =
+            postDoc.FindMember("to_interface")->value.GetString();
+        rapidjson::Value to_interface;
+        to_interface.SetString(
+            interface2.c_str(), interface2.length(), doc.GetAllocator());
+        link.AddMember("to_interface", to_interface, doc.GetAllocator());
+
+        link.AddMember("con_status", "active", doc.GetAllocator());
+
+        link_reverse.AddMember("from", to, doc.GetAllocator());
+        link_reverse.AddMember("to", from, doc.GetAllocator());
         link_reverse.AddMember(
-            "from", postDoc.FindMember("to")->value, postDoc.GetAllocator());
+            "from_interface", to_interface, doc.GetAllocator());
         link_reverse.AddMember(
-            "to", postDoc.FindMember("from")->value, postDoc.GetAllocator());
-        link_reverse.AddMember("from_interface",
-                               postDoc.FindMember("to_interface")->value,
-                               postDoc.GetAllocator());
-        link_reverse.AddMember("to_interface",
-                               postDoc.FindMember("from_interface")->value,
-                               postDoc.GetAllocator());
-        link_reverse.AddMember("con_status", "active", postDoc.GetAllocator());
+            "to_interface", from_interface, doc.GetAllocator());
+        link_reverse.AddMember("con_status", "active", doc.GetAllocator());
+
+        std::string from_reverse           = device2;
+        std::string to_reverse             = device1;
+        std::string from_interface_reverse = interface2;
+        std::string to_interface_reverse   = interface1;
 
         if (doc["links"].Empty()) {
-            doc["links"].PushBack(link, postDoc.GetAllocator());
+            doc["links"].PushBack(link, doc.GetAllocator());
             L_DEBUG("Server", "Pushed back empty links");
         } else {
             bool exists = false;
             for (auto &l : doc["links"].GetArray()) {
-                if (l == link || l == link_reverse) {
+                rapidjson::Value::MemberIterator itr;
+                itr                     = l.FindMember("from");
+                std::string currentFrom = itr->value.GetString();
+                itr                     = l.FindMember("to");
+                std::string currentTo   = itr->value.GetString();
+                itr                     = l.FindMember("from_interface");
+                std::string currentFromInterface = itr->value.GetString();
+                itr                              = l.FindMember("to_interface");
+                std::string currentToInterface   = itr->value.GetString();
+                if ((device1 == currentFrom && device2 == currentTo &&
+                     interface1 == currentFromInterface &&
+                     interface2 == currentToInterface) ||
+                    (from_reverse == currentFrom && to_reverse == currentTo &&
+                     from_interface_reverse == currentFromInterface &&
+                     to_interface_reverse == currentToInterface)) {
                     L_DEBUG("Server", "Link :" + to_string(l == link));
                     L_DEBUG("Server",
                             "Reverse Link :" + to_string(l == link_reverse));
-
+                    itr = l.FindMember("con_status");
+                    itr->value.SetString("active", doc.GetAllocator());
                     exists = true;
                 }
             }
             if (!exists) {
-                doc["links"].PushBack(link, postDoc.GetAllocator());
+                doc["links"].PushBack(link, doc.GetAllocator());
                 L_DEBUG("Server", "Pushed back non existing link");
+            }
+            for (auto dev : *devices) {
+                if (dev->ID.compare(device1)) {
+                    for (auto net : *dev->networkCards) {
+                        if (net->netInterface.compare(interface1)) {
+                            net->link->connection_status =
+                                ACTIVE;  // TODO Use setter when it will
+                                         // be ready on the class.
+                            L_INFO("Server",
+                                   "Link connected. Device: " + dev->ID +
+                                       " Interface: " + net->netInterface);
+                            L_DEBUG("Server",
+                                    "Link status: " +
+                                        net->link->getConnectionStatusString());
+                        }
+                    }
+                }
             }
         }
 

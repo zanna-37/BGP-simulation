@@ -11,8 +11,8 @@ var new_link = undefined;
 
 var chart = new NetChart({
     container: document.getElementById("netchart"),
-    area: {height: 400},
-    data: {url: "/getNetZoomCharts"},
+    area: { height: 400 },
+    data: { url: "/getNetZoomCharts" },
     info: {
         enabled: true,
         nodeContentsFunction: function (itemData, item) {
@@ -244,7 +244,7 @@ function connectNodes(node, onodes) {
     for (var i = 0; i < onodes.length; i++) {
         var onode = onodes[i];
 
-        var link = { "id": "link_" + node.id + "-" + onode.id, "from": node.id, "to": onode.id, style: { "toDecoration": "arrow" }, extra: { "from_interface": " ", "to_interface": " " } }
+        var link = { "id": "link_" + node.id + "-" + onode.id, "from": node.id, "to": onode.id, extra: { "from_interface": " ", "to_interface": " " } }
         chart.addData({ nodes: [], links: [link] });
 
         activateLink(node, onode, link);
