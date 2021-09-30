@@ -10,21 +10,22 @@ void runDecisionProcess(Router *                         router,
                         std::unique_ptr<BGPUpdateLayer> &BGPUpdateMessage,
                         std::unique_ptr<BGPUpdateLayer> &newBGPUpdateMessage,
                         pcpp::IPv4Address &              routerIP) {
-    // check if there are withdrawn routes
+    // check whether there are withdrawn routes
     if (BGPUpdateMessage->getWithdrawnRoutesBytesLength() != 0) {
         std::vector<LengthAndIpPrefix> withDrawnRoutes;
         BGPUpdateMessage->getWithdrawnRoutes(withDrawnRoutes);
-        int iterator = 0;
-        for (LengthAndIpPrefix withDrawnRoute : withDrawnRoutes) {
-            for (BGPTableRow &BGPTableRoute : router->bgpTable) {
-                iterator++;
-                pcpp::IPv4Address networkIPwithDrawnRoute(
-                    withDrawnRoute.ipPrefix.toInt() &
-                    withDrawnRoute.prefixLength);
 
-                if (networkIPwithDrawnRoute == BGPTableRoute.networkIP) {
-                    // remove withdrawn route
-                    router->bgpTable.erase(router->bgpTable.begin() + iterator);
+        for (LengthAndIpPrefix withDrawnRoute : withDrawnRoutes) {
+            pcpp::IPv4Address withdrawnedNetwork(
+                withDrawnRoute.ipPrefix.toInt() & withDrawnRoute.prefixLength);
+
+            for (auto itTableRow = router->bgpTable.begin();
+                 itTableRow != router->bgpTable.end();) {
+                if (withdrawnedNetwork == itTableRow->networkIP) {
+                    // remove withdrawned route
+                    itTableRow = router->bgpTable.erase(itTableRow);
+                } else {
+                    itTableRow++;
                 }
             }
         }
