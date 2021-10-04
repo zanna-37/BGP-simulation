@@ -10,6 +10,7 @@
 #include "../tcp/fsm/TCPState.h"
 #include "../tcp/fsm/TCPStateMachine.h"
 #include "IPv4Layer.h"
+#include "IcmpLayer.h"
 #include "Layer.h"
 #include "NetworkCard.h"
 #include "TcpLayer.h"
@@ -153,31 +154,65 @@ void Device::processMessage(
     auto tcpLayer = std::move(layers->top());
     layers->pop();
 
-    auto *ipLayer_weak  = dynamic_cast<pcpp::IPv4Layer *>(ipLayer.get());
-    auto *tcpLayer_weak = dynamic_cast<pcpp::TcpLayer *>(tcpLayer.get());
+    auto *ipLayer_weak = dynamic_cast<pcpp::IPv4Layer *>(ipLayer.get());
+    if (auto *tcpLayer_weak = dynamic_cast<pcpp::TcpLayer *>(tcpLayer.get())) {
+        layers->push(std::move(tcpLayer));
 
-    layers->push(std::move(tcpLayer));
+        std::shared_ptr<TCPConnection> tcpConnection = nullptr;
 
-    std::shared_ptr<TCPConnection> tcpConnection = nullptr;
-
-    // Check if the message is part of an existing connection
-    tcpConnection =
-        getExistingTcpConnectionOrNull(ipLayer_weak->getDstIPv4Address(),
-                                       tcpLayer_weak->getDstPort(),
-                                       ipLayer_weak->getSrcIPv4Address(),
-                                       tcpLayer_weak->getSrcPort());
+        // Check if the message is part of an existing connection
+        tcpConnection =
+            getExistingTcpConnectionOrNull(ipLayer_weak->getDstIPv4Address(),
+                                           tcpLayer_weak->getDstPort(),
+                                           ipLayer_weak->getSrcIPv4Address(),
+                                           tcpLayer_weak->getSrcPort());
 
 
-    if (tcpConnection != nullptr) {
-        tcpConnection->segmentArrives(std::make_pair(
-            ipLayer_weak->getSrcIPv4Address(), std::move(layers)));
+        if (tcpConnection != nullptr) {
+            tcpConnection->segmentArrives(std::make_pair(
+                ipLayer_weak->getSrcIPv4Address(), std::move(layers)));
+        } else {
+            L_ERROR(ID,
+                    "No TCP service listening on " +
+                        ipLayer_weak->getDstIPv4Address().toString() +
+                        " port " + std::to_string(tcpLayer_weak->getDstPort()));
+
+            // TODO send reset
+        }
+    } else if (auto *icmpLayer_weak =
+                   dynamic_cast<pcpp::IcmpLayer *>(tcpLayer.get())) {
+        pcpp::icmphdr *header = icmpLayer_weak->getIcmpHeader();
+        // sending Echo reply request
+        auto icmpLayer = std::make_unique<pcpp::IcmpLayer>();
+        auto ipLayer   = std::make_unique<pcpp::IPv4Layer>();
+        if (header->type == pcpp::ICMP_ECHO_REQUEST) {
+            L_DEBUG(ID, "Received ICMP Echo request, sending reply");
+            icmpLayer->setEchoReplyData(0, 0, 0, nullptr, 0);
+            icmpLayer->computeCalculateFields();
+
+            pcpp::IPv4Address dstAddr = ipLayer_weak->getSrcIPv4Address();
+            ipLayer->setDstIPv4Address(dstAddr);
+            NetworkCard *nextHopNetworkCard =
+                getNextHopNetworkCardOrNull(dstAddr);
+
+            if (nextHopNetworkCard == nullptr) {
+                L_ERROR(ID, dstAddr.toString() + ": Destination unreachable");
+            } else {
+                // L_DEBUG(ID, "Sending packet using " +
+                // nextHopNetworkCard->netInterface);
+                ipLayer->setSrcIPv4Address(nextHopNetworkCard->IP);
+
+                layers->push(std::move(icmpLayer));
+                layers->push(std::move(ipLayer));
+                nextHopNetworkCard->sendPacket(std::move(layers));
+            }
+        } else if (header->type == pcpp::ICMP_ECHO_REPLY) {
+            L_DEBUG(ID, "Received ICMP Echo reply");
+        } else {
+            L_ERROR(ID, "ICMP message not handled");
+        }
     } else {
-        L_ERROR(ID,
-                "No TCP service listening on " +
-                    ipLayer_weak->getDstIPv4Address().toString() + " port " +
-                    std::to_string(tcpLayer_weak->getDstPort()));
-
-        // TODO send reset
+        L_ERROR(ID, "This protcol is not handled in this simulation");
     }
 }
 

@@ -34,6 +34,8 @@ class EndPoint : public virtual Device {
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers,
         NetworkCard* networkCard) override;
 
+    void ping(pcpp::IPv4Address destination);
+
     void bootUpInternal() override {}
 };
 
