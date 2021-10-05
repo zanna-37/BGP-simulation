@@ -181,32 +181,21 @@ void Device::processMessage(
         }
     } else if (auto *icmpLayer_weak =
                    dynamic_cast<pcpp::IcmpLayer *>(tcpLayer.get())) {
-        pcpp::icmphdr *header = icmpLayer_weak->getIcmpHeader();
+        pcpp::icmphdr *icmpHeader_weak = icmpLayer_weak->getIcmpHeader();
         // sending Echo reply request
-        auto icmpLayer = std::make_unique<pcpp::IcmpLayer>();
-        auto ipLayer   = std::make_unique<pcpp::IPv4Layer>();
-        if (header->type == pcpp::ICMP_ECHO_REQUEST) {
+        if (icmpHeader_weak->type == pcpp::ICMP_ECHO_REQUEST) {
             L_DEBUG(ID, "Received ICMP Echo request, sending reply");
-            icmpLayer->setEchoReplyData(0, 0, 0, nullptr, 0);
-            icmpLayer->computeCalculateFields();
+            auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
+            icmpLayerToSend->setEchoReplyData(0, 0, 0, nullptr, 0);
+
+            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                layersToSend = std::make_unique<
+                    std::stack<std::unique_ptr<pcpp::Layer>>>();
+            layersToSend->push(std::move(icmpLayerToSend));
 
             pcpp::IPv4Address dstAddr = ipLayer_weak->getSrcIPv4Address();
-            ipLayer->setDstIPv4Address(dstAddr);
-            NetworkCard *nextHopNetworkCard =
-                getNextHopNetworkCardOrNull(dstAddr);
-
-            if (nextHopNetworkCard == nullptr) {
-                L_ERROR(ID, dstAddr.toString() + ": Destination unreachable");
-            } else {
-                // L_DEBUG(ID, "Sending packet using " +
-                // nextHopNetworkCard->netInterface);
-                ipLayer->setSrcIPv4Address(nextHopNetworkCard->IP);
-
-                layers->push(std::move(icmpLayer));
-                layers->push(std::move(ipLayer));
-                nextHopNetworkCard->sendPacket(std::move(layers));
-            }
-        } else if (header->type == pcpp::ICMP_ECHO_REPLY) {
+            sendPacket(std::move(layersToSend), dstAddr);
+        } else if (icmpHeader_weak->type == pcpp::ICMP_ECHO_REPLY) {
             L_DEBUG(ID, "Received ICMP Echo reply");
         } else {
             L_ERROR(ID, "ICMP message not handled");

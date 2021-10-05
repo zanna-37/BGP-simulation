@@ -19,25 +19,13 @@ void EndPoint::forwardMessage(
 
 void EndPoint::ping(pcpp::IPv4Address dstAddr) {
     L_ERROR(ID, "Sending ping message");
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+
+    auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
+    icmpLayerToSend->setEchoRequestData(0, 0, 0, nullptr, 0);
+
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layersToSend =
         std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
-    auto icmpLayer = std::make_unique<pcpp::IcmpLayer>();
+    layersToSend->push(std::move(icmpLayerToSend));
 
-    icmpLayer->setEchoRequestData(0, 0, 0, nullptr, 0);
-    icmpLayer->computeCalculateFields();
-
-    auto ipLayer = std::make_unique<pcpp::IPv4Layer>();
-    ipLayer->setDstIPv4Address(dstAddr);
-    NetworkCard* nextHopNetworkCard = getNextHopNetworkCardOrNull(dstAddr);
-
-    if (nextHopNetworkCard == nullptr) {
-        L_ERROR(ID, dstAddr.toString() + ": Destination unreachable");
-    } else {
-        L_DEBUG(ID, "Sending packet using " + nextHopNetworkCard->netInterface);
-        ipLayer->setSrcIPv4Address(nextHopNetworkCard->IP);
-
-        layers->push(std::move(icmpLayer));
-        layers->push(std::move(ipLayer));
-        nextHopNetworkCard->sendPacket(std::move(layers));
-    }
+    sendPacket(std::move(layersToSend), dstAddr);
 }
