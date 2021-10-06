@@ -10,6 +10,7 @@
 #include "../tcp/fsm/TCPState.h"
 #include "../tcp/fsm/TCPStateMachine.h"
 #include "IPv4Layer.h"
+#include "IcmpLayer.h"
 #include "Layer.h"
 #include "NetworkCard.h"
 #include "TcpLayer.h"
@@ -153,31 +154,59 @@ void Device::processMessage(
     auto tcpLayer = std::move(layers->top());
     layers->pop();
 
-    auto *ipLayer_weak  = dynamic_cast<pcpp::IPv4Layer *>(ipLayer.get());
-    auto *tcpLayer_weak = dynamic_cast<pcpp::TcpLayer *>(tcpLayer.get());
+    auto *ipLayer_weak = dynamic_cast<pcpp::IPv4Layer *>(ipLayer.get());
+    if (auto *tcpLayer_weak = dynamic_cast<pcpp::TcpLayer *>(tcpLayer.get())) {
+        layers->push(std::move(tcpLayer));
 
-    layers->push(std::move(tcpLayer));
+        std::shared_ptr<TCPConnection> tcpConnection = nullptr;
 
-    std::shared_ptr<TCPConnection> tcpConnection = nullptr;
-
-    // Check if the message is part of an existing connection
-    tcpConnection =
-        getExistingTcpConnectionOrNull(ipLayer_weak->getDstIPv4Address(),
-                                       tcpLayer_weak->getDstPort(),
-                                       ipLayer_weak->getSrcIPv4Address(),
-                                       tcpLayer_weak->getSrcPort());
+        // Check if the message is part of an existing connection
+        tcpConnection =
+            getExistingTcpConnectionOrNull(ipLayer_weak->getDstIPv4Address(),
+                                           tcpLayer_weak->getDstPort(),
+                                           ipLayer_weak->getSrcIPv4Address(),
+                                           tcpLayer_weak->getSrcPort());
 
 
-    if (tcpConnection != nullptr) {
-        tcpConnection->segmentArrives(std::make_pair(
-            ipLayer_weak->getSrcIPv4Address(), std::move(layers)));
+        if (tcpConnection != nullptr) {
+            tcpConnection->segmentArrives(std::make_pair(
+                ipLayer_weak->getSrcIPv4Address(), std::move(layers)));
+        } else {
+            L_ERROR(ID,
+                    "No TCP service listening on " +
+                        ipLayer_weak->getDstIPv4Address().toString() +
+                        " port " + std::to_string(tcpLayer_weak->getDstPort()));
+
+            // TODO send reset
+        }
+    } else if (auto *icmpLayer_weak =
+                   dynamic_cast<pcpp::IcmpLayer *>(tcpLayer.get())) {
+        pcpp::icmphdr *icmpHeader_weak = icmpLayer_weak->getIcmpHeader();
+        // sending Echo reply request
+        if (icmpHeader_weak->type == pcpp::ICMP_ECHO_REQUEST) {
+            L_DEBUG(ID,
+                    "Received ICMP Echo request from " +
+                        ipLayer_weak->getSrcIPv4Address().toString() +
+                        ", sending reply...");
+            auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
+            icmpLayerToSend->setEchoReplyData(0, 0, 0, nullptr, 0);
+
+            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                layersToSend = std::make_unique<
+                    std::stack<std::unique_ptr<pcpp::Layer>>>();
+            layersToSend->push(std::move(icmpLayerToSend));
+
+            pcpp::IPv4Address dstAddr = ipLayer_weak->getSrcIPv4Address();
+            sendPacket(std::move(layersToSend), dstAddr);
+        } else if (icmpHeader_weak->type == pcpp::ICMP_ECHO_REPLY) {
+            L_SUCCESS(ID,
+                      "Received ICMP Echo reply from " +
+                          ipLayer_weak->getSrcIPv4Address().toString());
+        } else {
+            L_ERROR(ID, "ICMP message not handled");
+        }
     } else {
-        L_ERROR(ID,
-                "No TCP service listening on " +
-                    ipLayer_weak->getDstIPv4Address().toString() + " port " +
-                    std::to_string(tcpLayer_weak->getDstPort()));
-
-        // TODO send reset
+        L_ERROR(ID, "This protcol is not handled in this simulation");
     }
 }
 
@@ -241,6 +270,19 @@ int Device::bind(const std::shared_ptr<TCPConnection> &tcpConnection) {
         return 1;
     }
 }
+
+void Device::ping(pcpp::IPv4Address dstAddr) {
+    L_INFO(ID, "Sending ping message to " + dstAddr.toString() + "...");
+    auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
+    icmpLayerToSend->setEchoRequestData(0, 0, 0, nullptr, 0);
+
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layersToSend =
+        std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+    layersToSend->push(std::move(icmpLayerToSend));
+
+    sendPacket(std::move(layersToSend), dstAddr);
+}
+
 uint16_t Device::getFreePort() /* guarded_by ports_mutex */ {
     std::random_device
         rd;  // Will be used to obtain a seed for the random number engine
