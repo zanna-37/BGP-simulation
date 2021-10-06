@@ -184,7 +184,10 @@ void Device::processMessage(
         pcpp::icmphdr *icmpHeader_weak = icmpLayer_weak->getIcmpHeader();
         // sending Echo reply request
         if (icmpHeader_weak->type == pcpp::ICMP_ECHO_REQUEST) {
-            L_DEBUG(ID, "Received ICMP Echo request, sending reply");
+            L_DEBUG(ID,
+                    "Received ICMP Echo request from " +
+                        ipLayer_weak->getSrcIPv4Address().toString() +
+                        ", sending reply...");
             auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
             icmpLayerToSend->setEchoReplyData(0, 0, 0, nullptr, 0);
 
@@ -196,7 +199,9 @@ void Device::processMessage(
             pcpp::IPv4Address dstAddr = ipLayer_weak->getSrcIPv4Address();
             sendPacket(std::move(layersToSend), dstAddr);
         } else if (icmpHeader_weak->type == pcpp::ICMP_ECHO_REPLY) {
-            L_DEBUG(ID, "Received ICMP Echo reply");
+            L_SUCCESS(ID,
+                      "Received ICMP Echo reply from " +
+                          ipLayer_weak->getSrcIPv4Address().toString());
         } else {
             L_ERROR(ID, "ICMP message not handled");
         }
@@ -267,8 +272,7 @@ int Device::bind(const std::shared_ptr<TCPConnection> &tcpConnection) {
 }
 
 void Device::ping(pcpp::IPv4Address dstAddr) {
-    L_ERROR(ID, "Sending ping message");
-
+    L_INFO(ID, "Sending ping message to " + dstAddr.toString() + "...");
     auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
     icmpLayerToSend->setEchoRequestData(0, 0, 0, nullptr, 0);
 
