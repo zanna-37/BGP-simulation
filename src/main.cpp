@@ -11,7 +11,6 @@
 
 #include "configuration/parser/Parser.h"
 #include "entities/Device.h"
-#include "entities/EndPoint.h"
 #include "logger/Logger.h"
 #include "pistache/net.h"
 #include "pistache/os.h"
@@ -175,7 +174,7 @@ int main(int argc, char *argv[]) {
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(15000));
-        EndPoint *sender = dynamic_cast<EndPoint *>(devices->at(2));
+        Device *sender = dynamic_cast<Device *>(devices->at(2));
         sender->ping(pcpp::IPv4Address("90.36.25.1"));
         while (!stop) {
             sleep(1);  // TODO change from polling to wait

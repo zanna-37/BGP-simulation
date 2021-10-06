@@ -265,6 +265,20 @@ int Device::bind(const std::shared_ptr<TCPConnection> &tcpConnection) {
         return 1;
     }
 }
+
+void Device::ping(pcpp::IPv4Address dstAddr) {
+    L_ERROR(ID, "Sending ping message");
+
+    auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
+    icmpLayerToSend->setEchoRequestData(0, 0, 0, nullptr, 0);
+
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layersToSend =
+        std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+    layersToSend->push(std::move(icmpLayerToSend));
+
+    sendPacket(std::move(layersToSend), dstAddr);
+}
+
 uint16_t Device::getFreePort() /* guarded_by ports_mutex */ {
     std::random_device
         rd;  // Will be used to obtain a seed for the random number engine

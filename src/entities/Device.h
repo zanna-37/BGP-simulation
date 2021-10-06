@@ -153,6 +153,8 @@ class Device {
 
     uint16_t getFreePort();
 
+    void ping(pcpp::IPv4Address destination);
+
     NetworkCard *getNextHopNetworkCardOrNull(
         const pcpp::IPv4Address &dstAddr) const;
 
