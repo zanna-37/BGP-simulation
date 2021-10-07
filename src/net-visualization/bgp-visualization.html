@@ -35,6 +35,28 @@
     </div>
   </div>
 
+  <div>
+    <nav>
+      <div class="nav nav-tabs" id="nav-tab" role="tablist">
+        <button class="nav-link active" id="nav-node-tab" data-bs-toggle="tab" data-bs-target="#nav-node" type="button"
+          role="tab" aria-controls="nav-node" aria-selected="true">Node</button>
+        <button class="nav-link" id="nav-logs-tab" data-bs-toggle="tab" data-bs-target="#nav-logs" type="button"
+          role="tab" aria-controls="nav-logs" aria-selected="false">Logs</button>
+      </div>
+    </nav>
+    <div class="tab-content" id="nav-tabContent">
+      <div class="tab-pane fade show active" id="nav-node" role="tabpanel" aria-labelledby="nav-node-tab">
+        <div id="nav-node-info">
+        </div>
+        <div id="nav-node-BGPpeers">
+        </div>
+        <div id="nav-node-routingTable">
+        </div>
+      </div>
+      <div class="tab-pane fade" id="nav-logs" role="tabpanel" aria-labelledby="nav-logs-tab">...</div>
+    </div>
+  </div>
+
   <!-- ADD DEVICE MODAL -->
 
   <div class="modal" tabindex="-1" id="addDeviceModal">

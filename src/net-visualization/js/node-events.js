@@ -41,7 +41,11 @@ var chart = new NetChart({
         }
     },
     events: {
-        onClick: modifyNodeNumbers,
+        onDoubleClick: modifyNodeNumbers,
+        onClick: function (args) {
+            var node_selected = args.clickNode;
+            showNodeInfo(node_selected);
+        },
         onPointerUp: function (e, args) {
             if (args.clickNode) {
                 var node = args.clickNode;
@@ -357,4 +361,49 @@ $("#closeAddLinkModalCross").click(function () {
 $("#closeAddLinkModalBtn").click(function () {
     $("#addLinkModal").hide();
 })
+
+function showNodeInfo(node) {
+    $("#nav-node-info").empty();
+    $("#nav-node-BGPpeers").empty();
+    $("#nav-node-routingTable").empty();
+
+    var node_id = "Node ID: " + node.id + "<br>";
+
+    var node_ip = "IP Address: ";
+    for (var i = 0; i < node.data.extra.networkCard.length; i++) {
+        var netCard = node.data.extra.networkCard[i];
+        node_ip += netCard.IP + "(" + netCard.interface + ")     ";
+    }
+    node_ip += "<br>";
+
+    var node_type = "Node Type: ";
+    node_type += node.id[0] == "R" ? "Router" : "Endpoint";
+
+    var node_content_info = node_id + node_ip + node_type;
+
+    $("#nav-node-info").append(node_content_info);
+
+    if (node.data.extra.AS_number) {
+
+        var bgp_head = "<thead>" + "<tr>" +
+            "<th>" + "IP Address" + "</th>" +
+            "<th>" + "Identifier" + "</th>" +
+            "<th>" + "Status" + "</th>" +
+            "</tr>" + "</thead>"
+
+        var BGP_table = "<table class='table table-striped'>" + bgp_head + "</table>"
+        $("#nav-node-BGPpeers").append(BGP_table);
+
+        var routing_head = "<thead>" + "<tr>" +
+            "<th>" + "Destination" + "</th>" +
+            "<th>" + "Next Hop" + "</th>" +
+            "<th>" + "Weight" + "</th>" +
+            "<th>" + "Interface" + "</th>" +
+            "<th>" + "AS Path" + "</th>" +
+            "</tr>" + "</thead>"
+
+        var routing_table = "<table class='table table-striped'>" + routing_head + "</table>"
+        $("#nav-node-routingTable").append(routing_table);
+    }
+}
 
