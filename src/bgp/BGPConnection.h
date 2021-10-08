@@ -28,9 +28,6 @@ class BGPConnection {
     BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
 
-
-    std::thread* listeningThread = nullptr;
-
     /**
      * The thread that manages any incoming application packet.
      */
@@ -47,9 +44,10 @@ class BGPConnection {
     Router*           owner   = nullptr;
     std::string       name    = "BGPconnection";
     std::atomic<bool> running = {false};
-    pcpp::IPv4Address srcAddr = pcpp::IPv4Address::Zero;  // TODO remove(?)
-    pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;  // TODO remove(?)
-    uint16_t          srcPort = 179;                      // TODO remove!!
+    pcpp::IPv4Address srcAddr;
+    pcpp::IPv4Address dstAddr;
+    uint16_t          srcPort;
+    uint16_t          dstPort;
 
 
     std::mutex connectedSocket_mutex;
@@ -58,13 +56,14 @@ class BGPConnection {
      * The newly created connected socket is assigned to this attribute, when
      * the TCP connection is established
      */
-    Socket* connectedSocket [[deprecated(
-        "Do not use directly. Use setConnectedSocketToAvailableBGPConn() or "
-        "getConnectedSocket()")]] =
-        nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
+    Socket* connectedSocket = nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
 
     // Constructors
-    BGPConnection(Router* owner, BGPApplication* bgpApplication);
+    BGPConnection(Router*           owner,
+                  BGPApplication*   bgpApplication,
+                  pcpp::IPv4Address srcAddress,
+                  pcpp::IPv4Address dstAddress,
+                  uint16_t          dstPort);
 
     // Destructor
     ~BGPConnection();
@@ -108,20 +107,10 @@ class BGPConnection {
      */
     void sendData(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
-    void listenForRemotelyInitiatedConnections();
     void dropConnection(bool gentle);
     void shutdown();
 
-   private:
-    [[nodiscard]] BGPConnection* setConnectedSocketToAvailableBGPConn(
-        Socket* newConnectedSocket);
-
-    /** TODO
-     * @warning \a connectedSocket_mutex MUST be held before calling this
-     * function.
-     * @return
-     */
-    [[nodiscard]] Socket* getConnectedSocket();
+    bool setConnectedSocketIfFree(Socket* socket);
 };
 
 #endif  // BGPSIMULATION_BGP_BGPCONNECTION_H

@@ -1,6 +1,7 @@
 #include "BGPStateIdle.h"
 
 #include "../../entities/Router.h"
+#include "../BGPApplication.h"
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "../BGPTimer.h"
@@ -31,7 +32,8 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             // listens for a connection that may be initiated by the remote BGP
             // peer
-            stateMachine->connection->listenForRemotelyInitiatedConnections();
+            stateMachine->connection->bgpApplication->startListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // and changes its state to Connect.
             stateMachine->changeState(new BGPStateConnect(stateMachine));
@@ -61,7 +63,8 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
 
             // listens for a connection that may be initiated by the remote BGP
             // peer
-            stateMachine->connection->listenForRemotelyInitiatedConnections();
+            stateMachine->connection->bgpApplication->startListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // and changes its state to Active.
             stateMachine->changeState(new BGPStateActive(stateMachine));
