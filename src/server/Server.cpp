@@ -1031,24 +1031,27 @@ void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
                                            netCard->owner->ID.c_str());
                                     writer.Key("identifier");
                                     writer.String(peer_identifier);
-                                }
-                            }
-                            // Status
-                            for (auto &bgpConnection :
-                                 router->bgpApplication->bgpConnections) {
-                                if (router->peer_addresses[i] ==
-                                    bgpConnection->dstAddr) {
-                                    int p = bgpConnection->stateMachine
-                                                ->currentState->name.length();
-                                    char status[p + 1];
-                                    strcpy(status,
-                                           bgpConnection->stateMachine
-                                               ->currentState->name.c_str());
-                                    writer.Key("status");
-                                    writer.String(status);
-                                    L_DEBUG("Server",
-                                            bgpConnection->stateMachine
-                                                ->currentState->name);
+                                    // Status
+                                    for (auto &bgpConnection :
+                                         router->bgpApplication
+                                             ->bgpConnections) {
+                                        if (router->peer_addresses[i] ==
+                                            bgpConnection->dstAddr) {
+                                            int p = bgpConnection->stateMachine
+                                                        ->currentState->name
+                                                        .length();
+                                            char status[p + 1];
+                                            strcpy(status,
+                                                   bgpConnection->stateMachine
+                                                       ->currentState->name
+                                                       .c_str());
+                                            writer.Key("status");
+                                            writer.String(status);
+                                            L_DEBUG("Server",
+                                                    bgpConnection->stateMachine
+                                                        ->currentState->name);
+                                        }
+                                    }
                                 }
                             }
                         }

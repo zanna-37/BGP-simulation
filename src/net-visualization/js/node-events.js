@@ -96,6 +96,9 @@ function modifyNodeNumbers(event) {
         eventAddNode = event;
     }
     if (event.clickNode) {
+        $("#nav-node-info").empty();
+        $("#nav-node-BGPpeers").empty();
+        $("#nav-node-routingTable").empty();
         $.ajax({
             url: "/removeNode",
             dataType: 'json',
@@ -387,7 +390,7 @@ function showNodeInfo(node) {
         //var peer_ip_address = [];
         var bgp_body = "<tbody>";
         var bgp_body_rows = "";
-        var ajaxResponse;
+        var num_bgp_peers;
         $.ajax({
             url: "/getBGPpeersInfo",
             dataType: 'json',
@@ -403,6 +406,7 @@ function showNodeInfo(node) {
                 "id": node.id
             }),
         }).done(function (response) {
+            num_bgp_peers = response.BGPpeers.length;
             for (var i = 0; i < response.BGPpeers.length; i++) {
                 bgp_body_rows += "<tr>" +
                     "<td>" + response.BGPpeers[i].ip_address + "</td>" +
@@ -423,7 +427,6 @@ function showNodeInfo(node) {
 
 
         var BGP_table = "<table class='table table-striped'>" + bgp_head + bgp_body + "</table>";
-        $("#nav-node-BGPpeers").append(BGP_table);
 
         var routing_head = "<thead>" + "<tr>" +
             "<th>" + "Destination" + "</th>" +
@@ -434,7 +437,11 @@ function showNodeInfo(node) {
             "</tr>" + "</thead>"
 
         var routing_table = "<table class='table table-striped'>" + routing_head + "</table>"
-        $("#nav-node-routingTable").append(routing_table);
+
+        if (num_bgp_peers > 0) {
+            $("#nav-node-BGPpeers").append(BGP_table);
+            $("#nav-node-routingTable").append(routing_table);
+        }
     }
 }
 
