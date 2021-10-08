@@ -384,14 +384,45 @@ function showNodeInfo(node) {
     $("#nav-node-info").append(node_content_info);
 
     if (node.data.extra.AS_number) {
+        //var peer_ip_address = [];
+        var bgp_body = "<tbody>";
+        var bgp_body_rows = "";
+        var ajaxResponse;
+        $.ajax({
+            url: "/getBGPpeersInfo",
+            dataType: 'json',
+            method: "POST",
+            contentType: 'application/json',
+            crossDomain: false,
+            async: false,
+            headers: {
+                "accept": "application/json",
+                "Access-Control-Allow-Origin": "*",
+            },
+            data: JSON.stringify({
+                "id": node.id
+            }),
+        }).done(function (response) {
+            for (var i = 0; i < response.BGPpeers.length; i++) {
+                bgp_body_rows += "<tr>" +
+                    "<td>" + response.BGPpeers[i].ip_address + "</td>" +
+                    "<td>" + response.BGPpeers[i].identifier + "</td>" +
+                    "<td>" + response.BGPpeers[i].status + "</td>" +
+                    "</tr>";
+                console.log(bgp_body_rows)
+            }
+        });
+        bgp_body += bgp_body_rows + "</tbody>";
+        console.log(bgp_body);
 
         var bgp_head = "<thead>" + "<tr>" +
             "<th>" + "IP Address" + "</th>" +
             "<th>" + "Identifier" + "</th>" +
             "<th>" + "Status" + "</th>" +
-            "</tr>" + "</thead>"
+            "</tr>" + "</thead>";
 
-        var BGP_table = "<table class='table table-striped'>" + bgp_head + "</table>"
+
+        var BGP_table = "<table class='table table-striped'>" + bgp_head + bgp_body + "</table>";
         $("#nav-node-BGPpeers").append(BGP_table);
 
         var routing_head = "<thead>" + "<tr>" +
@@ -406,4 +437,6 @@ function showNodeInfo(node) {
         $("#nav-node-routingTable").append(routing_table);
     }
 }
+
+
 

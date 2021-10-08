@@ -25,7 +25,6 @@ using namespace std::chrono_literals;
 
 class BGPConnection {
    private:
-    BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
 
     /**
@@ -36,7 +35,8 @@ class BGPConnection {
     std::thread* connectThread = nullptr;
 
    public:
-    BGPApplication* bgpApplication;
+    BGPStateMachine* stateMachine = nullptr;
+    BGPApplication*  bgpApplication;
 
     /**
      * The owner of the connection, necessary in simulation context

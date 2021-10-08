@@ -7,6 +7,10 @@
 #include <new>
 #include <string>
 
+#include "../bgp/BGPApplication.h"
+#include "../bgp/BGPConnection.h"
+#include "../bgp/fsm/BGPState.h"
+#include "../bgp/fsm/BGPStateMachine.h"
 #include "../entities/Device.h"
 #include "../entities/EndPoint.h"
 #include "../entities/Link.h"
@@ -50,17 +54,10 @@ void ApiEndpoint::start(volatile sig_atomic_t *stop) {
 
 void ApiEndpoint::setupRoutes() {
     L_DEBUG("Server", "Setting up routes");
-
-    Pistache::Rest::Routes::Get(
-        router, "/", Pistache::Rest::Routes::bind(&ApiEndpoint::index, this));
     Pistache::Rest::Routes::Get(
         router,
         "/showGUI",
         Pistache::Rest::Routes::bind(&ApiEndpoint::showGUI, this));
-    Pistache::Rest::Routes::Get(
-        router,
-        "/getNetwork",
-        Pistache::Rest::Routes::bind(&ApiEndpoint::getNetwork, this));
     Pistache::Rest::Routes::Get(
         router,
         "/getNetZoomCharts",
@@ -84,6 +81,11 @@ void ApiEndpoint::setupRoutes() {
         router,
         "/addLink",
         Pistache::Rest::Routes::bind(&ApiEndpoint::addLink, this));
+
+    Pistache::Rest::Routes::Post(
+        router,
+        "/getBGPpeersInfo",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getBGPpeersInfo, this));
 
     // Routes for WebPage content
     Pistache::Rest::Routes::Get(
@@ -254,258 +256,6 @@ void ApiEndpoint::initDoc() {
     }
 
     L_DEBUG("Server", "Network object created");
-}
-
-void ApiEndpoint::index(const Pistache::Rest::Request &request,
-                        Pistache::Http::ResponseWriter response) {
-    rapidjson::StringBuffer                          buf;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
-
-
-    writer.StartObject();
-
-    writer.Key("nodes");
-    writer.StartArray();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("R1");
-    writer.Key("loaded");
-    writer.Bool(true);
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(236,46,46,0.8)");
-    writer.Key("label");
-    writer.String("Router1");
-    writer.Key("image");
-    writer.String("showGUI/router-icon.png");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("AS_number");
-    writer.String("AS_1");
-    writer.Key("networkCard");
-    writer.StartArray();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth0");
-    writer.Key("IP");
-    writer.String("90.36.25.1");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth1");
-    writer.Key("IP");
-    writer.String("85.90.20.1");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.EndArray();
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("R2");
-    writer.Key("loaded");
-    writer.Bool(true);
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(47,195,47,0.8)");
-    writer.Key("label");
-    writer.String("Router2");
-    writer.Key("image");
-    writer.String("showGUI/router-icon.png");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("AS_number");
-    writer.String("AS_2");
-    writer.Key("default_gateway");
-    writer.String("85.90.20.1");
-    writer.Key("networkCard");
-    writer.StartArray();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth0");
-    writer.Key("IP");
-    writer.String("26.37.3.2");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth5");
-    writer.Key("IP");
-    writer.String("85.90.20.2");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.EndArray();
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("E1");
-    writer.Key("loaded");
-    writer.Bool(true);
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(28,124,213,0.8)");
-    writer.Key("label");
-    writer.String("Endpoint1");
-    writer.Key("image");
-    writer.String("showGUI/endpoint-icon.png");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("default_gateway");
-    writer.String("90.36.25.1");
-    writer.Key("networkCard");
-    writer.StartArray();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth0");
-    writer.Key("IP");
-    writer.String("90.36.25.123");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.EndArray();
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("E2");
-    writer.Key("loaded");
-    writer.Bool(true);
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(58,174,0,0.8)");
-    writer.Key("label");
-    writer.String("Endpoint2");
-    writer.Key("image");
-    writer.String("showGUI/endpoint-icon.png");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("default_gateway");
-    writer.String("26.37.3.2");
-    writer.Key("networkCard");
-    writer.StartArray();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth0");
-    writer.Key("IP");
-    writer.String("26.37.3.1");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.EndArray();
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.EndArray();
-
-    writer.Key("links");
-    writer.StartArray();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("link_R1-E1");
-    writer.Key("from");
-    writer.String("R1");
-    writer.Key("to");
-    writer.String("E1");
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("toDecoration");
-    writer.String("arrow");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("from_interface");
-    writer.String("eth0");
-    writer.Key("to_interface");
-    writer.String("eth0");
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("link_R2-E2");
-    writer.Key("from");
-    writer.String("R2");
-    writer.Key("to");
-    writer.String("E2");
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("toDecoration");
-    writer.String("arrow");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("from_interface");
-    writer.String("eth0");
-    writer.Key("to_interface");
-    writer.String("eth0");
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("link_R1-R2");
-    writer.Key("from");
-    writer.String("R1");
-    writer.Key("to");
-    writer.String("R2");
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("toDecoration");
-    writer.String("arrow");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("from_interface");
-    writer.String("eth1");
-    writer.Key("to_interface");
-    writer.String("eth5");
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.EndArray();
-
-
-    writer.EndObject();
-
-    response.headers().add<Pistache::Http::Header::ContentType>(
-        MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
-        "*");
-    response.send(Pistache::Http::Code::Ok, buf.GetString());
-}
-
-
-void ApiEndpoint::getNetwork(const Pistache::Rest::Request &request,
-                             Pistache::Http::ResponseWriter response) {
-    rapidjson::StringBuffer                          buf;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
-
-    doc.Accept(writer);
-
-    response.headers().add<Pistache::Http::Header::ContentType>(
-        MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
-        "*");
-    response.send(Pistache::Http::Code::Ok, buf.GetString());
 }
 
 void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
@@ -1238,4 +988,104 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
     response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
         "*");
     response.send(Pistache::Http::Code::Ok, "Link added Successfully!");
+}
+
+void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
+                                  Pistache::Http::ResponseWriter response) {
+    rapidjson::StringBuffer                          buf;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+    rapidjson::Document                              routerIdDoc;
+
+    auto body = request.body();
+
+    routerIdDoc.Parse(body.c_str());
+
+    writer.StartObject();
+    writer.Key("BGPpeers");
+    writer.StartArray();
+
+    if (!routerIdDoc.HasParseError() && routerIdDoc.HasMember("id")) {
+        for (auto device : *devices) {
+            if (device->ID == routerIdDoc["id"].GetString()) {
+                L_DEBUG("Server", routerIdDoc["id"].GetString());
+                auto *router = dynamic_cast<Router *>(device);
+                for (int i = 0; i < router->peer_addresses.size(); i++) {
+                    writer.StartObject();
+                    // IP Address
+                    writer.Key("ip_address");
+                    int  n = router->peer_addresses[i].toString().length();
+                    char peer_ip_address[n + 1];
+                    strcpy(peer_ip_address,
+                           router->peer_addresses[i].toString().c_str());
+                    writer.String(peer_ip_address);
+
+                    // Identifier
+                    writer.Key("identifier");
+                    for (auto x : *devices) {
+                        if (auto *peer_router = dynamic_cast<Router *>(x)) {
+                            for (auto netCard : *peer_router->networkCards) {
+                                if (netCard->IP.toString() ==
+                                    router->peer_addresses[i].toString()) {
+                                    int  m = netCard->owner->ID.length();
+                                    char peer_identifier[m + 1];
+                                    strcpy(peer_identifier,
+                                           netCard->owner->ID.c_str());
+                                    writer.Key(peer_identifier);
+                                }
+                            }
+                            // Status
+                            for (auto &bgpConnection :
+                                 router->bgpApplication->bgpConnections) {
+                                if (router->peer_addresses[i] ==
+                                        bgpConnection->srcAddr ||
+                                    router->peer_addresses[i] ==
+                                        bgpConnection->dstAddr) {
+                                    writer.Key("status");
+                                    int p = bgpConnection->stateMachine
+                                                ->currentState->name.length();
+                                    char status[p + 1];
+                                    strcpy(status,
+                                           bgpConnection->stateMachine
+                                               ->currentState->name.c_str());
+                                    writer.String(status);
+                                    L_DEBUG("Server",
+                                            bgpConnection->stateMachine
+                                                ->currentState->name);
+                                }
+                            }
+                        }
+                    }
+
+                    writer.EndObject();
+                }
+            }
+        }
+    } else {
+        if (routerIdDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)routerIdDoc.GetErrorOffset()) +
+                          "): " + to_string((routerIdDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Pistache::Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"id\" : "
+                      "\"device_id\""
+                      "\n}");
+    }
+
+    writer.EndArray();
+    writer.EndObject();
+
+    L_DEBUG("Server", buf.GetString());
+
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
+    response.send(Pistache::Http::Code::Ok, buf.GetString());
 }
