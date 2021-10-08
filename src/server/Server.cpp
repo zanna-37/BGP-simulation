@@ -1020,7 +1020,6 @@ void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
                     writer.String(peer_ip_address);
 
                     // Identifier
-                    writer.Key("identifier");
                     for (auto x : *devices) {
                         if (auto *peer_router = dynamic_cast<Router *>(x)) {
                             for (auto netCard : *peer_router->networkCards) {
@@ -1030,23 +1029,22 @@ void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
                                     char peer_identifier[m + 1];
                                     strcpy(peer_identifier,
                                            netCard->owner->ID.c_str());
-                                    writer.Key(peer_identifier);
+                                    writer.Key("identifier");
+                                    writer.String(peer_identifier);
                                 }
                             }
                             // Status
                             for (auto &bgpConnection :
                                  router->bgpApplication->bgpConnections) {
                                 if (router->peer_addresses[i] ==
-                                        bgpConnection->srcAddr ||
-                                    router->peer_addresses[i] ==
-                                        bgpConnection->dstAddr) {
-                                    writer.Key("status");
+                                    bgpConnection->dstAddr) {
                                     int p = bgpConnection->stateMachine
                                                 ->currentState->name.length();
                                     char status[p + 1];
                                     strcpy(status,
                                            bgpConnection->stateMachine
                                                ->currentState->name.c_str());
+                                    writer.Key("status");
                                     writer.String(status);
                                     L_DEBUG("Server",
                                             bgpConnection->stateMachine
