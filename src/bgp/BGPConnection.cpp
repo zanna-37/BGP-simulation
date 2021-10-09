@@ -397,7 +397,7 @@ void BGPConnection::shutdown() {
     // TODO wait for the shutdown call to be completed
     L_DEBUG(stateMachine->connection->owner->ID,
             "TODO wait for the shutdown call to be completed");
-    std::this_thread::sleep_for(1000ms);  // TODO remove
+    std::this_thread::sleep_for(10000ms);  // TODO remove
 }
 
 bool BGPConnection::setConnectedSocketIfFree(Socket* socket) {
