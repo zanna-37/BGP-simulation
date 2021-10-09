@@ -104,6 +104,7 @@ std::string Router::getBgpTableAsString() {
     std::string output;
 
     output += getBgpTableCellAsString("Network");
+    output += getBgpTableCellAsString("NetworkMask");
     output += getBgpTableCellAsString("NextHop");
     output += getBgpTableCellAsString("Metric");
     output += getBgpTableCellAsString("LocPref");
@@ -113,6 +114,7 @@ std::string Router::getBgpTableAsString() {
     for (const BGPTableRow &row : bgpTable) {
         output += "\n";
         output += getBgpTableCellAsString(row.networkIP.toString());
+        output += getBgpTableCellAsString(row.networkMask.toString());
         output += getBgpTableCellAsString(row.nextHop.toString());
         output += getBgpTableCellAsString(std::to_string(row.metric));
         output += getBgpTableCellAsString(std::to_string(row.localPreferences));

@@ -15,9 +15,10 @@
 class PathAttribute {
    public:
     enum AttributeTypeFlags_uint8_t : uint8_t {
-        OPTIONAL = 1 << 0,  // binary 0000'0001
-        PARTIAL  = 1 << 1,  // binary 0000'0010
-        EXTENDED = 1 << 2,  // binary 0000'0100
+        OPTIONAL   = 1 << 7,  // binary 1000'0000
+        TRANSITIVE = 1 << 6,  // binary 0100'0000
+        PARTIAL    = 1 << 5,  // binary 0010'0000
+        EXTENDED   = 1 << 4,  // binary 0001'0000
     };
 
     enum AttributeTypeCode_uint8_t : uint8_t {
@@ -30,7 +31,7 @@ class PathAttribute {
         AGGREGATOR       = 7
     };
 
-    AttributeTypeFlags_uint8_t attributeTypeFlags{};
+    uint8_t attributeTypeFlags = 0;
     AttributeTypeCode_uint8_t  attributeTypeCode{};
 
    private:
@@ -46,7 +47,7 @@ class PathAttribute {
     uint8_t* attributeData_be = nullptr;
 
    public:
-    static bool isFlagSet(AttributeTypeFlags_uint8_t flagsToTest,
+    static bool isFlagSet(uint8_t flagsToTest,
                           AttributeTypeFlags_uint8_t flagValue) {
         return (flagsToTest & flagValue) == flagValue;
     };
@@ -75,7 +76,7 @@ class PathAttribute {
         AttributeTypeFlags_uint8_t value_bits =
             value ? flagType : (AttributeTypeFlags_uint8_t)0;
 
-        auto mask = (AttributeTypeFlags_uint8_t)~flagType;
+        auto mask = (uint8_t)~flagType;
 
         /**
          * \verbatim
@@ -85,7 +86,7 @@ class PathAttribute {
          *     mask                     = 11110111;
          * result:
          * [in]        oldAttributeTypeFlags 01000000
-         * [operation]               OR mask 11110111   --> make is made from
+         * [operation]              AND mask 11110111   --> make is made from
          *                                    |  |          ~value_bits
          * [intermediate result]             01000000
          *                                    |  |
@@ -102,7 +103,7 @@ class PathAttribute {
          *     mask                     = 11110111;
          * result:
          * [in]        oldAttributeTypeFlags 01001000
-         * [operation]               OR mask 11110111 ---> make is made from
+         * [operation]              AND mask 11110111 ---> make is made from
          *                                    |  |         ~value_bits
          * [intermediate result]             01000000
          *                                    |  |
@@ -114,8 +115,8 @@ class PathAttribute {
          * [out]       newAttributeTypeFlags 01001000
          * \endverbatim
          */
-        this->attributeTypeFlags = (AttributeTypeFlags_uint8_t)(
-            (this->attributeTypeFlags | mask) | value_bits);
+        this->attributeTypeFlags = (uint8_t)(
+            (this->attributeTypeFlags & mask) | value_bits);
     }
 
     /**
