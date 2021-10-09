@@ -13,6 +13,7 @@
 #include "./packets/BGPUpdateLayer.h"
 #include "BGPConnection.h"
 #include "BGPEvent.h"
+#include "packets/BGPNotificationLayer.h"
 
 BGPApplication::BGPApplication(Router* router, pcpp::IPv4Address BGPIdentifier)
     : router(router), BGPIdentifier(BGPIdentifier) {}
@@ -55,18 +56,31 @@ void BGPApplication::passiveOpenAll() {
     }
 }
 
-void BGPApplication::collisionDetection(BGPConnection* connectionToCheck) {
+void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
+                                        pcpp::IPv4Address bgpIdentifier) {
     for (BGPConnection* connection : bgpConnections) {
-        if (connectionToCheck->dstAddr == connection->dstAddr &&
-            connection != connectionToCheck) {
-            BGPEvent event = {
-                BGPEventType::ManualStop,
-                nullptr,
-            };
-            if (connectionToCheck->srcAddr < connection->dstAddr) {
-                connectionToCheck->enqueueEvent(std::move(event));
-            } else {
-                connection->enqueueEvent(std::move(event));
+        if (connection->getCurrentStateName() == "OPEN_CONFIRM") {
+            if (connectionToCheck->dstAddr == connection->dstAddr &&
+                connection != connectionToCheck) {
+                std::unique_ptr<BGPLayer> bgpNotificationLayer =
+                    std::make_unique<BGPNotificationLayer>(
+                        BGPNotificationLayer::CEASE,
+                        BGPNotificationLayer::ERR_X_NO_SUB_ERR);
+                bgpNotificationLayer->computeCalculateFields();
+
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpNotificationLayer));
+                if (bgpIdentifier < connection->bgpApplication->BGPIdentifier) {
+                    connectionToCheck->sendData(std::move(layers));
+                    L_INFO(connectionToCheck->owner->ID,
+                           "Sending NOTIFICATION message");
+                } else {
+                    connection->sendData(std::move(layers));
+                    L_INFO(connection->owner->ID,
+                           "Sending NOTIFICATION message");
+                }
             }
         }
     }

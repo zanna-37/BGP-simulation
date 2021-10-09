@@ -209,8 +209,18 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // applied
             // when a valid BGP OPEN message is received (Event 19 or Event 20).
 
-            // FIXME check how to call collision detection
-            // stateMachine->connection->bgpApplication->collisionDetection(stateMachine->connection);
+            // DONE check how to call collision detection
+
+            {
+                std::unique_ptr<BGPOpenLayer> openLayer;
+                dynamic_pointer_move(openLayer, event.layers);
+
+                pcpp::IPv4Address bgpIdentifier = pcpp::IPv4Address(be32toh(
+                    openLayer->getOpenHeaderOrNull()->BGPIdentifier_be));
+
+                stateMachine->connection->bgpApplication->collisionDetection(
+                    stateMachine->connection, bgpIdentifier);
+            }
 
 
             // resets the DelayOpenTimer to zero,

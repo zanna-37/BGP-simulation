@@ -1,6 +1,7 @@
 #include "BGPStateOpenConfirm.h"
 
 #include "../../entities/Router.h"
+#include "../../utils/SmartPointerUtils.h"
 #include "../BGPApplication.h"
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
@@ -8,6 +9,7 @@
 #include "../packets/BGPKeepaliveLayer.h"
 #include "../packets/BGPLayer.h"
 #include "../packets/BGPNotificationLayer.h"
+#include "../packets/BGPOpenLayer.h"
 #include "../packets/BGPUpdateLayer.h"
 #include "../packets/BGPUpdatePathAttribute.h"
 #include "BGPStateEstablished.h"
@@ -256,27 +258,21 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
             // And if it does not need to be dropped? The message is ignored??
 
-            // FIXME maybe the collision detection should work in some other way
-            // stateMachine->connection->bgpApplication->collisionDetection(stateMachine->connection);
+            // DONE maybe the collision detection should work in some
+            // other way
 
 
-            // sends a NOTIFICATION with a Cease,
+            // sends a NOTIFICATION with a Cease inside the Collision Detection
+            // method,
             {
-                std::unique_ptr<BGPLayer> bgpNotificationLayer =
-                    std::make_unique<BGPNotificationLayer>(
-                        BGPNotificationLayer::CEASE,
-                        BGPNotificationLayer::ERR_X_NO_SUB_ERR);
-                bgpNotificationLayer->computeCalculateFields();
+                std::unique_ptr<BGPOpenLayer> openLayer;
+                dynamic_pointer_move(openLayer, event.layers);
 
-                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                    layers =
-                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
-                layers->push(std::move(bgpNotificationLayer));
+                pcpp::IPv4Address bgpIdentifier = pcpp::IPv4Address(be32toh(
+                    openLayer->getOpenHeaderOrNull()->BGPIdentifier_be));
 
-                stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                stateMachine->connection->bgpApplication->collisionDetection(
+                    stateMachine->connection, bgpIdentifier);
             }
 
             // sets the ConnectRetryTimer to zero,
