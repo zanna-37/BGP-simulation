@@ -360,8 +360,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             }
 
             // remains in the Established state.
-
-            handled = false;
             break;
 
         case BGPEventType::UpdateMsgErr:
