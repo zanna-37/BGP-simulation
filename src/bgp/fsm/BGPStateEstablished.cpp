@@ -108,8 +108,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // sets the ConnectRetryTimer to zero
             stateMachine->resetConnectRetryTimer();
 
-            // XXX deletes all routes associated with this connection,
-            // XXX copy from above
+            // TODO deletes all routes associated with this connection,
+            // TODO copy from above
 
             // XXX releases all BGP resources, done
 
@@ -261,12 +261,12 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             L_DEBUG(stateMachine->connection->owner->ID,
                     "Event -> OpenCollisionDump");
             // OPTIONAL
-            // XXX sends a NOTIFICATION with a Cease,
+            // TODO sends a NOTIFICATION with a Cease,
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // XXX deletes all routes associated with this connection,
+            // TODO deletes all routes associated with this connection,
 
             // XXX releases all BGP resources,
 
