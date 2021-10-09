@@ -32,7 +32,10 @@ void Socket::close() {
     // tcpConnection->close();
 }
 
-int Socket::listen() { return tcpConnection->listen(); }
+int Socket::listen() {
+    running = true;
+    return tcpConnection->listen();
+}
 
 int Socket::bind(const pcpp::IPv4Address& srcAddr, const uint16_t& srcPort) {
     tcpConnection->srcAddr = srcAddr;
@@ -53,6 +56,7 @@ Socket* Socket::accept() {
 }
 
 int Socket::connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort) {
+    running = true;
     NetworkCard* nextHopNetworkCard =
         device->getNextHopNetworkCardOrNull(dstAddr);
     if (nextHopNetworkCard == nullptr) {
