@@ -8,6 +8,7 @@
 
 #include "BGPUpdateLayer.fwd.h"
 #include "IpAddress.h"
+#include "../../logger/Logger.h"
 
 
 class LengthAndIpPrefix {
@@ -29,6 +30,14 @@ class LengthAndIpPrefix {
         : prefixLength(prefixLength), ipPrefix(ipPrefix) {}
 
     std::string toString() const;
+
+    /**
+     * @brief Copute the length of the prfix(NetMask bits) given a IPv4 NetMask
+     * 
+     * @param netMask NetMask on wich to compute the length
+     * @return uint8_t 
+     */
+    static uint8_t computeLengthIpPrefix(pcpp::IPv4Address netMask);
 
    private:
     /**

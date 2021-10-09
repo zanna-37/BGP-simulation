@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+#include "../../logger/Logger.h"
 
 
 /**
@@ -31,8 +32,8 @@ class PathAttribute {
         AGGREGATOR       = 7
     };
 
-    uint8_t attributeTypeFlags = 0;
-    AttributeTypeCode_uint8_t  attributeTypeCode{};
+    uint8_t                   attributeTypeFlags = 0;
+    AttributeTypeCode_uint8_t attributeTypeCode{};
 
    private:
     uint8_t attributeLength_normal{};
@@ -47,7 +48,7 @@ class PathAttribute {
     uint8_t* attributeData_be = nullptr;
 
    public:
-    static bool isFlagSet(uint8_t flagsToTest,
+    static bool isFlagSet(uint8_t                    flagsToTest,
                           AttributeTypeFlags_uint8_t flagValue) {
         return (flagsToTest & flagValue) == flagValue;
     };
@@ -115,8 +116,8 @@ class PathAttribute {
          * [out]       newAttributeTypeFlags 01001000
          * \endverbatim
          */
-        this->attributeTypeFlags = (uint8_t)(
-            (this->attributeTypeFlags & mask) | value_bits);
+        this->attributeTypeFlags =
+            (uint8_t)((this->attributeTypeFlags & mask) | value_bits);
     }
 
     /**
@@ -186,6 +187,19 @@ class PathAttribute {
     static void parsePathAttributes(uint8_t*                    byteArray,
                                     size_t                      arrayLen,
                                     std::vector<PathAttribute>& vectorToFill);
+
+    /**
+     * @brief Build the segment for the AS_PATH data attribute
+     *
+     * @param[in] asType Segment type of the AS_PATH
+     * @param[in] asPathLen Number of ASs in the path
+     * @param[in] asPath Vector with the AS's numbers
+     * @param[out] asData_be Attribute data for the AS_PATH attribute construction
+     */
+    static void buildAsPathAttributeData_be(uint8_t asType,
+                                            uint8_t asPathLen,
+                                            const std::vector<uint16_t>& asPath,
+                                            std::vector<uint8_t>& asData_be);
 
     std::string toString() const;
 };

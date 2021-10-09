@@ -133,3 +133,27 @@ std::string PathAttribute::toString() const {
 
     return output;
 }
+
+void PathAttribute::buildAsPathAttributeData_be(uint8_t                      asType,
+                                        uint8_t                      asPathLen,
+                                        const std::vector<uint16_t>& asPath,
+                                        std::vector<uint8_t>& asData_be) {
+    if (asType == 1 || asType == 2) {
+        asData_be.push_back(asType);
+    } else {
+        L_ERROR("ASDataBld", "AS Segment Type not handled");
+    }
+    if (asPathLen == asPath.size()) {
+        asData_be.push_back(asPathLen);
+    } else {
+        L_ERROR(
+            "ASDataBld",
+            "AS path segment length not matching wiht the nuber of AS numbers");
+    }
+
+    for (auto AS_h : asPath) {
+        uint16_t AS_be16 = htobe16(AS_h);
+        asData_be.push_back((uint8_t)(AS_be16));
+        asData_be.push_back((uint8_t)(AS_be16 >> 8));
+    }
+}
