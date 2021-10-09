@@ -144,18 +144,25 @@ void runDecisionProcess(Router *                         router,
                                                     nextHopDataLength);
         nextHopAttribute.attributeTypeCode =
             PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
         newPathAttributes.push_back(nextHopAttribute);
 
         // AS_Path PathAttribute
+        std::vector<uint8_t> asPath_be8;
         uint16_t new_as_num = (uint16_t)router->AS_number;
         asPath.push_back(new_as_num);
 
-        std::vector<uint8_t> asPath_be8;
-        for (auto AS_h : asPath) {
-            uint16_t AS_be16 = htobe16(AS_h);
-            asPath_be8.push_back((uint8_t)AS_be16);
-            asPath_be8.push_back((uint8_t)AS_be16 >> 8);
-        }
+        uint8_t asPathType = 2; // TODO: Check that this is AS_SEQUENCE
+        uint8_t asPathLen  = asPath.size();
+
+        PathAttribute::buildAsPathAttributeData_be(
+                    asPathType, asPathLen, asPath, asPath_be8);
+
         size_t        asPathDataLength = asPath_be8.size();
         uint8_t *     asPathData       = asPath_be8.data();
         PathAttribute asPathAttribute;
@@ -163,6 +170,12 @@ void runDecisionProcess(Router *                         router,
                                                    asPathDataLength);
         asPathAttribute.attributeTypeCode =
             PathAttribute::AttributeTypeCode_uint8_t::AS_PATH;
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
         newPathAttributes.push_back(asPathAttribute);
 
         // Origin PathAttribute
@@ -173,13 +186,22 @@ void runDecisionProcess(Router *                         router,
                                                        originDataLength);
         originPathAttribute.attributeTypeCode =
             PathAttribute::AttributeTypeCode_uint8_t::ORIGIN;
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
+        nextHopAttribute.setFlags(
+            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
         newPathAttributes.push_back(originPathAttribute);
 
         // TODO LocalPreferences PathAttribute (if we have time)
 
         std::vector<LengthAndIpPrefix> new_nlri;
         for (BGPTableRow &bgpTableRow : router->bgpTable) {
-            LengthAndIpPrefix nlri(bgpTableRow.networkMask.toInt(),
+            uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
+                        bgpTableRow.networkMask);
+
+            LengthAndIpPrefix nlri(prefLen,
                                    bgpTableRow.networkIP.toString());
             new_nlri.push_back(nlri);
         }
