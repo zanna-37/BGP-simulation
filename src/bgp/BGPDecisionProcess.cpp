@@ -11,7 +11,7 @@ void runDecisionProcess(Router *                         router,
                         std::unique_ptr<BGPUpdateLayer> &BGPUpdateMessage,
                         std::unique_ptr<BGPUpdateLayer> &newBGPUpdateMessage,
                         pcpp::IPv4Address &              routerIP) {
-    L_DEBUG("Decision Process", BGPUpdateMessage->toString());
+    // L_DEBUG("Decision Process", BGPUpdateMessage->toString());
     // check whether there are withdrawn routes
     if (BGPUpdateMessage->getWithdrawnRoutesBytesLength() != 0) {
         L_DEBUG("Decision Process", "Processing withdrawn routes");
@@ -22,9 +22,9 @@ void runDecisionProcess(Router *                         router,
             pcpp::IPv4Address withdrawnedNetworkIP(
                 withDrawnRoute.ipPrefix.toString());
             uint32_t withDrawnRouteNetMask =
-                be32toh((0xFFFFFFFF << (32 - withDrawnRoute.prefixLength)) &
-                        0xFFFFFFFF);
+                (-1) << (32 - withDrawnRoute.prefixLength);
             pcpp::IPv4Address withdrawnedNetworkMask(withDrawnRouteNetMask);
+            L_DEBUG("decision process", withdrawnedNetworkMask.toString());
             for (auto itTableRow = router->bgpTable.begin();
                  itTableRow != router->bgpTable.end();) {
                 if (withdrawnedNetworkIP == itTableRow->networkIP) {
@@ -104,10 +104,10 @@ void runDecisionProcess(Router *                         router,
             for (BGPTableRow &BGPTableRoute : router->bgpTable) {
                 if (BGPTableRoute.networkIP != router->loopbackIP) {
                     pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
-                    uint32_t          mask = be32toh(
-                        (0xFFFFFFFF << (32 - nlri.prefixLength)) & 0xFFFFFFFF);
+                    uint32_t          mask = (-1) << (32 - nlri.prefixLength);
                     pcpp::IPv4Address netmaskNRLI(mask);
-                    BGPTableRow       newRoute(networkIPNRLI,
+                    L_DEBUG("decision process", netmaskNRLI.toString());
+                    BGPTableRow newRoute(networkIPNRLI,
                                          netmaskNRLI,
                                          nextHop,
                                          origin,

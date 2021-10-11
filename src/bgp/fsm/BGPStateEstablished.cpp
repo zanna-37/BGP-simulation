@@ -294,24 +294,58 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                     "Event -> NotifMsgVerErr, NotifMsg, TcpConnectionFails");
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
-            /*
-            {
-                //Create BGPUpdateMessage (no PathAttributes)
-                //TODO
 
-                // Run Decision Process
-                std::unique_ptr<BGPUpdateLayer> newUpdateLayer;
-                runDecisionProcess(stateMachine->connection->owner,
-                                   updateLayer,
-                                   newUpdateLayer,
-                                   stateMachine->connection->dstAddr);
+            {
+                // Create BGPUpdateMessage (no PathAttributes)
+                pcpp::IPv4Address IPAddressPeer =
+                    stateMachine->connection->dstAddr;
+                pcpp::IPv4Address netMaskPeer;
+                for (NetworkCard* netCard :
+                     *stateMachine->connection->owner->networkCards) {
+                    if (netCard->IP == IPAddressPeer) {
+                        pcpp::IPv4Address netMaskPeer = netCard->netmask;
+                    }
+                }
+                pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
+                                                netMaskPeer.toInt());
+
+                std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                uint8_t prefLenPeer =
+                    LengthAndIpPrefix::computeLengthIpPrefix(netMaskPeer);
+                LengthAndIpPrefix withdrawnRoute(prefLenPeer,
+                                                 networkIPpeer.toString());
+
+                withdrawnRoutes.push_back(withdrawnRoute);
+
+                std::vector<PathAttribute> pathAttributes;
+
+                std::vector<LengthAndIpPrefix> nlris;
+                for (BGPTableRow& bgpTableRow :
+                     stateMachine->connection->owner->bgpTable) {
+                    if (stateMachine->connection->owner->loopbackIP !=
+                        bgpTableRow.networkIP) {
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                bgpTableRow.networkMask);
+
+                        LengthAndIpPrefix nlri(
+                            prefLen, bgpTableRow.networkIP.toString());
+                        nlris.push_back(nlri);
+                    }
+                }
+
+                std::unique_ptr<BGPUpdateLayer> updateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnRoutes, pathAttributes, nlris);
+                updateLayer->computeCalculateFields();
 
                 // Send new BGPUpdateMessage
-                if (newUpdateLayer != nullptr) {
+                if (updateLayer != nullptr) {
                     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                         layers = make_unique<
                             std::stack<std::unique_ptr<pcpp::Layer>>>();
-                    layers->push(std::move(newUpdateLayer));
+                    layers->push(std::move(updateLayer));
 
                     stateMachine->connection->sendData(std::move(layers));
 
@@ -320,7 +354,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                            "Sending UPDATE message");
                 }
             }
-            */
 
             // XXX releases all the BGP resources, done
 
