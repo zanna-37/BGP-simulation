@@ -1,6 +1,7 @@
 #include "BGPStateOpenConfirm.h"
 
 #include "../../entities/Router.h"
+#include "../BGPApplication.h"
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "../BGPTimer.h"
@@ -49,6 +50,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             }
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -91,6 +94,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -138,6 +143,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -205,6 +212,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -229,6 +238,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -272,6 +283,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources,
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection (send TCP FIN),
             stateMachine->connection->dropConnection(true);
@@ -314,6 +327,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources,
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -340,6 +355,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources
+            // stateMachine->connection->bgpApplication->stopListeningOnSocket(
+            //     stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -512,6 +529,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);

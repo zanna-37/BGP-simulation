@@ -41,6 +41,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             stateMachine->connection->dropConnection(false);
 
             // XXX releases all BGP resources, It should be done.
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // sets ConnectRetryCounter to zero,
             stateMachine->setConnectRetryCounter(0);
@@ -183,6 +185,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->connection->dropConnection(false);
 
                 // XXX releases all BGP resources, and - should be done
+                stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                    stateMachine->connection->srcAddr);
 
                 // changes its state to Idle.
                 stateMachine->changeState(new BGPStateIdle(stateMachine));
@@ -245,6 +249,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, - done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -275,6 +281,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->resetDelayOpenTimer();
 
                 // XXX releases all BGP resources,
+                stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                    stateMachine->connection->srcAddr);
 
                 // drops the TCP connection,
                 stateMachine->connection->dropConnection(false);
@@ -287,6 +295,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 stateMachine->resetConnectRetryTimer();
 
                 // XXX releases all BGP resources, done
+                stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                    stateMachine->connection->srcAddr);
 
                 // drops the TCP connection,
                 stateMachine->connection->dropConnection(false);
@@ -325,6 +335,8 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
                 ->resetDelayOpenTimer();  // This is an optional attribute
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);

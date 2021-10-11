@@ -59,6 +59,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // TODO BGP table needed
 
             // XXX releases BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -102,6 +104,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // TODO copy from above
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -150,6 +154,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -242,6 +248,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // TODO deletes all routes associated with this connection,
 
             // XXX releases all BGP resources,
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -310,6 +318,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             }
 
             // XXX releases all the BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -391,6 +401,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // table needed
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -444,6 +456,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);

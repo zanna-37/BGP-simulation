@@ -43,7 +43,10 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 //   local system sends a NOTIFICATION with a Cease,
             }
 
-            // XXX releases all BGP resources including stopping the
+            // XXX releases all BGP resources
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
+            // including stopping the
             //   DelayOpenTimer
             stateMachine->resetDelayOpenTimer();  // optional value
 
@@ -191,6 +194,8 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetDelayOpenTimer();
 
             // XXX releases all BGP resource, - done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -263,6 +268,8 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -305,6 +312,8 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 stateMachine->resetConnectRetryTimer();
 
                 // XXX releases all BGP resources, done
+                stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                    stateMachine->connection->srcAddr);
 
                 // drops the TCP connection,
                 stateMachine->connection->dropConnection(false);
@@ -337,6 +346,8 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
