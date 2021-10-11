@@ -58,15 +58,16 @@ void BGPApplication::passiveOpenAll() {
 
 void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
                                         pcpp::IPv4Address bgpIdentifier) {
+    L_DEBUG(connectionToCheck->owner->ID, "Collision detection");
     for (BGPConnection* connection : bgpConnections) {
         if (connection->getCurrentStateName() == "OPEN_CONFIRM") {
             if (connectionToCheck->dstAddr == connection->dstAddr &&
                 connection != connectionToCheck) {
+                L_DEBUG(connection->owner->ID, "Foung Collision");
                 std::unique_ptr<BGPLayer> bgpNotificationLayer =
                     std::make_unique<BGPNotificationLayer>(
                         BGPNotificationLayer::CEASE,
                         BGPNotificationLayer::ERR_X_NO_SUB_ERR);
-                bgpNotificationLayer->computeCalculateFields();
 
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                     layers =

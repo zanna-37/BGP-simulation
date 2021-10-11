@@ -215,48 +215,45 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 std::unique_ptr<BGPOpenLayer> openLayer;
                 dynamic_pointer_move(openLayer, event.layers);
 
-                pcpp::IPv4Address bgpIdentifier = pcpp::IPv4Address(be32toh(
-                    openLayer->getOpenHeaderOrNull()->BGPIdentifier_be));
+                BGPOpenLayer::BGPOpenHeader *openHeader =
+                    openLayer->getOpenHeaderOrNull();
+
+                pcpp::IPv4Address bgpIdentifier =
+                    pcpp::IPv4Address(be32toh(openHeader->BGPIdentifier_be));
 
                 stateMachine->connection->bgpApplication->collisionDetection(
                     stateMachine->connection, bgpIdentifier);
-            }
 
 
-            // resets the DelayOpenTimer to zero,
-            stateMachine->resetDelayOpenTimer();
+                // resets the DelayOpenTimer to zero,
+                stateMachine->resetDelayOpenTimer();
 
-            // sets the BGP ConnectRetryTimer to zero,
-            stateMachine->resetConnectRetryTimer();
+                // sets the BGP ConnectRetryTimer to zero,
+                stateMachine->resetConnectRetryTimer();
 
-            // sends a KEEPALIVE message, and
-            // TODO test KEEPALIVE message
-            {
-                std::unique_ptr<BGPLayer> bgpKeepaliveLayer =
-                    std::make_unique<BGPKeepaliveLayer>();
-                bgpKeepaliveLayer->computeCalculateFields();
+                // sends a KEEPALIVE message, and
+                // TODO test KEEPALIVE message
+                {
+                    std::unique_ptr<BGPLayer> bgpKeepaliveLayer =
+                        std::make_unique<BGPKeepaliveLayer>();
+                    bgpKeepaliveLayer->computeCalculateFields();
 
-                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                    layers =
-                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
-                layers->push(std::move(bgpKeepaliveLayer));
+                    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                        layers = make_unique<
+                            std::stack<std::unique_ptr<pcpp::Layer>>>();
+                    layers->push(std::move(bgpKeepaliveLayer));
 
-                stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending KEEPALIVE message");
-            }
+                    stateMachine->connection->sendData(std::move(layers));
+                    L_INFO(stateMachine->connection->owner->ID + " " +
+                               stateMachine->name,
+                           "Sending KEEPALIVE message");
+                }
 
-            // sets a KeepaliveTimer (via the text below)
+                // sets a KeepaliveTimer (via the text below)
 
-            // sets the HoldTimer according to the negotiated value (see
-            // Section 4.2),
-            {
-                std::unique_ptr<BGPOpenLayer> openLayer;
-                dynamic_pointer_move(openLayer, event.layers);
+                // sets the HoldTimer according to the negotiated value (see
+                // Section 4.2),
 
-                BGPOpenLayer::BGPOpenHeader *openHeader =
-                    openLayer->getOpenHeaderOrNull();
 
                 if (be16toh(openHeader->holdTime_be) <
                     stateMachine->getNegotiatedHoldTime().count()) {
