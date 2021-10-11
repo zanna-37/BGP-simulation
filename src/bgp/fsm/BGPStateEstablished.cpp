@@ -294,10 +294,10 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                     "Event -> NotifMsgVerErr, NotifMsg, TcpConnectionFails");
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
-
+            /*
             {
-                std::unique_ptr<BGPUpdateLayer> updateLayer;
-                dynamic_pointer_move(updateLayer, event.layers);
+                //Create BGPUpdateMessage (no PathAttributes)
+                //TODO
 
                 // Run Decision Process
                 std::unique_ptr<BGPUpdateLayer> newUpdateLayer;
@@ -320,7 +320,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                            "Sending UPDATE message");
                 }
             }
-
+            */
 
             // XXX releases all the BGP resources, done
 
