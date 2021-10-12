@@ -5,6 +5,7 @@
 #include "../../entities/Link.h"
 #include "../../entities/Router.h"
 #include "../../utils/SmartPointerUtils.h"
+#include "../BGPApplication.h"
 #include "../BGPConnection.h"
 #include "../BGPDecisionProcess.h"
 #include "../BGPEvent.h"
@@ -327,44 +328,14 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
                 withdrawnRoutes.push_back(withdrawnRoute);
 
-                std::vector<PathAttribute> pathAttributes;
-
+                std::vector<PathAttribute>     pathAttributes;
                 std::vector<LengthAndIpPrefix> nlris;
-                for (BGPTableRow& bgpTableRow :
-                     stateMachine->connection->owner->bgpTable) {
-                    if (stateMachine->connection->owner->loopbackIP !=
-                        bgpTableRow.networkIP) {
-                        uint8_t prefLen =
-                            LengthAndIpPrefix::computeLengthIpPrefix(
-                                bgpTableRow.networkMask);
 
-                        LengthAndIpPrefix nlri(
-                            prefLen, bgpTableRow.networkIP.toString());
-                        nlris.push_back(nlri);
-                    }
-                }
-
-                std::unique_ptr<BGPUpdateLayer> updateLayer =
-                    std::make_unique<BGPUpdateLayer>(
-                        withdrawnRoutes, pathAttributes, nlris);
-                updateLayer->computeCalculateFields();
-
-                L_DEBUG(stateMachine->connection->owner->ID,
-                        updateLayer->toString());
-
-                // Send new BGPUpdateMessage
-                if (updateLayer != nullptr) {
-                    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                        layers = make_unique<
-                            std::stack<std::unique_ptr<pcpp::Layer>>>();
-                    layers->push(std::move(updateLayer));
-
-                    stateMachine->connection->sendData(std::move(layers));
-
-                    L_INFO(stateMachine->connection->owner->ID + " " +
-                               stateMachine->name,
-                           "Sending UPDATE message");
-                }
+                stateMachine->connection->bgpApplication->sendBGPUpdateMessage(
+                    stateMachine->connection,
+                    withdrawnRoutes,
+                    pathAttributes,
+                    nlris);
             }
 
             // XXX releases all the BGP resources, done
