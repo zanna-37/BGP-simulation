@@ -50,6 +50,7 @@ set(SOURCE_FILES
         ${SRC_LOGGER}/Logger.cpp
         ${SRC_UTILS}/Bits.cpp
         ${SRC_UTILS}/MacGenerator.cpp
+        ${SRC_UTILS}/NetUtils.cpp
         ${SRC_IP}/IpManager.cpp
         ${SRC_IP}/TableRow.cpp
         ${SRC_BGP}/BGPApplication.cpp

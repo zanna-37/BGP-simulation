@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "../logger/Logger.h"
+#include "../utils/NetUtils.h"
 #include "packets/BGPUpdatePathAttribute.h"
 
 void runDecisionProcess(Router *                         router,
@@ -21,10 +22,8 @@ void runDecisionProcess(Router *                         router,
         for (LengthAndIpPrefix withDrawnRoute : withDrawnRoutes) {
             pcpp::IPv4Address withdrawnedNetworkIP(
                 withDrawnRoute.ipPrefix.toString());
-            std::string withDrawnRouteNetworkMaskstring =
-                LengthAndIpPrefix::computeNetMask(withDrawnRoute.prefixLength);
-            pcpp::IPv4Address withdrawnedNetworkMask(
-                withDrawnRouteNetworkMaskstring);
+            pcpp::IPv4Address withdrawnedNetworkMask(htobe32(
+                NetUtils::prefixToNetmask(withDrawnRoute.prefixLength)));
             for (auto itTableRow = router->bgpTable.begin();
                  itTableRow != router->bgpTable.end();) {
                 if (withdrawnedNetworkIP == itTableRow->networkIP) {
@@ -103,10 +102,9 @@ void runDecisionProcess(Router *                         router,
             for (BGPTableRow &BGPTableRoute : router->bgpTable) {
                 if (BGPTableRoute.networkIP != router->loopbackIP) {
                     pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
-                    std::string       netmaskNRLIstring =
-                        LengthAndIpPrefix::computeNetMask(nlri.prefixLength);
-                    pcpp::IPv4Address netmaskNRLI(netmaskNRLIstring);
-                    BGPTableRow       newRoute(networkIPNRLI,
+                    pcpp::IPv4Address netmaskNRLI(
+                        htobe32(NetUtils::prefixToNetmask(nlri.prefixLength)));
+                    BGPTableRow newRoute(networkIPNRLI,
                                          netmaskNRLI,
                                          nextHop,
                                          origin,

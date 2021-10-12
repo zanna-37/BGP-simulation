@@ -39,8 +39,6 @@ class LengthAndIpPrefix {
      */
     static uint8_t computeLengthIpPrefix(pcpp::IPv4Address netMask);
 
-    static std::string computeNetMask(uint8_t prefixLen);
-
    private:
     /**
      * Transform the data contained in \a vector into bytes.
