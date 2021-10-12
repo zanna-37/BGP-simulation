@@ -5,26 +5,31 @@
 #include <algorithm>
 
 #include "../logger/Logger.h"
+#include "../utils/NetUtils.h"
 #include "packets/BGPUpdatePathAttribute.h"
 
 void runDecisionProcess(Router *                         router,
                         std::unique_ptr<BGPUpdateLayer> &BGPUpdateMessage,
                         std::unique_ptr<BGPUpdateLayer> &newBGPUpdateMessage,
                         pcpp::IPv4Address &              routerIP) {
+    // L_DEBUG("Decision Process", BGPUpdateMessage->toString());
     // check whether there are withdrawn routes
     if (BGPUpdateMessage->getWithdrawnRoutesBytesLength() != 0) {
+        L_DEBUG("Decision Process", "Processing withdrawn routes");
         std::vector<LengthAndIpPrefix> withDrawnRoutes;
         BGPUpdateMessage->getWithdrawnRoutes(withDrawnRoutes);
 
         for (LengthAndIpPrefix withDrawnRoute : withDrawnRoutes) {
-            pcpp::IPv4Address withdrawnedNetwork(
-                withDrawnRoute.ipPrefix.toInt() & withDrawnRoute.prefixLength);
-
+            pcpp::IPv4Address withdrawnedNetworkIP(
+                withDrawnRoute.ipPrefix.toString());
+            pcpp::IPv4Address withdrawnedNetworkMask(htobe32(
+                NetUtils::prefixToNetmask(withDrawnRoute.prefixLength)));
             for (auto itTableRow = router->bgpTable.begin();
                  itTableRow != router->bgpTable.end();) {
-                if (withdrawnedNetwork == itTableRow->networkIP) {
+                if (withdrawnedNetworkIP == itTableRow->networkIP) {
                     // remove withdrawned route
                     itTableRow = router->bgpTable.erase(itTableRow);
+                    updateIPTable(router->routingTable, *itTableRow, true);
                 } else {
                     itTableRow++;
                 }
@@ -35,6 +40,7 @@ void runDecisionProcess(Router *                         router,
     // check if there are new routes
     if (BGPUpdateMessage->getPathAttributesBytesLength() > 0 &&
         BGPUpdateMessage->getNetworkLayerReachabilityInfoBytesLength() > 0) {
+        // L_DEBUG("Decision Process", "Checking new routes");
         std::vector<LengthAndIpPrefix> networkLayerReachabilityInfo;
         BGPUpdateMessage->getNetworkLayerReachabilityInfo(
             networkLayerReachabilityInfo);
@@ -91,38 +97,38 @@ void runDecisionProcess(Router *                         router,
         }
 
         std::vector<LengthAndIpPrefix> newWithDrawnRoutes;
-        int                            jterator = 0;
+        std::vector<LengthAndIpPrefix> new_nlris;
         for (LengthAndIpPrefix nlri : networkLayerReachabilityInfo) {
             for (BGPTableRow &BGPTableRoute : router->bgpTable) {
-                jterator++;
-                pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toInt() &
-                                                nlri.prefixLength);
-                pcpp::IPv4Address netmaskNRLI(nlri.prefixLength);
-                BGPTableRow       newRoute(networkIPNRLI,
-                                     netmaskNRLI,
-                                     nextHop,
-                                     origin,
-                                     asPath,
-                                     0,
-                                     localPreferences,
-                                     0);
+                if (BGPTableRoute.networkIP != router->loopbackIP) {
+                    pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
+                    pcpp::IPv4Address netmaskNRLI(
+                        htobe32(NetUtils::prefixToNetmask(nlri.prefixLength)));
+                    BGPTableRow newRoute(networkIPNRLI,
+                                         netmaskNRLI,
+                                         nextHop,
+                                         origin,
+                                         asPath,
+                                         0,
+                                         localPreferences,
+                                         0);
+                    if (networkIPNRLI != BGPTableRoute.networkIP) {
+                        calculatePreferredRoute(&newRoute, &BGPTableRoute);
+                        router->bgpTable.push_back(newRoute);
+                        if (newRoute.preferred) {
+                            updateIPTable(
+                                router->routingTable, newRoute, false);
 
-                if (networkIPNRLI == BGPTableRoute.networkIP) {
-                    // Replace table row
-                    BGPTableRoute = newRoute;
-
-                    newWithDrawnRoutes.emplace_back(
-                        BGPTableRoute.networkMask.toInt(),
-                        BGPTableRoute.networkIP.toString());
-                } else {
-                    calculatePreferredRoute(&newRoute, &BGPTableRoute);
-                    router->bgpTable.push_back(newRoute);
-                    if (newRoute.preferred) {
-                        updateIPTable(router->routingTable, newRoute);
-
-                        newWithDrawnRoutes.emplace_back(
-                            BGPTableRoute.networkMask.toInt(),
-                            BGPTableRoute.networkIP.toString());
+                            newWithDrawnRoutes.emplace_back(
+                                BGPTableRoute.networkMask.toInt(),
+                                BGPTableRoute.networkIP.toString());
+                        }
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                newRoute.networkMask);
+                        LengthAndIpPrefix new_nlri(
+                            prefLen, newRoute.networkIP.toString());
+                        new_nlris.push_back(new_nlri);
                     }
                 }
             }
@@ -154,14 +160,14 @@ void runDecisionProcess(Router *                         router,
 
         // AS_Path PathAttribute
         std::vector<uint8_t> asPath_be8;
-        uint16_t new_as_num = (uint16_t)router->AS_number;
+        uint16_t             new_as_num = (uint16_t)router->AS_number;
         asPath.push_back(new_as_num);
 
-        uint8_t asPathType = 2; // TODO: Check that this is AS_SEQUENCE
+        uint8_t asPathType = 2;  // TODO: Check that this is AS_SEQUENCE
         uint8_t asPathLen  = asPath.size();
 
         PathAttribute::buildAsPathAttributeData_be(
-                    asPathType, asPathLen, asPath, asPath_be8);
+            asPathType, asPathLen, asPath, asPath_be8);
 
         size_t        asPathDataLength = asPath_be8.size();
         uint8_t *     asPathData       = asPath_be8.data();
@@ -196,29 +202,32 @@ void runDecisionProcess(Router *                         router,
 
         // TODO LocalPreferences PathAttribute (if we have time)
 
-        std::vector<LengthAndIpPrefix> new_nlri;
-        for (BGPTableRow &bgpTableRow : router->bgpTable) {
-            uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
-                        bgpTableRow.networkMask);
-
-            LengthAndIpPrefix nlri(prefLen,
-                                   bgpTableRow.networkIP.toString());
-            new_nlri.push_back(nlri);
-        }
-
         newBGPUpdateMessage = std::make_unique<BGPUpdateLayer>(
-            newWithDrawnRoutes, newPathAttributes, new_nlri);
+            newWithDrawnRoutes, newPathAttributes, new_nlris);
         newBGPUpdateMessage->computeCalculateFields();
     }
 }
 
-void updateIPTable(std::vector<TableRow> &IPTable, BGPTableRow &newRoute) {
-    TableRow row(newRoute.networkIP,
-                 newRoute.networkMask,
-                 pcpp::IPv4Address::Zero,
-                 newRoute.networkCard->netInterface,
-                 newRoute.networkCard);
-    IPTable.push_back(row);
+void updateIPTable(std::vector<TableRow> &IPTable,
+                   BGPTableRow &          route,
+                   bool                   isWithDrawnRoute) {
+    if (isWithDrawnRoute) {
+        for (auto itRoutingTable = IPTable.begin();
+             itRoutingTable != IPTable.end();) {
+            if (itRoutingTable->networkIP == route.networkIP) {
+                itRoutingTable = IPTable.erase(itRoutingTable);
+            } else {
+                ++itRoutingTable;
+            }
+        }
+    } else {
+        TableRow row(route.networkIP,
+                     route.networkMask,
+                     pcpp::IPv4Address::Zero,
+                     route.networkCard->netInterface,
+                     route.networkCard);
+        IPTable.push_back(row);
+    }
 }
 
 void calculatePreferredRoute(BGPTableRow *newRoute,

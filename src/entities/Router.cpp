@@ -36,9 +36,9 @@ void Router::bootUpInternal() {
 }
 
 void Router::buildBgpTable() {
-    char origin =
-        'i';  // this value can be 'i', 'e' or '?'
-              // need to understand if the router is interior or exterior
+    char origin = '?';  // this value can be 'i', 'e' or '?'
+                        // need to understand if the router is interior or
+                        // exterior in our case we can let '?'
 
     // Loopback row
     bgpTable.emplace_back(loopbackIP,

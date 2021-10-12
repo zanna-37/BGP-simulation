@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
+#include "../../logger/Logger.h"
 #include "BGPUpdateLayer.fwd.h"
 #include "IpAddress.h"
-#include "../../logger/Logger.h"
 
 
 class LengthAndIpPrefix {
@@ -33,9 +33,9 @@ class LengthAndIpPrefix {
 
     /**
      * @brief Copute the length of the prfix(NetMask bits) given a IPv4 NetMask
-     * 
+     *
      * @param netMask NetMask on wich to compute the length
-     * @return uint8_t 
+     * @return uint8_t
      */
     static uint8_t computeLengthIpPrefix(pcpp::IPv4Address netMask);
 

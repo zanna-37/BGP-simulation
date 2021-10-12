@@ -477,12 +477,16 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 std::vector<LengthAndIpPrefix> new_nlri;
                 for (BGPTableRow& bgpTableRow :
                      stateMachine->connection->owner->bgpTable) {
-                    uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
-                        bgpTableRow.networkMask);
+                    if (stateMachine->connection->owner->loopbackIP !=
+                        bgpTableRow.networkIP) {
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                bgpTableRow.networkMask);
 
-                    LengthAndIpPrefix nlri(prefLen,
-                                           bgpTableRow.networkIP.toString());
-                    new_nlri.push_back(nlri);
+                        LengthAndIpPrefix nlri(
+                            prefLen, bgpTableRow.networkIP.toString());
+                        new_nlri.push_back(nlri);
+                    }
                 }
 
                 std::vector<LengthAndIpPrefix> withdrawnRoutes;

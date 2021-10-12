@@ -61,8 +61,8 @@ size_t LengthAndIpPrefix::lengthAndIpPrefixDataToByteArray(
 }
 
 uint8_t LengthAndIpPrefix::computeLengthIpPrefix(pcpp::IPv4Address netMask) {
-    uint8_t         prefixLen = 0;
-    const uint8_t* bytes   = netMask.toBytes();
+    uint8_t        prefixLen = 0;
+    const uint8_t* bytes     = netMask.toBytes();
 
     for (int i = 0; i < 4; i++) {
         switch (bytes[i]) {

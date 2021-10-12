@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+#include "../../entities/Link.h"
 #include "../../entities/Router.h"
 #include "../../utils/SmartPointerUtils.h"
 #include "../BGPConnection.h"
@@ -296,22 +297,67 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             {
-                std::unique_ptr<BGPUpdateLayer> updateLayer;
-                dynamic_pointer_move(updateLayer, event.layers);
+                // Create BGPUpdateMessage (no PathAttributes)
+                pcpp::IPv4Address IPAddressPeer =
+                    stateMachine->connection->dstAddr;
+                pcpp::IPv4Address netMaskPeer;
+                // L_DEBUG("IPAddressPeer", IPAddressPeer.toString());
+                for (NetworkCard* networkCard :
+                     *stateMachine->connection->owner->networkCards) {
+                    NetworkCard* networkCardPeer =
+                        networkCard->link->getPeerNetworkCardOrNull(
+                            networkCard);
+                    // L_DEBUG("IP NETWORK CARD PEER",
+                    // networkCardPeer->IP.toString());
+                    if (networkCardPeer->IP == IPAddressPeer) {
+                        netMaskPeer = networkCardPeer->netmask;
+                        // L_DEBUG("IP NETCARD PEER",
+                        // netMaskPeer.toString());
+                    }
+                }
+                pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
+                                                netMaskPeer.toInt());
 
-                // Run Decision Process
-                std::unique_ptr<BGPUpdateLayer> newUpdateLayer;
-                runDecisionProcess(stateMachine->connection->owner,
-                                   updateLayer,
-                                   newUpdateLayer,
-                                   stateMachine->connection->dstAddr);
+                std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                uint8_t prefLenPeer =
+                    LengthAndIpPrefix::computeLengthIpPrefix(netMaskPeer);
+                LengthAndIpPrefix withdrawnRoute(prefLenPeer,
+                                                 networkIPpeer.toString());
+
+                withdrawnRoutes.push_back(withdrawnRoute);
+
+                std::vector<PathAttribute> pathAttributes;
+
+                std::vector<LengthAndIpPrefix> nlris;
+                for (BGPTableRow& bgpTableRow :
+                     stateMachine->connection->owner->bgpTable) {
+                    if (stateMachine->connection->owner->loopbackIP !=
+                        bgpTableRow.networkIP) {
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                bgpTableRow.networkMask);
+
+                        LengthAndIpPrefix nlri(
+                            prefLen, bgpTableRow.networkIP.toString());
+                        nlris.push_back(nlri);
+                    }
+                }
+
+                std::unique_ptr<BGPUpdateLayer> updateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnRoutes, pathAttributes, nlris);
+                updateLayer->computeCalculateFields();
+
+                L_DEBUG(stateMachine->connection->owner->ID,
+                        updateLayer->toString());
 
                 // Send new BGPUpdateMessage
-                if (newUpdateLayer != nullptr) {
+                if (updateLayer != nullptr) {
                     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                         layers = make_unique<
                             std::stack<std::unique_ptr<pcpp::Layer>>>();
-                    layers->push(std::move(newUpdateLayer));
+                    layers->push(std::move(updateLayer));
 
                     stateMachine->connection->sendData(std::move(layers));
 
@@ -320,7 +366,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                            "Sending UPDATE message");
                 }
             }
-
 
             // XXX releases all the BGP resources, done
 
