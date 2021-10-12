@@ -60,9 +60,22 @@ size_t LengthAndIpPrefix::lengthAndIpPrefixDataToByteArray(
     return currentDataLen;
 }
 
+std::string LengthAndIpPrefix::computeNetMask(uint8_t prefixLength) {
+    // https://stackoverflow.com/questions/16072967/converting-subnet-mask-prefix-with-c
+
+    uint32_t maskbit = UINT32_MAX << (32 - prefixLength);
+
+    std::string netMask = std::to_string(maskbit >> 24) + "." +
+                          std::to_string((maskbit >> 16) & 0xFF) + "." +
+                          std::to_string((maskbit >> 8) & 0xFF) + "." +
+                          std::to_string(maskbit & 0xFF);
+
+    return netMask;
+}
+
 uint8_t LengthAndIpPrefix::computeLengthIpPrefix(pcpp::IPv4Address netMask) {
-    uint8_t         prefixLen = 0;
-    const uint8_t* bytes   = netMask.toBytes();
+    uint8_t        prefixLen = 0;
+    const uint8_t* bytes     = netMask.toBytes();
 
     for (int i = 0; i < 4; i++) {
         switch (bytes[i]) {

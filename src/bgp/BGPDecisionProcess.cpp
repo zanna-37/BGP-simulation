@@ -21,10 +21,10 @@ void runDecisionProcess(Router *                         router,
         for (LengthAndIpPrefix withDrawnRoute : withDrawnRoutes) {
             pcpp::IPv4Address withdrawnedNetworkIP(
                 withDrawnRoute.ipPrefix.toString());
-            uint32_t withDrawnRouteNetMask =
-                (-1) << (32 - withDrawnRoute.prefixLength);
-            pcpp::IPv4Address withdrawnedNetworkMask(withDrawnRouteNetMask);
-            L_DEBUG("decision process", withdrawnedNetworkMask.toString());
+            std::string withDrawnRouteNetworkMaskstring =
+                LengthAndIpPrefix::computeNetMask(withDrawnRoute.prefixLength);
+            pcpp::IPv4Address withdrawnedNetworkMask(
+                withDrawnRouteNetworkMaskstring);
             for (auto itTableRow = router->bgpTable.begin();
                  itTableRow != router->bgpTable.end();) {
                 if (withdrawnedNetworkIP == itTableRow->networkIP) {
@@ -41,7 +41,7 @@ void runDecisionProcess(Router *                         router,
     // check if there are new routes
     if (BGPUpdateMessage->getPathAttributesBytesLength() > 0 &&
         BGPUpdateMessage->getNetworkLayerReachabilityInfoBytesLength() > 0) {
-        L_DEBUG("Decision Process", "Checking new routes");
+        // L_DEBUG("Decision Process", "Checking new routes");
         std::vector<LengthAndIpPrefix> networkLayerReachabilityInfo;
         BGPUpdateMessage->getNetworkLayerReachabilityInfo(
             networkLayerReachabilityInfo);
@@ -96,18 +96,17 @@ void runDecisionProcess(Router *                         router,
                     break;
             }
         }
-        L_DEBUG("Decision Process",
-                "Processed Path Attributes of BGPUpdate Message received");
+
         std::vector<LengthAndIpPrefix> newWithDrawnRoutes;
         std::vector<LengthAndIpPrefix> new_nlris;
         for (LengthAndIpPrefix nlri : networkLayerReachabilityInfo) {
             for (BGPTableRow &BGPTableRoute : router->bgpTable) {
                 if (BGPTableRoute.networkIP != router->loopbackIP) {
                     pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
-                    uint32_t          mask = (-1) << (32 - nlri.prefixLength);
-                    pcpp::IPv4Address netmaskNRLI(mask);
-                    L_DEBUG("decision process", netmaskNRLI.toString());
-                    BGPTableRow newRoute(networkIPNRLI,
+                    std::string       netmaskNRLIstring =
+                        LengthAndIpPrefix::computeNetMask(nlri.prefixLength);
+                    pcpp::IPv4Address netmaskNRLI(netmaskNRLIstring);
+                    BGPTableRow       newRoute(networkIPNRLI,
                                          netmaskNRLI,
                                          nextHop,
                                          origin,

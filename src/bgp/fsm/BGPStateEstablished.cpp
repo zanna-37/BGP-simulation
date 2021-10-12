@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+#include "../../entities/Link.h"
 #include "../../entities/Router.h"
 #include "../../utils/SmartPointerUtils.h"
 #include "../BGPConnection.h"
@@ -300,10 +301,18 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 pcpp::IPv4Address IPAddressPeer =
                     stateMachine->connection->dstAddr;
                 pcpp::IPv4Address netMaskPeer;
-                for (NetworkCard* netCard :
+                // L_DEBUG("IPAddressPeer", IPAddressPeer.toString());
+                for (NetworkCard* networkCard :
                      *stateMachine->connection->owner->networkCards) {
-                    if (netCard->IP == IPAddressPeer) {
-                        pcpp::IPv4Address netMaskPeer = netCard->netmask;
+                    NetworkCard* networkCardPeer =
+                        networkCard->link->getPeerNetworkCardOrNull(
+                            networkCard);
+                    // L_DEBUG("IP NETWORK CARD PEER",
+                    // networkCardPeer->IP.toString());
+                    if (networkCardPeer->IP == IPAddressPeer) {
+                        netMaskPeer = networkCardPeer->netmask;
+                        // L_DEBUG("IP NETCARD PEER",
+                        // netMaskPeer.toString());
                     }
                 }
                 pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
@@ -339,6 +348,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                     std::make_unique<BGPUpdateLayer>(
                         withdrawnRoutes, pathAttributes, nlris);
                 updateLayer->computeCalculateFields();
+
+                L_DEBUG(stateMachine->connection->owner->ID,
+                        updateLayer->toString());
 
                 // Send new BGPUpdateMessage
                 if (updateLayer != nullptr) {
