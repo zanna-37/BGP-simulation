@@ -407,25 +407,10 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
 
                 // Run Decision Process
-                std::unique_ptr<BGPUpdateLayer> newUpdateLayer;
                 runDecisionProcess(stateMachine->connection->owner,
                                    updateLayer,
-                                   newUpdateLayer,
-                                   stateMachine->connection->dstAddr);
-
-                // Send new BGPUpdateMessage
-                if (newUpdateLayer != nullptr) {
-                    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                        layers = make_unique<
-                            std::stack<std::unique_ptr<pcpp::Layer>>>();
-                    layers->push(std::move(newUpdateLayer));
-
-                    stateMachine->connection->sendData(std::move(layers));
-
-                    L_INFO(stateMachine->connection->owner->ID + " " +
-                               stateMachine->name,
-                           "Sending UPDATE message");
-                }
+                                   stateMachine->connection->dstAddr,
+                                   stateMachine->connection);
             }
 
 

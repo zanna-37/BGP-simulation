@@ -8,6 +8,7 @@
 #include "../logger/Logger.h"
 #include "../socket/Socket.h"
 #include "../tcp/TCPConnection.h"
+#include "./packets/BGPUpdateLayer.h"
 #include "BGPConnection.h"
 #include "BGPEvent.h"
 
@@ -110,4 +111,32 @@ Socket* BGPApplication::getCorrespondingListeningSocket(
     mutex.unlock();
 
     return result;
+}
+
+void BGPApplication::sendBGPUpdateMessage(
+    BGPConnection*                 bgpConnectionToAvoid,
+    std::vector<LengthAndIpPrefix> withdrawnroutes,
+    std::vector<PathAttribute>     pathAttributes,
+    std::vector<LengthAndIpPrefix> nlri) {
+    for (BGPConnection* bgpConnection : bgpConnections) {
+        if (bgpConnection != bgpConnectionToAvoid) {
+            // Send BGPUpdateMessage
+            std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                std::make_unique<BGPUpdateLayer>(
+                    withdrawnroutes, pathAttributes, nlri);
+            bgpUpdateLayer->computeCalculateFields();
+
+            if (bgpUpdateLayer != nullptr) {
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpUpdateLayer));
+
+                bgpConnection->sendData(std::move(layers));
+
+                L_INFO(bgpConnection->owner->ID + " BGPfsm",
+                       "Sending UPDATE message");
+            }
+        }
+    }
 }

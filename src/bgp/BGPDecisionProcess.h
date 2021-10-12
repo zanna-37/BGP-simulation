@@ -5,13 +5,14 @@
 
 #include "../entities/Router.h"
 #include "../ip/TableRow.h"
+#include "BGPConnection.h"
 #include "BGPTableRow.h"
 #include "packets/BGPUpdateLayer.h"
 
 void runDecisionProcess(Router *                         router,
                         std::unique_ptr<BGPUpdateLayer> &BGPUpdateMessage,
-                        std::unique_ptr<BGPUpdateLayer> &newBGPUpdateMessage,
-                        pcpp::IPv4Address &              routerIP);
+                        pcpp::IPv4Address &              routerIP,
+                        BGPConnection *                  bgpConnectionToAvoid);
 
 void calculatePreferredRoute(BGPTableRow *newRoute,
                              BGPTableRow *currentPreferredRoute);

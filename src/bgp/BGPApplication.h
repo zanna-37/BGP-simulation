@@ -11,8 +11,10 @@
 
 // forward declarations
 #include "../entities/Router.fwd.h"
+#include "./packets/BGPUpdateLayer.h"
+#include "./packets/BGPUpdateLengthAndIpPrefix.h"
+#include "./packets/BGPUpdatePathAttribute.h"
 #include "BGPConnection.fwd.h"
-
 
 class BGPApplication {
    private:
@@ -77,6 +79,11 @@ class BGPApplication {
                                                    uint16_t          srcPort);
 
     pcpp::IPv4Address getBGPIdentifier() { return BGPIdentifier; }
+
+    void sendBGPUpdateMessage(BGPConnection* bgpConnectionToAvoid,
+                              std::vector<LengthAndIpPrefix> withdrawnroutes,
+                              std::vector<PathAttribute>     pathAttributes,
+                              std::vector<LengthAndIpPrefix> nlri);
 };
 
 #endif  // BGPSIMULATION_BGP_BGPAPPLICATION_H

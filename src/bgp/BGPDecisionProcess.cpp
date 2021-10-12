@@ -6,14 +6,17 @@
 
 #include "../logger/Logger.h"
 #include "../utils/NetUtils.h"
+#include "BGPApplication.h"
 #include "packets/BGPUpdatePathAttribute.h"
 
 void runDecisionProcess(Router *                         router,
                         std::unique_ptr<BGPUpdateLayer> &BGPUpdateMessage,
-                        std::unique_ptr<BGPUpdateLayer> &newBGPUpdateMessage,
-                        pcpp::IPv4Address &              routerIP) {
+                        pcpp::IPv4Address &              routerIP,
+                        BGPConnection *                  bgpConnectionToAvoid) {
     // L_DEBUG("Decision Process", BGPUpdateMessage->toString());
     // check whether there are withdrawn routes
+    std::vector<LengthAndIpPrefix> newWithDrawnRoutes;
+
     if (BGPUpdateMessage->getWithdrawnRoutesBytesLength() != 0) {
         L_DEBUG("Decision Process", "Processing withdrawn routes");
         std::vector<LengthAndIpPrefix> withDrawnRoutes;
@@ -28,6 +31,12 @@ void runDecisionProcess(Router *                         router,
                  itTableRow != router->bgpTable.end();) {
                 if (withdrawnedNetworkIP == itTableRow->networkIP) {
                     // remove withdrawned route
+                    uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
+                        itTableRow->networkMask);
+                    LengthAndIpPrefix newWithDrawnRoute(
+                        prefLen, withdrawnedNetworkIP.toString());
+                    newWithDrawnRoutes.push_back(newWithDrawnRoute);
+
                     itTableRow = router->bgpTable.erase(itTableRow);
                     updateIPTable(router->routingTable, *itTableRow, true);
                 } else {
@@ -96,8 +105,6 @@ void runDecisionProcess(Router *                         router,
             }
         }
 
-        std::vector<LengthAndIpPrefix> newWithDrawnRoutes;
-        std::vector<LengthAndIpPrefix> new_nlris;
         for (LengthAndIpPrefix nlri : networkLayerReachabilityInfo) {
             for (BGPTableRow &BGPTableRoute : router->bgpTable) {
                 if (BGPTableRoute.networkIP != router->loopbackIP) {
@@ -123,12 +130,6 @@ void runDecisionProcess(Router *                         router,
                                 BGPTableRoute.networkMask.toInt(),
                                 BGPTableRoute.networkIP.toString());
                         }
-                        uint8_t prefLen =
-                            LengthAndIpPrefix::computeLengthIpPrefix(
-                                newRoute.networkMask);
-                        LengthAndIpPrefix new_nlri(
-                            prefLen, newRoute.networkIP.toString());
-                        new_nlris.push_back(new_nlri);
                     }
                 }
             }
@@ -201,10 +202,23 @@ void runDecisionProcess(Router *                         router,
         newPathAttributes.push_back(originPathAttribute);
 
         // TODO LocalPreferences PathAttribute (if we have time)
+        std::vector<LengthAndIpPrefix> new_nlri;
 
-        newBGPUpdateMessage = std::make_unique<BGPUpdateLayer>(
-            newWithDrawnRoutes, newPathAttributes, new_nlris);
-        newBGPUpdateMessage->computeCalculateFields();
+        for (BGPTableRow &bgpTableRow : router->bgpTable) {
+            if (router->loopbackIP != bgpTableRow.networkIP) {
+                uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
+                    bgpTableRow.networkMask);
+
+                LengthAndIpPrefix nlri(prefLen,
+                                       bgpTableRow.networkIP.toString());
+                new_nlri.push_back(nlri);
+            }
+        }
+
+        router->bgpApplication->sendBGPUpdateMessage(bgpConnectionToAvoid,
+                                                     newWithDrawnRoutes,
+                                                     newPathAttributes,
+                                                     new_nlri);
     }
 }
 
