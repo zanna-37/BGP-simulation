@@ -252,8 +252,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
         case BGPEventType::BGPOpen:
             L_DEBUG(stateMachine->connection->owner->ID, "Event -> BGPOpen");
-            // TODO MANDATORY TO BE DONE!
-            // TODO If this connection is to be dropped due to connection
+            // DONE MANDATORY TO BE DONE!
+            // DONE If this connection is to be dropped due to connection
             // collision, the local system:
 
             // And if it does not need to be dropped? The message is ignored??

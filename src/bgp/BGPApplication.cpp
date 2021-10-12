@@ -63,7 +63,7 @@ void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
         if (connection->getCurrentStateName() == "OPEN_CONFIRM") {
             if (connectionToCheck->dstAddr == connection->dstAddr &&
                 connection != connectionToCheck) {
-                L_DEBUG(connection->owner->ID, "Foung Collision");
+                L_DEBUG(connection->owner->ID, "Found Collision");
                 std::unique_ptr<BGPLayer> bgpNotificationLayer =
                     std::make_unique<BGPNotificationLayer>(
                         BGPNotificationLayer::CEASE,

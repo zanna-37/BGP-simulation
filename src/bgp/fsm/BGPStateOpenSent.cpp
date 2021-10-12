@@ -205,7 +205,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // correctness.  If there are no errors in the OPEN message (Event
             // 19), the local system:
 
-            // TODO Collision detection mechanisms (Section 6.8) need to be
+            // DONE Collision detection mechanisms (Section 6.8) need to be
             // applied
             // when a valid BGP OPEN message is received (Event 19 or Event 20).
 
