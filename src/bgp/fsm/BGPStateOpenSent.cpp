@@ -331,7 +331,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
 
         case BGPEventType::OpenCollisionDump:
             // OPTIONAL
-            // TODO remove if not needed
+            // DONE remove if not needed
             // sends a NOTIFICATION with a Cease,
 
             {

@@ -64,21 +64,14 @@ void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
             if (connectionToCheck->dstAddr == connection->dstAddr &&
                 connection != connectionToCheck) {
                 L_DEBUG(connection->owner->ID, "Found Collision");
-                std::unique_ptr<BGPLayer> bgpNotificationLayer =
-                    std::make_unique<BGPNotificationLayer>(
-                        BGPNotificationLayer::CEASE,
-                        BGPNotificationLayer::ERR_X_NO_SUB_ERR);
 
-                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                    layers =
-                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
-                layers->push(std::move(bgpNotificationLayer));
+                BGPEvent event = {BGPEventType::OpenCollisionDump, nullptr};
                 if (bgpIdentifier < connection->bgpApplication->BGPIdentifier) {
-                    connectionToCheck->sendData(std::move(layers));
+                    connectionToCheck->enqueueEvent(std::move(event));
                     L_INFO(connectionToCheck->owner->ID,
                            "Sending NOTIFICATION message");
                 } else {
-                    connection->sendData(std::move(layers));
+                    connection->enqueueEvent(std::move(event));
                     L_INFO(connection->owner->ID,
                            "Sending NOTIFICATION message");
                 }

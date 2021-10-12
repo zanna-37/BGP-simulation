@@ -345,8 +345,25 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
         case BGPEventType::OpenCollisionDump:
             // OPTIONAL
-            /* // XXX sends a NOTIFICATION with a Cease,
+            // XXX sends a NOTIFICATION with a Cease,
 
+            {
+                std::unique_ptr<BGPLayer> bgpNotificationLayer =
+                    std::make_unique<BGPNotificationLayer>(
+                        BGPNotificationLayer::CEASE,
+                        BGPNotificationLayer::ERR_X_NO_SUB_ERR);
+                bgpNotificationLayer->computeCalculateFields();
+
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpNotificationLayer));
+
+                stateMachine->connection->sendData(std::move(layers));
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
+            }
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
@@ -368,9 +385,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             }
 
             // changes its state to Idle.
-            stateMachine->changeState(new BGPStateIdle(stateMachine)); */
-
-            handled = false;
+            stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
         case BGPEventType::KeepAliveMsg:
