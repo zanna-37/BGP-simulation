@@ -124,19 +124,15 @@ void BGPApplication::sendBGPUpdateMessage(
             std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
                 std::make_unique<BGPUpdateLayer>(
                     withdrawnroutes, pathAttributes, nlri);
-            bgpUpdateLayer->computeCalculateFields();
 
-            if (bgpUpdateLayer != nullptr) {
-                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                    layers =
-                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
-                layers->push(std::move(bgpUpdateLayer));
+            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
+                make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+            layers->push(std::move(bgpUpdateLayer));
 
-                bgpConnection->sendData(std::move(layers));
+            bgpConnection->sendData(std::move(layers));
 
-                L_INFO(bgpConnection->owner->ID + " BGPfsm",
-                       "Sending UPDATE message");
-            }
+            L_INFO(bgpConnection->owner->ID + " BGPfsm",
+                   "Sending UPDATE message");
         }
     }
 }
