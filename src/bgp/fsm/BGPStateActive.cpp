@@ -33,17 +33,9 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
         case BGPEventType::AutomaticStart_with_DampPeerOscillations:
         case BGPEventType::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> ManualStart, AutomaticStart, "
-                    "ManualStart_with_PassiveTcpEstablishment, "
-                    "AutomaticStart_with_PassiveTcpEstablishment, "
-                    "AutomaticStart_with_DampPeerOscillations, "
-                    "AutomaticStart_with_DampPeerOscillations_and_"
-                    "PassiveTcpEstablishment");
             // (Events 1, 3-7) are ignored in the Active state.
             break;
         case BGPEventType::ManualStop:
-            L_DEBUG(stateMachine->connection->owner->ID, "Event -> ManualStop");
             if (stateMachine->delayOpenTimer->getState() == TICKING &&
                 stateMachine->getSendNOTIFICATIONwithoutOPEN()) {
                 // - If the DelayOpenTimer is running and the
@@ -51,7 +43,10 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 //   local system sends a NOTIFICATION with a Cease,
             }
 
-            // XXX releases all BGP resources including stopping the
+            // XXX releases all BGP resources
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
+            // including stopping the
             //   DelayOpenTimer
             stateMachine->resetDelayOpenTimer();  // optional value
 
@@ -70,8 +65,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::ConnectRetryTimer_Expires:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> ConnectRetryTimer_Expires");
             //  - restarts the ConnectRetryTimer (with initial value),
             stateMachine->resetConnectRetryTimer();
             stateMachine->connectRetryTimer->start();
@@ -88,8 +81,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::DelayOpenTimer_Expires:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> DelayOpenTimer_Expires");
             // OPTIONAL
             /* //  - sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
@@ -116,8 +107,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::TcpConnection_Valid:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> TcpConnection_Valid");
             // OPTIONAL
             // XXX the local system processes the TCP connection flags and
             // stays in the Active state.
@@ -125,8 +114,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::Tcp_CR_Invalid:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> Tcp_CR_Invalid");
             // OPTIONAL
             // XXX the local system rejects the TCP connection and stays in the
             // Active State.
@@ -135,8 +122,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
 
         case BGPEventType::Tcp_CR_Acked:
         case BGPEventType::TcpConnectionConfirmed:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> Tcp_CR_Acked, TcpConnectionConfirmed");
             // If the DelayOpen attribute is set to TRUE, the local system:
             if (stateMachine->getDelayOpen()) {
                 // OPTIONAL
@@ -201,8 +186,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::TcpConnectionFails:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> TcpConnectionFails");
             // restarts the ConnectRetryTimer (with the initial value),
             stateMachine->resetConnectRetryTimer();
             stateMachine->connectRetryTimer->start();
@@ -211,6 +194,8 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetDelayOpenTimer();
 
             // XXX releases all BGP resource, - done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // increments the ConnectRetryCounter by 1,
             stateMachine->incrementConnectRetryCounter();
@@ -228,8 +213,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::BGPOpen_with_DelayOpenTimer_running:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> BGPOpen_with_DelayOpenTimer_running");
             // OPTIONAL
             /* // stops the ConnectRetryTimer (if running) and sets the
             // ConnectRetryTimer to zero,
@@ -273,8 +256,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
 
         case BGPEventType::BGPHeaderErr:
         case BGPEventType::BGPOpenMsgErr:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> BGPHeaderErr, BGPOpenMsgErr");
             //  - (optionally) sends a NOTIFICATION message with the appropriate
             //   error code if the SendNOTIFICATIONwithoutOPEN attribute is set
             //   to TRUE,
@@ -287,6 +268,8 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -307,9 +290,6 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::NotifMsgVerErr:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> NotifMsgVerErr");
-
             /*    the local system checks the DelayOpenTimer.  If the
                DelayOpenTimer is running, the local system:
 
@@ -332,6 +312,8 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 stateMachine->resetConnectRetryTimer();
 
                 // XXX releases all BGP resources, done
+                stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                    stateMachine->connection->srcAddr);
 
                 // drops the TCP connection,
                 stateMachine->connection->dropConnection(false);
@@ -360,16 +342,12 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
         case BGPEventType::KeepAliveMsg:
         case BGPEventType::UpdateMsg:
         case BGPEventType::UpdateMsgErr:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> AutomaticStop, HoldTimer_Expires, "
-                    "KeepaliveTimer_Expires, IdleHoldTimer_Expires, BGPOpen, "
-                    "OpenCollisionDump, NotifMsg, KeepAliveMsg, UpdateMsg, "
-                    "UpdateMsgErr");
-
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);

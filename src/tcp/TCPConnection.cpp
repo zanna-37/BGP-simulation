@@ -196,11 +196,12 @@ void TCPConnection::enqueuePacketToOutbox(
     owner->sendPacket(std::move(layers), dstAddr);
 }
 
-std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-TCPConnection::waitForApplicationData() {
+int TCPConnection::waitForApplicationData(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>& layers) {
     std::unique_lock<std::mutex> appReceivingQueue_uniqueLock(
         appReceivingQueue_mutex);
 
+    assert(!layers);  // Pass an empty object that will (possibly) be filled
     assert(dstPort != 0);  // Waiting data from a listening-only connection? Use
                            // socket.accept();
     while (appReceivingQueue.empty() && running) {
@@ -211,12 +212,14 @@ TCPConnection::waitForApplicationData() {
         }
     }
 
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
-    if (!appReceivingQueue.empty()) {
+    if (running) {
+        assert(!appReceivingQueue.empty());
         layers = std::move(appReceivingQueue.front());
         appReceivingQueue.pop();
+        return 0;
+    } else {
+        return -1;
     }
-    return std::move(layers);
 }
 
 void TCPConnection::enqueuePacketToInbox(
