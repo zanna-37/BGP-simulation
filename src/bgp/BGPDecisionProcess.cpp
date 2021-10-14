@@ -162,7 +162,18 @@ void runDecisionProcess(Router *                         router,
         // AS_Path PathAttribute
         std::vector<uint8_t> asPath_be8;
         uint16_t             new_as_num = (uint16_t)router->AS_number;
-        asPath.push_back(new_as_num);
+
+        bool isASPath = false;
+
+        for (int i = 0; i < asPath.size(); i++) {
+            if (new_as_num == asPath[i]) {
+                isASPath = true;
+            }
+        }
+
+        if (!isASPath) {
+            asPath.push_back(new_as_num);
+        }
 
         uint8_t asPathType = 2;  // TODO: Check that this is AS_SEQUENCE
         uint8_t asPathLen  = asPath.size();
