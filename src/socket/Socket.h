@@ -78,12 +78,6 @@ class Socket {
      */
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> recv();
 
-
-    /**
-     * unlocks the condition variable and break out of the loop. It is used by
-     * the listening thread to return when a TCP connection is pending
-     */
-    void dataArrived();
     void close();
 };
 
