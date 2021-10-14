@@ -187,10 +187,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
 
         case BGPEventType::TcpConnectionFails:
             // closes the BGP connection,
-
-            // FIXME Check if it is ok, because by dropping the connection also
-            // the state machine will be deallocated :)
-            stateMachine->connection->closeConnection();
+            stateMachine->connection->dropConnection(false);
 
             // restarts the ConnectRetryTimer,
             stateMachine->resetConnectRetryTimer();
