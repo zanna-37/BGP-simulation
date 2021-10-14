@@ -76,10 +76,13 @@ int Socket::connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort) {
     }
 }
 
-std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> Socket::recv() {
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-        tcpConnection->waitForApplicationData();
-    return layers;
+int Socket::recv(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>& layers) {
+    int recvStatus = tcpConnection->waitForApplicationData(layers);
+    if (recvStatus != 0) {
+        running = false;
+    }
+    return recvStatus;
 }
 
 

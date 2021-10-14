@@ -88,9 +88,9 @@ class BGPConnection {
     void asyncConnectToPeer();
 
     /**
-     * Close the BGP connection and notifies the state machine
+     * Send a \a TcpConnectionFails event to the State Machine.
      */
-    void closeConnection();
+    void signalTCPConnectionFails();
 
     std::chrono::seconds getNegotiatedHoldTime();
 

@@ -71,12 +71,18 @@ class Socket {
      */
     void send(std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                   applicationLayers);
+
     /**
-     * Wait for new data to be received in the TCP connection queue and return
-     * the application layers, processed by the application
-     * @return a stack of application layers
+     * Blocking function that waits for new data to be received in the TCP
+     * connection queue and fill the application layers given.
+     * @param layers The application layers that are filled with the received
+     * data, ready to be passed to the application. Always pass an empty object.
+     * In case of errors the content of this variable is not defined.
+     *
+     * @return 0 if successful or -1 in case of errors.
      */
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> recv();
+    [[nodiscard]] int recv(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>& layers);
 
     void close();
 };

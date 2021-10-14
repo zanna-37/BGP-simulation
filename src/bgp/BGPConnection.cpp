@@ -296,24 +296,18 @@ void BGPConnection::startReceivingThread() {
                   "receivingThread already set");
     } else {
         receivingThread = new std::thread([&]() {
-            while (running) {
+            int recvStatus = 0;
+            while (running && recvStatus == 0) {
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                    layers = connectedSocket->recv();
+                    layers;
+                recvStatus = connectedSocket->recv(layers);
 
                 if (running) {
-                    if (layers != nullptr) {
+                    if (recvStatus == 0) {
+                        assert(layers != nullptr);
                         processMessage(std::move(layers));
                     } else {
-                        // if layers == nullptr it means that the TCP state
-                        // machine is not running anymore so we should shutdown
-                        // this connection. Ideally this should not happen
-                        // because the TCP connection should notify the Socket
-                        // about the shutdown and the Socket should notify the
-                        // BGP connection.
-                        // TODO this notify mechanism is not yet implemented at
-                        // 2021-06-15.
-
-                        shutdown();
+                        signalTCPConnectionFails();
                     }
                 }
             }
@@ -321,7 +315,7 @@ void BGPConnection::startReceivingThread() {
     }
 }
 
-void BGPConnection::closeConnection() {
+void BGPConnection::signalTCPConnectionFails() {
     BGPEvent event = {
         BGPEventType::TcpConnectionFails,
         nullptr,

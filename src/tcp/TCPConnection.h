@@ -23,7 +23,7 @@
 
 class TCPConnection {
    public:
-    std::string name = "TCPConnection";
+    std::string      name         = "TCPConnection";
     /**
      * The connection state machine. It is based on RFC 793
      */
@@ -32,7 +32,7 @@ class TCPConnection {
     /**
      * The owner of the connection
      */
-    Device* owner = nullptr;
+    Device*           owner   = nullptr;
     /**
      * The connection source IP address
      */
@@ -40,7 +40,7 @@ class TCPConnection {
     /**
      * The connection source port
      */
-    uint16_t srcPort = 0;
+    uint16_t          srcPort = 0;
     /**
      * The connection destination IP address
      */
@@ -48,7 +48,7 @@ class TCPConnection {
     /**
      * The connection source port
      */
-    uint16_t dstPort = 0;
+    uint16_t          dstPort = 0;
 
     TCPConnection(Device* owner);
     ~TCPConnection();
@@ -95,11 +95,15 @@ class TCPConnection {
 
     /**
      * Blocking function that waits for the receiving application queue to
-     * receive data
-     * @return the application layers
+     * receive data.
+     * @param layers The application layers that are filled with the received
+     * data, ready to be passed to the application. Always pass an empty object.
+     * In case of errors the content of this variable is not defined.
+     *
+     * @return 0 if successful or -1 in case of errors.
      */
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-    waitForApplicationData();
+    [[nodiscard]] int waitForApplicationData(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>& layers);
 
     /**
      * Enquque the application layers to the application layers queue
