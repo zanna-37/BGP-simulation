@@ -233,7 +233,7 @@ void TCPConnection::enqueuePacketToInbox(
 
 std::shared_ptr<TCPConnection>
 TCPConnection::createConnectedConnectionFromListening(
-    const pcpp::IPv4Address& dstAddr, const uint16_t dstPort) {
+    const pcpp::IPv4Address& remoteSrcAddr, const uint16_t remoteSrcPort) {
     // TODO use this in the listening state if we receive a SYN
     // TODO the caller (so not this function) need to push the new connection
     // into a pendingConnection queue and notify the accept() method.
@@ -242,8 +242,8 @@ TCPConnection::createConnectedConnectionFromListening(
         std::make_shared<TCPConnection>(owner);
     newTcpConnection->srcAddr = srcAddr;
     newTcpConnection->srcPort = srcPort;
-    newTcpConnection->dstAddr = dstAddr;
-    newTcpConnection->dstPort = dstPort;
+    newTcpConnection->dstAddr = remoteSrcAddr;
+    newTcpConnection->dstPort = remoteSrcPort;
 
     // Make the connection as it would have been in a listening state.
     newTcpConnection->running = true;

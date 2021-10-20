@@ -192,13 +192,13 @@ class TCPConnection {
      * connection into the pendingConnection queue and notify the accept()
      * method.
      *
-     * @param destAddr The remote address the SYN come from.
-     * @param destPort The remote port the SYN come from.
+     * @param remoteSrcAddr The remote address the SYN come from.
+     * @param remoteSrcPort The remote port the SYN come from.
      * @return A new connection that is technically put in the listening state,
      * but is ready to evolve.
      */
     std::shared_ptr<TCPConnection> createConnectedConnectionFromListening(
-        const pcpp::IPv4Address& destAddr, const uint16_t destPort);
+        const pcpp::IPv4Address& remoteSrcAddr, const uint16_t remoteSrcPort);
 
     /**
      * Push the packet to the sending queue to be hand over to the lower stack

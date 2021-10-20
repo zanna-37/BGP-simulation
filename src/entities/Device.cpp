@@ -162,13 +162,14 @@ void Device::processMessage(
 
         // Check if the message is part of an existing connection
         tcpConnection =
-            getExistingTcpConnectionOrNull(ipLayer_weak->getDstIPv4Address(),
-                                           tcpLayer_weak->getDstPort(),
-                                           ipLayer_weak->getSrcIPv4Address(),
-                                           tcpLayer_weak->getSrcPort());
+            getExistingTcpConnectionOrNull(ipLayer_weak->getSrcIPv4Address(),
+                                           tcpLayer_weak->getSrcPort(),
+                                           ipLayer_weak->getDstIPv4Address(),
+                                           tcpLayer_weak->getDstPort());
 
 
         if (tcpConnection != nullptr) {
+            assert(ipLayer_weak->getDstIPv4Address() == tcpConnection->srcAddr);
             tcpConnection->segmentArrives(std::make_pair(
                 ipLayer_weak->getSrcIPv4Address(), std::move(layers)));
         } else {
@@ -222,17 +223,21 @@ std::shared_ptr<TCPConnection> Device::getExistingTcpConnectionOrNull(
         auto tcpConnection = itr->lock();
 
         if (tcpConnection) {
-            if (tcpConnection->srcAddr == srcAddr &&
-                tcpConnection->srcPort == srcPort &&
-                tcpConnection->dstAddr == dstAddr &&
-                tcpConnection->dstPort == dstPort) {
+            if (tcpConnection->srcAddr == dstAddr &&
+                tcpConnection->srcPort == dstPort &&
+                tcpConnection->dstAddr == srcAddr &&
+                tcpConnection->dstPort == srcPort) {
                 // Return an existing connection
+                assert(connectedTcpConn == nullptr);
                 connectedTcpConn = tcpConnection;
                 break;
-            } else if (tcpConnection->srcAddr == srcAddr &&
-                       tcpConnection->srcPort == srcPort) {
+            } else if (tcpConnection->srcAddr == dstAddr &&
+                       tcpConnection->srcPort == dstPort &&
+                       tcpConnection->dstAddr == pcpp::IPv4Address::Zero &&
+                       tcpConnection->dstPort == 0) {
                 // Save the listening connection in case we don't find a more
                 // specific established TCP connection
+                assert(listeningTcpConn == nullptr);
                 listeningTcpConn = tcpConnection;
             }
 
