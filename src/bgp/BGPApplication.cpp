@@ -271,11 +271,15 @@ void ListeningSocketModule::startListeningThread(pcpp::IPv4Address srcAddress) {
 
                 if (newArrivedSocket) {
                     if (running) {
+                        // Check that the arrived socket, created by the
+                        // accept(), was really meant for srcAddress
+                        assert(srcAddress ==
+                               newArrivedSocket->tcpConnection->srcAddr);
                         BGPConnection* bgpConnectionFilled =
                             bgpApp->setConnectedSocketToAvailableBGPConn(
                                 newArrivedSocket,
-                                srcAddress,
-                                newArrivedSocket->tcpConnection->srcAddr);
+                                newArrivedSocket->tcpConnection->srcAddr,
+                                newArrivedSocket->tcpConnection->dstAddr);
                         bgpConnectionFilled->startReceivingThread();
                     } else {
                         L_DEBUG(listeningSocket->device->ID,
