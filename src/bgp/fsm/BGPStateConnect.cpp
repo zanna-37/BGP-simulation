@@ -356,6 +356,14 @@ bool BGPStateConnect ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
+        case BGPEventType::SendUpdateMsg:
+            // Event for checking that the fsm is in a good state before sending
+            // the message
+            L_ERROR(
+                stateMachine->connection->owner->ID + " " + stateMachine->name,
+                "UPDATE message cannot be sent in Connect state");
+            break;
+
         default:
             handled = false;
             break;

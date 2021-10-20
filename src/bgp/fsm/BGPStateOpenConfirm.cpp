@@ -392,7 +392,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
                 // NextHop PathAttribute
                 uint32_t routerIp_int =
-                    stateMachine->connection->dstAddr.toInt();
+                    stateMachine->connection->srcAddr.toInt();
                 const size_t nextHopDataLength              = 4;
                 uint8_t      nextHopData[nextHopDataLength] = {
                     (uint8_t)routerIp_int,
@@ -481,18 +481,16 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                         withdrawnRoutes, newPathAttributes, new_nlri);
                 updateLayer->computeCalculateFields();
 
-                // Send new BGPUpdateMessage
-                if (updateLayer != nullptr) {
-                    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                        layers = make_unique<
-                            std::stack<std::unique_ptr<pcpp::Layer>>>();
-                    layers->push(std::move(updateLayer));
 
-                    stateMachine->connection->sendData(std::move(layers));
+                // Enqueue new BGPUpdateMessage
+                {
+                    BGPEvent event = {BGPEventType::SendUpdateMsg,
+                                      std::move(updateLayer)};
+                    stateMachine->connection->enqueueEvent(std::move(event));
 
                     L_INFO(stateMachine->connection->owner->ID + " " +
                                stateMachine->name,
-                           "Sending UPDATE message");
+                           "Enqueuing UPDATE message in the events");
                 }
             }
 
@@ -548,6 +546,14 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+            break;
+
+        case BGPEventType::SendUpdateMsg:
+            // Event for checking that the fsm is in a good state before sending
+            // the message
+            L_ERROR(
+                stateMachine->connection->owner->ID + " " + stateMachine->name,
+                "UPDATE message cannot be sent in OpenConfirm state");
             break;
 
         default:

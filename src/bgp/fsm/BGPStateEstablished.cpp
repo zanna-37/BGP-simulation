@@ -344,18 +344,17 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // remains in the Established state.
             break;
 
-        case BGPEventType::UpdateMsg:
-            {
-                // BGPUpdateMessage to be processed
-                std::unique_ptr<BGPUpdateLayer> updateLayer;
-                dynamic_pointer_move(updateLayer, event.layers);
+        case BGPEventType::UpdateMsg: {
+            // BGPUpdateMessage to be processed
+            std::unique_ptr<BGPUpdateLayer> updateLayer;
+            dynamic_pointer_move(updateLayer, event.layers);
 
-                // Run Decision Process
-                runDecisionProcess(stateMachine->connection->owner,
-                                   updateLayer,
-                                   stateMachine->connection->dstAddr,
-                                   stateMachine->connection);
-            }
+            // Run Decision Process
+            runDecisionProcess(stateMachine->connection->owner,
+                               updateLayer,
+                               stateMachine->connection->dstAddr,
+                               stateMachine->connection);
+        }
 
             // restarts its HoldTimer, if the negotiated HoldTime value is
             // non-zero, and
@@ -372,7 +371,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // sends a NOTIFICATION message with an Update error,
             // take the message error to insert in the notification
 
-            // FIXME the error of the UPDATE message is not well computed yet
             {
                 std::unique_ptr<BGPLayer> bgpNotificationLayer =
                     std::move(event.layers);
@@ -386,7 +384,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 L_INFO(
                     stateMachine->connection->owner->ID + " " +
                         stateMachine->name,
-                    "Sending NOTIFICATION message FIXME -> No uptdate error");
+                    "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -470,6 +468,28 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+            break;
+
+        case BGPEventType::SendUpdateMsg:
+            // Event for checking that the fsm is in a good state before sending
+            // the message
+
+            {
+                std::unique_ptr<BGPLayer> bgpUpdateLayer =
+                    std::move(event.layers);
+
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpUpdateLayer));
+
+                stateMachine->connection->sendData(std::move(layers));
+                L_INFO(
+                    stateMachine->connection->owner->ID + " " +
+                        stateMachine->name,
+                    "Sending UPDATE message");
+            }
+
             break;
 
         default:

@@ -301,7 +301,7 @@ void BGPConnection::processMessage(
 
                 stateMachine->connection->sendData(std::move(layers_to_send));
                 L_WARNING(owner->ID + " " + stateMachine->name,
-                          "Sending Notification message");
+                          "Sending NOTIFICATION message");
             }
         }
     }

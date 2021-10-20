@@ -40,7 +40,8 @@ enum BGPEventType {
     NotifMsg                            = 25,  // Mandatory
     KeepAliveMsg                        = 26,  // Mandatory
     UpdateMsg                           = 27,  // Mandatory
-    UpdateMsgErr                        = 28   // Mandatory
+    UpdateMsgErr                        = 28,  // Mandatory
+    SendUpdateMsg = 29  // Send the Update message just in a good state
 };
 
 struct BGPEvent {

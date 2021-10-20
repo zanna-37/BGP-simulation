@@ -100,6 +100,9 @@ std::string getEventName(BGPEvent &event) {
                    "-UpdateMsg]";
         case BGPEventType::UpdateMsgErr:
             return "[" + std::to_string(event.eventType) + "-UpdateMsg error]";
+        case BGPEventType::SendUpdateMsg:
+            return "[" + std::to_string(event.eventType) +
+                   "-Send Update Message]";
         default:
             L_ERROR("BGPEventType",
                     "THIS SHOULD NEVER HAPPEN: unknown BGP Event");

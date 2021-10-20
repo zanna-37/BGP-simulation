@@ -367,6 +367,14 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateIdle(stateMachine));
             break;
 
+        case BGPEventType::SendUpdateMsg:
+            // Event for checking that the fsm is in a good state before sending
+            // the message
+            L_ERROR(
+                stateMachine->connection->owner->ID + " " + stateMachine->name,
+                "UPDATE message cannot be sent in Active state");
+            break;
+
         default:
             handled = false;
             break;

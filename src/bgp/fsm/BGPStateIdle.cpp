@@ -96,6 +96,15 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
             // (Events 9-12, 15-28) received in the Idle state
             // does not cause change in the state of the local system.
             break;
+
+        case BGPEventType::SendUpdateMsg:
+            // Event for checking that the fsm is in a good state before sending
+            // the message
+            L_ERROR(
+                stateMachine->connection->owner->ID + " " + stateMachine->name,
+                "UPDATE message cannot be sent in Idle state");
+            break;
+
         default:
             handled = false;
             break;
