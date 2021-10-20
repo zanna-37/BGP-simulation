@@ -1,8 +1,8 @@
 ﻿---
 BasedOnStyle: Google
-AlignConsecutiveMacros: true
-AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: AcrossComments
+AlignConsecutiveAssignments: AcrossComments
+AlignConsecutiveDeclarations: AcrossComments
 BinPackArguments: false
 BinPackParameters: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
