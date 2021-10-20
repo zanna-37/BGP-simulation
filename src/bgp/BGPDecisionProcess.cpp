@@ -68,8 +68,25 @@ void runDecisionProcess(Router *                         router,
                     if (pathAttribute.getAttributeLength_h() != 0) {
                         // origin attribute is one byte, no need to
                         // do conversion to host byte order
-                        origin = static_cast<char>(
-                            *pathAttribute.getAttributeValue_be());
+                        switch (*pathAttribute.getAttributeValue_be()) {
+                            case 0:
+                                origin = 'i';
+                                break;
+                            case 1:
+                                origin = 'e';
+                                break;
+                            case 2:
+                                origin = '?';
+                                break;
+
+                            default:
+                                L_ERROR("DecisionProc",
+                                        "Unhandled ORIGIN value " +
+                                            std::to_string(
+                                                *pathAttribute
+                                                     .getAttributeValue_be()));
+                                break;
+                        }
                     }
                     break;
                 case PathAttribute::AttributeTypeCode_uint8_t::AS_PATH:
@@ -198,7 +215,7 @@ void runDecisionProcess(Router *                         router,
 
         // Origin PathAttribute
         const size_t  originDataLength             = 1;
-        uint8_t       originData[originDataLength] = {'?'};
+        uint8_t       originData[originDataLength] = {2};
         PathAttribute originPathAttribute;
         originPathAttribute.setAttributeLengthAndValue(originData,
                                                        originDataLength);

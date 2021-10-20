@@ -443,7 +443,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
 
                 // Origin PathAttribute
                 const size_t  originDataLength             = 1;
-                uint8_t       originData[originDataLength] = {'?'};
+                uint8_t       originData[originDataLength] = {2};
                 PathAttribute originPathAttribute;
                 originPathAttribute.setAttributeLengthAndValue(
                     originData, originDataLength);
