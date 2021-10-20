@@ -109,6 +109,12 @@ class BGPConnection {
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
     void dropConnection(bool gentle);
     void shutdown();
+    /**
+     * returns a pointer to the current state name, used to check in collision
+     * detection mechanism
+     * @return the current state name of the State Machine
+     */
+    std::string getCurrentStateName();
 
     bool setConnectedSocketIfFree(Socket* socket);
 };

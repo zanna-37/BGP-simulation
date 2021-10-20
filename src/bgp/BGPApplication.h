@@ -12,10 +12,10 @@
 
 // forward declarations
 #include "../entities/Router.fwd.h"
-#include "BGPApplication.fwd.h"
 #include "./packets/BGPUpdateLayer.h"
 #include "./packets/BGPUpdateLengthAndIpPrefix.h"
 #include "./packets/BGPUpdatePathAttribute.h"
+#include "BGPApplication.fwd.h"
 #include "BGPConnection.fwd.h"
 
 
@@ -97,7 +97,9 @@ class BGPApplication {
      * provided in RFC 4271
      * @param connectionToCheck the BGP connection to be checked
      */
-    void           collisionDetection(BGPConnection* connectionToCheck);
+    void           collisionDetection(BGPConnection*    connectionToCheck,
+                                      pcpp::IPv4Address bgpIdentifier);
+
     BGPConnection* createNewBgpConnection(pcpp::IPv4Address srcAddress,
                                           pcpp::IPv4Address dstAddress);
 

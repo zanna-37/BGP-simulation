@@ -423,3 +423,7 @@ bool BGPConnection::setConnectedSocketIfFree(Socket* socket) {
         return false;
     }
 }
+
+std::string BGPConnection::getCurrentStateName() {
+    return stateMachine->getCurrentState()->name;
+}

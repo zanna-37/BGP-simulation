@@ -13,6 +13,7 @@
 #include "./packets/BGPUpdateLayer.h"
 #include "BGPConnection.h"
 #include "BGPEvent.h"
+#include "packets/BGPNotificationLayer.h"
 
 BGPApplication::BGPApplication(Router* router, pcpp::IPv4Address BGPIdentifier)
     : router(router), BGPIdentifier(BGPIdentifier) {}
@@ -55,18 +56,25 @@ void BGPApplication::passiveOpenAll() {
     }
 }
 
-void BGPApplication::collisionDetection(BGPConnection* connectionToCheck) {
+void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
+                                        pcpp::IPv4Address bgpIdentifier) {
+    L_DEBUG(connectionToCheck->owner->ID, "Collision detection");
     for (BGPConnection* connection : bgpConnections) {
-        if (connectionToCheck->dstAddr == connection->dstAddr &&
-            connection != connectionToCheck) {
-            BGPEvent event = {
-                BGPEventType::ManualStop,
-                nullptr,
-            };
-            if (connectionToCheck->srcAddr < connection->dstAddr) {
-                connectionToCheck->enqueueEvent(std::move(event));
-            } else {
-                connection->enqueueEvent(std::move(event));
+        if (connection->getCurrentStateName() == "OPEN_CONFIRM") {
+            if (connectionToCheck->dstAddr == connection->dstAddr &&
+                connection != connectionToCheck) {
+                L_DEBUG(connection->owner->ID, "Found Collision");
+
+                BGPEvent event = {BGPEventType::OpenCollisionDump, nullptr};
+                if (bgpIdentifier < connection->bgpApplication->BGPIdentifier) {
+                    connectionToCheck->enqueueEvent(std::move(event));
+                    L_INFO(connectionToCheck->owner->ID,
+                           "Sending NOTIFICATION message");
+                } else {
+                    connection->enqueueEvent(std::move(event));
+                    L_INFO(connection->owner->ID,
+                           "Sending NOTIFICATION message");
+                }
             }
         }
     }
