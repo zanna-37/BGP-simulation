@@ -144,8 +144,11 @@ class PathAttribute {
 
     /**
      * Set the length of the attribute and its value taking care of setting the
-     * \a EXTENDED bit flag when the size is larger that a byte.
-     * @param data_be The value to store in BigEndian format.
+     * \a EXTENDED bit flag when the size is larger than a byte.
+     *
+     * @param data_be The value to store in BigEndian format. The validity of
+     * the pointer is a caller responsibility. It will not be freed upon object
+     * destruction.
      * @param attributeSize The size of \a data_be
      */
     void setAttributeLengthAndValue(uint8_t* data_be, uint16_t attributeSize) {

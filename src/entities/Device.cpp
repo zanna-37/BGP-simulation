@@ -289,6 +289,7 @@ void Device::ping(pcpp::IPv4Address dstAddr) {
 }
 
 uint16_t Device::getFreePort() /* guarded_by ports_mutex */ {
+    // TODO pass the local IP address, the port is free with regards to an IP
     std::random_device
         rd;  // Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd());  // Standard mersenne_twister_engine seeded with
