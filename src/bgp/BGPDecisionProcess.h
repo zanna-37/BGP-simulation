@@ -17,8 +17,6 @@ void runDecisionProcess(Router *                         router,
 void calculatePreferredRoute(BGPTableRow *newRoute,
                              BGPTableRow *currentPreferredRoute);
 
-void updateIPTable(std::vector<TableRow> &IPTable,
-                   BGPTableRow &          newRoute,
-                   bool                   isWithDrawnRoute);
+void updateIPTable(Router *router, BGPTableRow &route, bool isWithDrawnRoute);
 
 #endif  // BGPSIMULATION_BGP_BGPDECISIONPROCESS_H

@@ -11,8 +11,8 @@
 
 #include "configuration/parser/Parser.h"
 #include "entities/Device.h"
-#include "entities/Router.h"
 #include "entities/EndPoint.h"
+#include "entities/Router.h"
 #include "logger/Logger.h"
 #include "pistache/net.h"
 #include "pistache/os.h"

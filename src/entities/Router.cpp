@@ -40,16 +40,6 @@ void Router::buildBgpTable() {
                         // need to understand if the router is interior or
                         // exterior in our case we can let '?'
 
-    // Loopback row
-    bgpTable.emplace_back(loopbackIP,
-                          pcpp::IPv4Address("255.255.255.255"),
-                          pcpp::IPv4Address::Zero,
-                          origin,
-                          std::vector<uint16_t>(),
-                          0,
-                          0,
-                          32768);
-
     for (NetworkCard *networkCard : *networkCards) {
         NetworkCard *networkCardPeer =
             networkCard->link->getPeerNetworkCardOrNull(networkCard);
@@ -69,24 +59,7 @@ void Router::buildBgpTable() {
                             0,
                             32768);
 
-            pcpp::IPv4Address networkIPPeer(networkCardPeer->IP.toInt() &
-                                            networkCardPeer->netmask.toInt());
-
-            asPath.push_back(
-                routerPeer->AS_number);  // in asPath vector we don't consider
-                                         // the AS itself
-
-            BGPTableRow rowPeer(networkIPPeer,
-                                pcpp::IPv4Address(networkCardPeer->netmask),
-                                networkCardPeer->IP,
-                                origin,
-                                asPath,
-                                0,
-                                0,
-                                32768);
-
             bgpTable.push_back(row);
-            bgpTable.push_back(rowPeer);
         }
     }
 }

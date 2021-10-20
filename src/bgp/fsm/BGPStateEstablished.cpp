@@ -352,7 +352,7 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // Run Decision Process
             runDecisionProcess(stateMachine->connection->owner,
                                updateLayer,
-                               stateMachine->connection->dstAddr,
+                               stateMachine->connection->srcAddr,
                                stateMachine->connection);
         }
 
