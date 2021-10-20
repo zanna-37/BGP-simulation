@@ -100,8 +100,7 @@ class BGPLayer : public pcpp::Layer {
      * @brief Check if the specific message contains any error
      *
      * @param subcode Message specific subcode
-     * @return true
-     * @return false
+     * @return true if everything is ok, false in case of errors.
      */
     virtual bool checkMessageErr(uint8_t*              subcode,
                                  std::vector<uint8_t>* data_be8) const = 0;

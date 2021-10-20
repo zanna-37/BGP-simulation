@@ -134,9 +134,9 @@ std::string PathAttribute::toString() const {
     return output;
 }
 
-void PathAttribute::buildAsPathAttributeData_be(
-    uint8_t                      asType,
-    uint8_t                      asPathLen,
+void PathAttribute::asPathToAttributeDataArray_be(
+    const uint8_t                asType,
+    const uint8_t                asPathLen,
     const std::vector<uint16_t>& asPath,
     std::vector<uint8_t>&        asData_be) {
     if (asType == 1 || asType == 2) {
@@ -156,6 +156,46 @@ void PathAttribute::buildAsPathAttributeData_be(
         uint16_t AS_be16 = htobe16(AS_h);
         asData_be.push_back((uint8_t)(AS_be16));
         asData_be.push_back((uint8_t)(AS_be16 >> 8));
+    }
+}
+
+void PathAttribute::attributeDataArray_beToAsPath(
+    const uint8_t*         asData_be,
+    const size_t           asData_be_length,
+    uint8_t&               asType,
+    std::vector<uint16_t>& asPath) {
+    auto currentByte = 0;
+    if (currentByte < asData_be_length) {
+        asType = asData_be[currentByte++];
+        if (asType != 1 && asType != 2) {
+            L_ERROR("ASDataBld", "AS Segment Type not handled");
+        }
+
+        if (currentByte < asData_be_length) {
+            uint8_t declaredASPathLen = asData_be[currentByte++];
+
+            uint8_t twoTimesTheRealASPathLen = asData_be_length - currentByte;
+            if (twoTimesTheRealASPathLen % 2 == 0) {
+                if (declaredASPathLen == (twoTimesTheRealASPathLen / 2)) {
+                    while (currentByte < asData_be_length) {
+                        uint8_t  low  = asData_be[currentByte++];
+                        uint8_t  high = asData_be[currentByte++];
+                        uint16_t tmp =
+                            be16toh((uint16_t)low + ((uint16_t)high << 8));
+                        asPath.push_back(tmp);
+                    }
+                } else {
+                    L_FATAL("ASDataBld",
+                            "The declared ASPathLen is not respected");
+                }
+            } else {
+                L_FATAL("ASDataBld", "asData_be is malformed");
+            }
+        } else {
+            L_FATAL("ASDataBld", "asData_be is too short");
+        }
+    } else {
+        L_FATAL("ASDataBld", "asData_be is empty");
     }
 }
 

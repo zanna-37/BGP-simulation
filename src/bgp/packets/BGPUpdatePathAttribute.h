@@ -197,7 +197,7 @@ class PathAttribute {
                                     std::vector<PathAttribute>& vectorToFill);
 
     /**
-     * @brief Build the segment for the AS_PATH data attribute
+     * @brief Build the data attribute array given an AS_PATH vector.
      *
      * @param[in] asType Segment type of the AS_PATH
      * @param[in] asPathLen Number of ASs in the path
@@ -205,10 +205,27 @@ class PathAttribute {
      * @param[out] asData_be Attribute data for the AS_PATH attribute
      * construction
      */
-    static void buildAsPathAttributeData_be(uint8_t asType,
-                                            uint8_t asPathLen,
-                                            const std::vector<uint16_t>& asPath,
-                                            std::vector<uint8_t>& asData_be);
+    static void asPathToAttributeDataArray_be(
+        const uint8_t                asType,
+        const uint8_t                asPathLen,
+        const std::vector<uint16_t>& asPath,
+        std::vector<uint8_t>&        asData_be);
+
+    /**
+     * @brief Build AS_PATH vector given the data attribute array in big endian
+     * format.
+     *
+     * @param[in] asData_be Attribute data for the AS_PATH attribute
+     * @param[in] asData_be_length Length of asData_be
+     * @param[out] asType Segment type of the AS_PATH
+     * @param[out] asPathLen Number of ASs in the path
+     * @param[out] asPath Vector with the AS's numbers
+     * construction
+     */
+    static void attributeDataArray_beToAsPath(const uint8_t* asData_be,
+                                              const size_t   asData_be_length,
+                                              uint8_t&       asType,
+                                              std::vector<uint16_t>& asPath);
 
     /**
      * @brief Check that the AS_PATH attribute is synctattically correct

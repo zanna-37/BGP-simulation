@@ -92,13 +92,18 @@ void runDecisionProcess(Router *                         router,
                     break;
                 case PathAttribute::AttributeTypeCode_uint8_t::AS_PATH:
                     if (pathAttribute.getAttributeLength_h() > 0) {
-                        for (int i = 0;
-                             i < pathAttribute.getAttributeLength_h();
-                             i += 2) {
-                            uint16_t as_num = (uint16_t)be16toh(
-                                *(pathAttribute.getAttributeValue_be() + i));
-                            asPath.push_back(as_num);
-                        }
+                        uint8_t *attributeValue_be =
+                            pathAttribute.getAttributeValue_be();
+                        size_t attributeValue_be_length =
+                            pathAttribute.getAttributeLength_h();
+
+                        uint8_t asType;
+
+                        PathAttribute::attributeDataArray_beToAsPath(
+                            attributeValue_be,
+                            attributeValue_be_length,
+                            asType,
+                            asPath);
                     }
                     break;
                 case PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP:
@@ -133,33 +138,44 @@ void runDecisionProcess(Router *                         router,
 
         std::vector<BGPTableRow> newRoutes;
 
+        bool hasLoop = false;
 
-        for (LengthAndIpPrefix nlri : networkLayerReachabilityInfo) {
-            pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
-            pcpp::IPv4Address netmaskNRLI(
-                htobe32(NetUtils::prefixToNetmask(nlri.prefixLength)));
-            BGPTableRow newRoute(networkIPNRLI,
-                                 netmaskNRLI,
-                                 nextHop,
-                                 origin,
-                                 asPath,
-                                 0,
-                                 localPreferences,
-                                 0);
-            newRoutes.push_back(newRoute);
-            for (auto itBGPTableRow = router->bgpTable.begin();
-                 itBGPTableRow != router->bgpTable.end();) {
-                if (networkIPNRLI == itBGPTableRow->networkIP &&
-                    nextHop == itBGPTableRow->nextHop) {
-                    uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
-                        itBGPTableRow->networkMask);
-                    LengthAndIpPrefix newWithDrawnRoute(
-                        prefLen, itBGPTableRow->networkIP.toString());
-                    newWithDrawnRoutes.push_back(newWithDrawnRoute);
-                    updateIPTable(router, *itBGPTableRow, true);
-                    itBGPTableRow = router->bgpTable.erase(itBGPTableRow);
-                } else {
-                    ++itBGPTableRow;
+        for (uint16_t as : asPath) {
+            if (as == router->AS_number) {
+                hasLoop = true;
+                break;
+            }
+        }
+
+        if (!hasLoop) {
+            for (LengthAndIpPrefix nlri : networkLayerReachabilityInfo) {
+                pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
+                pcpp::IPv4Address netmaskNRLI(
+                    htobe32(NetUtils::prefixToNetmask(nlri.prefixLength)));
+                BGPTableRow newRoute(networkIPNRLI,
+                                     netmaskNRLI,
+                                     nextHop,
+                                     origin,
+                                     asPath,
+                                     0,
+                                     localPreferences,
+                                     0);
+                newRoutes.push_back(newRoute);
+                for (auto itBGPTableRow = router->bgpTable.begin();
+                     itBGPTableRow != router->bgpTable.end();) {
+                    if (networkIPNRLI == itBGPTableRow->networkIP &&
+                        nextHop == itBGPTableRow->nextHop) {
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                itBGPTableRow->networkMask);
+                        LengthAndIpPrefix newWithDrawnRoute(
+                            prefLen, itBGPTableRow->networkIP.toString());
+                        newWithDrawnRoutes.push_back(newWithDrawnRoute);
+                        updateIPTable(router, *itBGPTableRow, true);
+                        itBGPTableRow = router->bgpTable.erase(itBGPTableRow);
+                    } else {
+                        ++itBGPTableRow;
+                    }
                 }
             }
         }
@@ -204,22 +220,15 @@ void runDecisionProcess(Router *                         router,
         std::vector<uint8_t> asPath_be8;
         uint16_t             new_as_num = (uint16_t)router->AS_number;
 
-        bool isASPath = false;
 
-        for (int i = 0; i < asPath.size(); i++) {
-            if (new_as_num == asPath[i]) {
-                isASPath = true;
-            }
-        }
-
-        if (!isASPath) {
+        if (!hasLoop) {
             asPath.push_back(new_as_num);
         }
 
         uint8_t asPathType = 2;  // TODO: Check that this is AS_SEQUENCE
         uint8_t asPathLen  = asPath.size();
 
-        PathAttribute::buildAsPathAttributeData_be(
+        PathAttribute::asPathToAttributeDataArray_be(
             asPathType, asPathLen, asPath, asPath_be8);
 
         size_t        asPathDataLength = asPath_be8.size();

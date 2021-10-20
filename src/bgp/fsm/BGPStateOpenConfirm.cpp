@@ -434,7 +434,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 uint8_t asPathType = 2;
                 uint8_t asPathLen  = 1;
 
-                PathAttribute::buildAsPathAttributeData_be(
+                PathAttribute::asPathToAttributeDataArray_be(
                     asPathType, asPathLen, asPath, asPath_be8);
 
                 size_t        asPathDataLength = asPath_be8.size();
