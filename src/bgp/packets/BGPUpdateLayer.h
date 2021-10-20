@@ -75,7 +75,26 @@ class BGPUpdateLayer : public BGPLayer {
      * @return true
      * @return false
      */
-    bool checkMessageErr(uint8_t subcode) const override;
+    bool checkMessageErr(uint8_t*              subcode,
+                         std::vector<uint8_t>* data_be8) const override;
+
+    /**
+     * @brief Check that the NEXT_HIP is syntattically correct
+     * 
+     * @param recvAddress Address of the receiving endpoint
+     * @return true 
+     * @return false 
+     */
+    bool checkNextHop(pcpp::IPv4Address recvAddress);
+
+    /**
+     * @brief Check that the address is not private and not multicast
+     * 
+     * @param ip IP value to check
+     * @return true 
+     * @return false 
+     */
+    static bool checkValidIP(uint32_t ip);
 
    private:
     std::string toStringInternal() const override;

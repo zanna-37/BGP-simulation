@@ -94,7 +94,8 @@ void BGPConnection::processMessage(
             L_DEBUG(owner->ID,
                     "BGP Connection : Handling the packet arrived to the BGP");
 
-            uint8_t subcode = 0;
+            uint8_t              subcode = 0;
+            std::vector<uint8_t> data_be8;
 
             if (BGPLayer::checkMessageHeader(bgpHeader, &subcode)) {
                 switch (bgpHeader->type) {
@@ -102,7 +103,8 @@ void BGPConnection::processMessage(
                         L_DEBUG(owner->ID, "OPEN message arrived");
                         dynamic_pointer_move(bgpOpenLayer, bgpLayer);
 
-                        if (bgpOpenLayer->checkMessageErr(subcode)) {
+                        if (bgpOpenLayer->checkMessageErr(&subcode,
+                                                          &data_be8)) {
                             BGPEvent event = {BGPEventType::BGPOpen,
                                               std::move(bgpOpenLayer)};
                             enqueueEvent(std::move(event));
@@ -158,15 +160,29 @@ void BGPConnection::processMessage(
                         L_DEBUG(owner->ID, "UPDATE message arrived");
                         dynamic_pointer_move(bgpUpdateLayer, bgpLayer);
 
-                        // FIXME The UPDATE message error checking needs to be
-                        // completely implemented
-                        if (bgpUpdateLayer->checkMessageErr(subcode)) {
-                            BGPEvent event = {BGPEventType::UpdateMsg,
-                                              std::move(bgpUpdateLayer)};
-                            enqueueEvent(std::move(event));
-                            L_DEBUG(
-                                owner->ID,
-                                "Arrived UPDATE message inserted into events");
+                        // NOTE: Uncomment to debug UPDATE message
+                        {
+                            std::string updateMessage =
+                                bgpUpdateLayer->toString();
+                            L_VERBOSE(stateMachine->connection->owner->ID,
+                                      "UPDATE message:\n" + updateMessage);
+                        }
+
+                        if (bgpUpdateLayer->checkMessageErr(&subcode,
+                                                            &data_be8)) {
+                            if (bgpUpdateLayer->checkNextHop(srcAddr)) {
+                                BGPEvent event = {BGPEventType::UpdateMsg,
+                                                  std::move(bgpUpdateLayer)};
+                                enqueueEvent(std::move(event));
+                                L_DEBUG(owner->ID,
+                                        "Arrived UPDATE message inserted into "
+                                        "events");
+                            } else {
+                                L_ERROR(
+                                    owner->ID,
+                                    "NEXT_HOP attribute invalid -> Route (and "
+                                    "UPDATE message) is going to be ignored");
+                            }
                         } else {
                             switch (subcode) {
                                 case 1:
@@ -203,7 +219,8 @@ void BGPConnection::processMessage(
                         L_DEBUG(owner->ID, "NOTIFICATION message arrived");
                         dynamic_pointer_move(bgpNotificationLayer, bgpLayer);
 
-                        if (bgpNotificationLayer->checkMessageErr(subcode)) {
+                        if (bgpNotificationLayer->checkMessageErr(&subcode,
+                                                                  &data_be8)) {
                             BGPEvent event = {BGPEventType::NotifMsg,
                                               std::move(bgpNotificationLayer)};
                             enqueueEvent(std::move(event));

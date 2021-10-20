@@ -134,10 +134,11 @@ std::string PathAttribute::toString() const {
     return output;
 }
 
-void PathAttribute::buildAsPathAttributeData_be(uint8_t                      asType,
-                                        uint8_t                      asPathLen,
-                                        const std::vector<uint16_t>& asPath,
-                                        std::vector<uint8_t>& asData_be) {
+void PathAttribute::buildAsPathAttributeData_be(
+    uint8_t                      asType,
+    uint8_t                      asPathLen,
+    const std::vector<uint16_t>& asPath,
+    std::vector<uint8_t>&        asData_be) {
     if (asType == 1 || asType == 2) {
         asData_be.push_back(asType);
     } else {
@@ -155,5 +156,52 @@ void PathAttribute::buildAsPathAttributeData_be(uint8_t                      asT
         uint16_t AS_be16 = htobe16(AS_h);
         asData_be.push_back((uint8_t)(AS_be16));
         asData_be.push_back((uint8_t)(AS_be16 >> 8));
+    }
+}
+
+bool PathAttribute::checkAsPathAttribute() const {
+    // XXX: NOTE: the constructor and check of the AS segment needs to be
+    // implemented for paths longer than 255
+
+    size_t   len = this->getAttributeLength_h();
+    uint8_t* val = this->getAttributeValue_be();
+
+    if (len < 4) {
+        L_ERROR("AsPathChk",
+                "AS_PATH segment too short, it must contain at list a "
+                "complete segment");
+        return false;
+    }
+
+    if (len > 255 * 2 + 2) {
+        L_ERROR("AsPathChk",
+                "AS_PATH Attribute check does not handle multiple segments");
+        return false;
+    }
+
+    if (val[0] != 1 && val[0] != 2) {
+        L_ERROR("AsPathChk", "AS_PATH segment type not recognised");
+        return false;
+    }
+
+
+    if (val[1] == 0 || val[1] != (len - 2) / 2) {
+        L_ERROR("AsPathChk",
+                "AS_PATH segment length and attribute length do not match!");
+        return false;
+    }
+
+    return true;
+}
+
+void PathAttribute::getAttribute_be8(std::vector<uint8_t>* data_be8) {
+    data_be8->push_back(this->attributeTypeFlags);
+    data_be8->push_back(this->attributeTypeCode);
+    uint16_t tmp_len = this->getAttributeLength_h();
+    data_be8->push_back((uint8_t)tmp_len);
+    data_be8->push_back((uint8_t)(tmp_len >> 8));
+    uint8_t* tmp_val = this->getAttributeValue_be();
+    for (int i = 0; i < tmp_len; i++) {
+        data_be8->push_back(tmp_val[i]);
     }
 }

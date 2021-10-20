@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "BGPLayer.h"
 #include "IpAddress.h"
@@ -64,7 +65,8 @@ class BGPOpenLayer : public BGPLayer {
                  uint16_t                 holdTime,
                  const pcpp::IPv4Address& BGPIdentifier);
 
-    bool checkMessageErr(uint8_t subcode) const override;
+    bool checkMessageErr(uint8_t*              subcode,
+                         std::vector<uint8_t>* data_be8) const override;
 
     /**
      * @brief The check of the AS number is out of the scope of the RFC 4271
@@ -77,11 +79,12 @@ class BGPOpenLayer : public BGPLayer {
 
     /**
      * @brief Check that the address is not private and not multicast
-     * 
-     * @return true 
-     * @return false 
+     *
+     * @return true
+     * @return false
      */
     bool checkValidIP() const;
+
    private:
     std::string toStringInternal() const override;
     void        computeCalculateFieldsInternal() const override;

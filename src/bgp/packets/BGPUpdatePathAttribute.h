@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
+
 #include "../../logger/Logger.h"
 
 
@@ -162,6 +163,13 @@ class PathAttribute {
     }
 
     /**
+     * @brief Get the Attribute whole attribute into a uint8_t vector
+     *
+     * @param data_be8 Vector to fill
+     */
+    void getAttribute_be8(std::vector<uint8_t>* data_be8);
+
+    /**
      * Transform the data contained in \a vector into bytes.
      * @param[in] vector The vector to extract the data from.
      * @param[out] arrayToFill The array to fill with the content of the \a
@@ -194,12 +202,19 @@ class PathAttribute {
      * @param[in] asType Segment type of the AS_PATH
      * @param[in] asPathLen Number of ASs in the path
      * @param[in] asPath Vector with the AS's numbers
-     * @param[out] asData_be Attribute data for the AS_PATH attribute construction
+     * @param[out] asData_be Attribute data for the AS_PATH attribute
+     * construction
      */
     static void buildAsPathAttributeData_be(uint8_t asType,
                                             uint8_t asPathLen,
                                             const std::vector<uint16_t>& asPath,
                                             std::vector<uint8_t>& asData_be);
+
+    /**
+     * @brief Check that the AS_PATH attribute is synctattically correct
+     *
+     */
+    bool checkAsPathAttribute() const;
 
     std::string toString() const;
 };

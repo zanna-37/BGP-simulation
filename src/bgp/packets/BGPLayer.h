@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "Layer.h"
 #include "ProtocolType.h"
@@ -102,7 +103,8 @@ class BGPLayer : public pcpp::Layer {
      * @return true
      * @return false
      */
-    virtual bool checkMessageErr(uint8_t subcode) const = 0;
+    virtual bool checkMessageErr(uint8_t*              subcode,
+                                 std::vector<uint8_t>* data_be8) const = 0;
 };
 
 

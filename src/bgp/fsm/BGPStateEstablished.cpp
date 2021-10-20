@@ -350,11 +350,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 std::unique_ptr<BGPUpdateLayer> updateLayer;
                 dynamic_pointer_move(updateLayer, event.layers);
 
-                std::string updateMessage = updateLayer->toString();
-                L_VERBOSE(stateMachine->connection->owner->ID,
-                          "UPDATE message:\n" + updateMessage);
-
-
                 // Run Decision Process
                 runDecisionProcess(stateMachine->connection->owner,
                                    updateLayer,
