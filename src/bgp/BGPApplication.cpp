@@ -63,17 +63,17 @@ void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
         if (connection->getCurrentStateName() == "OPEN_CONFIRM") {
             if (connectionToCheck->dstAddr == connection->dstAddr &&
                 connection != connectionToCheck) {
-                L_DEBUG(connection->owner->ID, "Found Collision");
+                L_INFO(
+                    connection->owner->ID,
+                    "Found Collision between " + bgpIdentifier.toString() +
+                        " and " +
+                        connection->bgpApplication->BGPIdentifier.toString());
 
                 BGPEvent event = {BGPEventType::OpenCollisionDump, nullptr};
                 if (bgpIdentifier < connection->bgpApplication->BGPIdentifier) {
                     connectionToCheck->enqueueEvent(std::move(event));
-                    L_INFO(connectionToCheck->owner->ID,
-                           "Sending NOTIFICATION message");
                 } else {
                     connection->enqueueEvent(std::move(event));
-                    L_INFO(connection->owner->ID,
-                           "Sending NOTIFICATION message");
                 }
             }
         }
