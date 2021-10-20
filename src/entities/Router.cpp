@@ -44,23 +44,21 @@ void Router::buildBgpTable() {
         NetworkCard *networkCardPeer =
             networkCard->link->getPeerNetworkCardOrNull(networkCard);
 
-        if (auto *routerPeer = dynamic_cast<Router *>(networkCardPeer->owner)) {
-            std::vector<uint16_t> asPath;
+        std::vector<uint16_t> asPath;
 
-            pcpp::IPv4Address networkIP(networkCard->IP.toInt() &
-                                        networkCard->netmask.toInt());
+        pcpp::IPv4Address networkIP(networkCard->IP.toInt() &
+                                    networkCard->netmask.toInt());
 
-            BGPTableRow row(networkIP,
-                            pcpp::IPv4Address(networkCard->netmask),
-                            pcpp::IPv4Address::Zero,
-                            origin,
-                            asPath,
-                            0,
-                            0,
-                            32768);
+        BGPTableRow row(networkIP,
+                        pcpp::IPv4Address(networkCard->netmask),
+                        pcpp::IPv4Address::Zero,
+                        origin,
+                        asPath,
+                        0,
+                        0,
+                        32768);
 
-            bgpTable.push_back(row);
-        }
+        bgpTable.push_back(row);
     }
 }
 
