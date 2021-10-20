@@ -343,7 +343,11 @@ void BGPConnection::signalTCPConnectionFails() {
 void BGPConnection::sendData(
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
     std::unique_lock<mutex> connectedSocket_uniqueLock(connectedSocket_mutex);
-    connectedSocket->send(std::move(layers));
+    if (connectedSocket) {
+        connectedSocket->send(std::move(layers));
+    } else {
+        L_WARNING("BGPConn", "TEMPORARY FIX! This would have crashed");
+    }
 }
 
 void BGPConnection::asyncConnectToPeer() {
