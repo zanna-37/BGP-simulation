@@ -133,22 +133,22 @@ void runDecisionProcess(Router *                         router,
 
         std::vector<BGPTableRow> newRoutes;
 
+
         for (LengthAndIpPrefix nlri : networkLayerReachabilityInfo) {
+            pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
+            pcpp::IPv4Address netmaskNRLI(
+                htobe32(NetUtils::prefixToNetmask(nlri.prefixLength)));
+            BGPTableRow newRoute(networkIPNRLI,
+                                 netmaskNRLI,
+                                 nextHop,
+                                 origin,
+                                 asPath,
+                                 0,
+                                 localPreferences,
+                                 0);
+            newRoutes.push_back(newRoute);
             for (auto itBGPTableRow = router->bgpTable.begin();
                  itBGPTableRow != router->bgpTable.end();) {
-                pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
-                pcpp::IPv4Address netmaskNRLI(
-                    htobe32(NetUtils::prefixToNetmask(nlri.prefixLength)));
-                BGPTableRow newRoute(networkIPNRLI,
-                                     netmaskNRLI,
-                                     nextHop,
-                                     origin,
-                                     asPath,
-                                     0,
-                                     localPreferences,
-                                     0);
-                newRoutes.push_back(newRoute);
-
                 if (networkIPNRLI == itBGPTableRow->networkIP &&
                     nextHop == itBGPTableRow->nextHop) {
                     uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
