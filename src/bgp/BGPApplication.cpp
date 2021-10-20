@@ -60,7 +60,8 @@ void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
                                         pcpp::IPv4Address bgpIdentifier) {
     L_DEBUG(connectionToCheck->owner->ID, "Collision detection");
     for (BGPConnection* connection : bgpConnections) {
-        if (connection->getCurrentStateName() == "OPEN_CONFIRM") {
+        if (connection->getCurrentStateName() == "OPEN_CONFIRM" ||
+            connection->getCurrentStateName() == "ESTABLISHED") {
             if (connectionToCheck->dstAddr == connection->dstAddr &&
                 connection != connectionToCheck) {
                 L_DEBUG(connection->owner->ID, "Found Collision");
@@ -124,8 +125,10 @@ void BGPApplication::sendBGPUpdateMessage(
     std::vector<LengthAndIpPrefix> withdrawnroutes,
     std::vector<PathAttribute>     pathAttributes,
     std::vector<LengthAndIpPrefix> nlri) {
+    L_SUCCESS("TEST", "===========" + std::to_string(bgpConnections.size()));
     for (BGPConnection* bgpConnection : bgpConnections) {
-        if (bgpConnection != bgpConnectionToAvoid) {
+        if (bgpConnection != bgpConnectionToAvoid &&
+            bgpConnection->getCurrentStateName() == "ESTABLISHED") {
             // Send BGPUpdateMessage
             std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
                 std::make_unique<BGPUpdateLayer>(
