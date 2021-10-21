@@ -276,26 +276,13 @@ bool BGPUpdateLayer::checkMessageErr(uint8_t*              subcode,
 
     BGPCommonHeader* updateHeader = getCommonHeaderOrNull();
 
-
-    // TODO Attribute checking not handled -> subcode 4
-    // TODO Attribute length not checked -> subcode 5
-    // TODO Well-known attributes not handled -> subcode 2
-    // TODO ORIGIN attribute not handled -> subcode 6
-    // TODO NEXT-HOP attribute not handled -> subcode 8
-    // TODO AS_PATH attribute not handled -> subcode 11
-    // TODO Optional attribute not handled -> subcode 9
-    // TODO multiple instances of the same attribute not handled -> subcode 1
-    // TODO NLRI not checked to be syntattically correct -> subcode 10
-
-    // NOTE: The error checkin can be done also later on from the table update
-    // algorithm
     if (be16toh(updateHeader->length_be) < wrLength + tpaLength + 23) {
         *subcode = 1;
         L_ERROR("UpdatMSGErr",
                 "fields length bigger than total length -> Malformed Attribute "
                 "List");
         return false;
-    } else {
+    } else if (getPathAttributesBytesLength() != 0) {
         std::vector<PathAttribute> pathAttributes;
 
         getPathAttributes(pathAttributes);
@@ -563,8 +550,71 @@ bool BGPUpdateLayer::checkMessageErr(uint8_t*              subcode,
         }
     }
 
+    size_t nlri_len = getNetworkLayerReachabilityInfoBytesLength();
 
-    // TODO: If it is not recognised, how do I know that it is well-known and
+    if (nlri_len != 0) {
+        size_t withdrawnRouteLen = getWithdrawnRoutesBytesLength();
+        size_t pathAttrLen       = getPathAttributesBytesLength();
+
+        size_t offset =
+            sizeof(BGPCommonHeader)  // Space for: Common header Value
+            + sizeof(uint16_t)       // Space for: Withdrawn Routes Length
+            + withdrawnRouteLen      // Space for: Withdrawn Routes
+            + sizeof(uint16_t)       // Space for: Total Path Attribute Length
+            + pathAttrLen;           // Space for: Path Attributes
+
+        uint8_t* dataPtr = m_Data + offset;
+
+        // XXX Semantic correctness to ckeck in the message handling/parsing
+
+        while (nlri_len > 0) {
+            if (*dataPtr <= 8) {
+                if (nlri_len < 2) {
+                    *subcode = 10;
+                    L_ERROR("UpdatMSGErr",
+                            "NLRI length and prefix systactically incorrect");
+                    return false;
+                }
+                nlri_len = nlri_len - 2;
+                dataPtr  = dataPtr + 2;
+            } else if (*dataPtr > 8 && *dataPtr <= 16) {
+                if (nlri_len < 3) {
+                    *subcode = 10;
+                    L_ERROR("UpdatMSGErr",
+                            "NLRI length and prefix systactically incorrect");
+                    return false;
+                }
+                nlri_len = nlri_len - 3;
+                dataPtr  = dataPtr + 3;
+            } else if (*dataPtr > 16 && *dataPtr <= 24) {
+                if (nlri_len < 4) {
+                    *subcode = 10;
+                    L_ERROR("UpdatMSGErr",
+                            "NLRI length and prefix systactically incorrect");
+                    return false;
+                }
+                nlri_len = nlri_len - 4;
+                dataPtr  = dataPtr + 4;
+            } else if (*dataPtr > 24 && *dataPtr <= 32) {
+                if (nlri_len < 5) {
+                    *subcode = 10;
+                    L_ERROR("UpdatMSGErr",
+                            "NLRI length and prefix systactically incorrect");
+                    return false;
+                }
+                nlri_len = nlri_len - 5;
+                dataPtr  = dataPtr + 5;
+            } else {
+                *subcode = 10;
+                L_ERROR("UpdatMSGErr", "Invalid NLRI data");
+                return false;
+            }
+        }
+    }
+
+
+    // TODO Well-known attributes not handled -> subcode 2
+    // XXX: If it is not recognised, how do I know that it is well-known and
     // mandatory? Further, if it is not recognised it will be inserted in the
     // missing attributes
 

@@ -116,8 +116,6 @@ void BGPConnection::processMessage(
 
                             switch (subcode) {
                                 case 1:
-                                    // Only the version 4 of the protocol is
-                                    // supported
                                     bgpNotificationLayer =
                                         make_unique<BGPNotificationLayer>(
                                             BGPNotificationLayer::OPEN_MSG_ERR,
@@ -203,6 +201,91 @@ void BGPConnection::processMessage(
                                         BGPNotificationLayer::
                                             ERR_3_MALFORMED_ATTR_LIST);
                                     break;
+
+                                case 2:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_UNRECOGNIZED_WELLKNOWN_ATTR);
+                                            data_be8.data();
+                                            data_be8.size();
+                                    break;
+                                case 3:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_MISSING_WELLKNOWN_ATTR);
+                                            data_be8.data();
+                                            data_be8.size();
+                                    break;
+                                case 4:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_ATTRIBUTE_FLAGS_ERR);
+                                            data_be8.data();
+                                            data_be8.size();
+                                    break;
+
+                                case 5:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_ATTRIBUTE_LENGTH_ERR);
+                                            data_be8.data();
+                                            data_be8.size();
+                                    break;
+
+                                case 6:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_INVALID_ORIGIN_ATTRIBUTE);
+                                            data_be8.data();
+                                            data_be8.size();
+                                    break;
+
+
+                                case 8:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_INVALID_NEXTHOP_ATTRIBUTE);
+                                            data_be8.data();
+                                            data_be8.size();
+                                    break;
+
+                                case 9:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_OPTIONAL_ATTR_ERR);
+                                    break;
+
+                                case 10:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_INVALID_NETWORK_FIELD);
+                                    break;
+
+                                case 11:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_MALFORMED_AS_PATH);
+                                    break;
+
+
                                 default:
                                     L_FATAL(
                                         owner->ID,
