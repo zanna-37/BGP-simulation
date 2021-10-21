@@ -1,6 +1,10 @@
 ---
 # Topology
-# E1 <--> R1 <--> R2 <--> E2
+# E1 <--> R1 <------> R2 <--> E2
+#          ^          ^
+#          '--> R3 <--'
+#               ^
+#               '--> E3
 
 # Logic behind the IPs assignment:
 #
@@ -32,48 +36,84 @@ routers:
   - id: R1
     AS_number: 1
     networkCard:
-      - interface: eth0
+      - interface: lan1
         IP: 30.1.0.1
         netmask: 255.255.0.0
-      - interface: eth1
+      - interface: eth2
         IP: 11.22.0.1
         netmask: 255.255.0.0
-    peers: [ 11.22.0.2 ]
+      - interface: eth3
+        IP: 11.33.0.1
+        netmask: 255.255.0.0
+    peers: [ 11.22.0.2, 11.33.0.3 ]
 
   - id: R2
     AS_number: 2
-    default_gateway: 11.22.0.1
+    default_gateway: 22.33.0.3
     networkCard:
-      - interface: eth0
+      - interface: lan2
         IP: 30.2.0.2
         netmask: 255.255.0.0
-      - interface: eth5
+      - interface: eth1
         IP: 11.22.0.2
         netmask: 255.255.0.0
-    peers: [ 11.22.0.1 ]
+      - interface: eth3
+        IP: 22.33.0.2
+        netmask: 255.255.0.0
+    peers: [ 11.22.0.1, 22.33.0.3 ]
+
+  - id: R3
+    AS_number: 3
+    default_gateway: 11.33.0.1
+    networkCard:
+      - interface: lan3
+        IP: 30.3.0.3
+        netmask: 255.255.0.0
+      - interface: eth1
+        IP: 11.33.0.3
+        netmask: 255.255.0.0
+      - interface: eth2
+        IP: 22.33.0.3
+        netmask: 255.255.0.0
+    peers: [ 11.33.0.1, 22.33.0.2 ]
 
 clients:
   - id: E1
     default_gateway: 30.1.0.1
     networkCard:
-      - interface: eth0
+      - interface: wifi1
         IP: 30.1.0.101
         netmask: 255.255.0.0
   - id: E2
     default_gateway: 30.2.0.2
     networkCard:
-      - interface: eth0
+      - interface: wifi2
         IP: 30.2.0.102
+        netmask: 255.255.0.0
+  - id: E3
+    default_gateway: 30.3.0.3
+    networkCard:
+      - interface: wifi3
+        IP: 30.3.0.103
         netmask: 255.255.0.0
 
 links:
-  - device_ids: [R1, E1]
-    device_source_interfaces: [eth0, eth0]
+  - device_ids: [ R1, E1 ]
+    device_source_interfaces: [ lan1, wifi1 ]
     connection_status: active
-  - device_ids: [R2, E2]
-    device_source_interfaces: [eth0, eth0]
+  - device_ids: [ R2, E2 ]
+    device_source_interfaces: [ lan2, wifi2 ]
     connection_status: active
-  - device_ids: [R1, R2]
-    device_source_interfaces: [eth1, eth5]
+  - device_ids: [ R3, E3 ]
+    device_source_interfaces: [ lan3, wifi3 ]
+    connection_status: active
+  - device_ids: [ R1, R3 ]
+    device_source_interfaces: [ eth3, eth1 ]
+    connection_status: active
+  - device_ids: [ R2, R3 ]
+    device_source_interfaces: [ eth3, eth2 ]
+    connection_status: active
+  - device_ids: [ R1, R2 ]
+    device_source_interfaces: [ eth2, eth1 ]
     connection_status: active
 ...
