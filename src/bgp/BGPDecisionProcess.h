@@ -14,8 +14,8 @@ void runDecisionProcess(Router *                         router,
                         pcpp::IPv4Address &              routerIP,
                         BGPConnection *                  bgpConnectionToAvoid);
 
-void calculatePreferredRoute(BGPTableRow *newRoute,
-                             BGPTableRow *currentPreferredRoute);
+void calculatePreferredRoute(BGPTableRow &newRoute,
+                             BGPTableRow &currentPreferredRoute);
 
 void updateIPTable(Router *router, BGPTableRow &route, bool isWithDrawnRoute);
 

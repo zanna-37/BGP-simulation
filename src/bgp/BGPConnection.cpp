@@ -166,6 +166,15 @@ void BGPConnection::processMessage(
                                 bgpUpdateLayer->toString();
                             L_VERBOSE(stateMachine->connection->owner->ID,
                                       "UPDATE message:\n" + updateMessage);
+
+                            /*
+                            TODO: remove should not be here, needs only for
+                            debug BGPEvent event = {BGPEventType::UpdateMsg,
+                                              std::move(bgpUpdateLayer)};
+                            enqueueEvent(std::move(event));
+                            L_DEBUG(owner->ID,
+                                    "Arrived UPDATE message inserted into "
+                                    "events");*/
                         }
 
                         if (bgpUpdateLayer->checkMessageErr(&subcode,

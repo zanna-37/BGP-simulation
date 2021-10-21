@@ -10,7 +10,7 @@
 #include "../logger/Logger.h"
 #include "../socket/Socket.h"
 #include "../tcp/TCPConnection.h"
-#include "./packets/BGPUpdateLayer.h"
+#include "./packets/BGPUpdatePathAttribute.h"
 #include "BGPConnection.h"
 #include "BGPEvent.h"
 #include "packets/BGPNotificationLayer.h"
@@ -122,23 +122,117 @@ BGPApplication::getOrCreateCorrespondingListeningSocketModule(
 void BGPApplication::sendBGPUpdateMessage(
     BGPConnection*                 bgpConnectionToAvoid,
     std::vector<LengthAndIpPrefix> withdrawnroutes,
-    std::vector<PathAttribute>     pathAttributes,
-    std::vector<LengthAndIpPrefix> nlri) {
+    std::vector<uint16_t>          asPath,
+    std::vector<LengthAndIpPrefix> nlri,
+    bool                           hasPathAttributes) {
     for (BGPConnection* bgpConnection : bgpConnections) {
         if (bgpConnection != bgpConnectionToAvoid) {
-            // Send BGPUpdateMessage
-            std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
-                std::make_unique<BGPUpdateLayer>(
-                    withdrawnroutes, pathAttributes, nlri);
+            std::vector<PathAttribute> newPathAttributes;
 
-            std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-                make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
-            layers->push(std::move(bgpUpdateLayer));
+            if (hasPathAttributes) {
+                // NextHop PathAttribute
+                uint32_t     routerIp_int      = bgpConnection->srcAddr.toInt();
+                const size_t nextHopDataLength = 4;
+                uint8_t      nextHopData[nextHopDataLength] = {
+                    (uint8_t)routerIp_int,
+                    (uint8_t)(routerIp_int >> 8),
+                    (uint8_t)(routerIp_int >> 16),
+                    (uint8_t)(routerIp_int >> 24)};
+                PathAttribute nextHopAttribute;
+                nextHopAttribute.setAttributeLengthAndValue(nextHopData,
+                                                            nextHopDataLength);
+                nextHopAttribute.attributeTypeCode =
+                    PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
+                nextHopAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
+                nextHopAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
+                nextHopAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
+                newPathAttributes.push_back(nextHopAttribute);
 
-            bgpConnection->sendData(std::move(layers));
+                // AS_Path PathAttribute
+                std::vector<uint8_t> asPath_be8;
+                uint16_t new_as_num = (uint16_t)bgpConnection->owner->AS_number;
+                asPath.push_back(new_as_num);
 
-            L_INFO(bgpConnection->owner->ID + " BGPfsm",
-                   "Sending UPDATE message");
+                uint8_t asPathType = 2;  // TODO: Check that this is AS_SEQUENCE
+                uint8_t asPathLen  = asPath.size();
+
+                PathAttribute::asPathToAttributeDataArray_be(
+                    asPathType, asPathLen, asPath, asPath_be8);
+
+                size_t        asPathDataLength = asPath_be8.size();
+                uint8_t*      asPathData       = asPath_be8.data();
+                PathAttribute asPathAttribute;
+                asPathAttribute.setAttributeLengthAndValue(asPathData,
+                                                           asPathDataLength);
+                asPathAttribute.attributeTypeCode =
+                    PathAttribute::AttributeTypeCode_uint8_t::AS_PATH;
+                asPathAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
+                asPathAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
+                asPathAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
+                newPathAttributes.push_back(asPathAttribute);
+
+                // Origin PathAttribute
+                const size_t  originDataLength             = 1;
+                uint8_t       originData[originDataLength] = {2};
+                PathAttribute originPathAttribute;
+                originPathAttribute.setAttributeLengthAndValue(
+                    originData, originDataLength);
+                originPathAttribute.attributeTypeCode =
+                    PathAttribute::AttributeTypeCode_uint8_t::ORIGIN;
+                originPathAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
+                originPathAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
+                originPathAttribute.setFlags(
+                    PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
+                newPathAttributes.push_back(originPathAttribute);
+
+                // Send BGPUpdateMessage
+                std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnroutes, newPathAttributes, nlri);
+                bgpUpdateLayer->computeCalculateFields();
+                L_DEBUG(bgpConnection->owner->ID + " BGPfsm",
+                        bgpUpdateLayer->toString());
+                /*std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpUpdateLayer));*/
+
+                // Enqueue new BGPUpdateMessage
+                BGPEvent event = {BGPEventType::SendUpdateMsg,
+                                  std::move(bgpUpdateLayer)};
+                bgpConnection->enqueueEvent(std::move(event));
+
+                L_INFO(bgpConnection->owner->ID + " BGPfsm",
+                       "Enqueuing UPDATE message in the events");
+
+                /*bgpConnection->sendData(std::move(layers));
+
+                L_INFO(bgpConnection->owner->ID + " BGPfsm",
+                       "Sending UPDATE message");*/
+            } else {
+                // Send BGPUpdateMessage
+                std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnroutes, newPathAttributes, nlri);
+                bgpUpdateLayer->computeCalculateFields();
+                L_DEBUG(bgpConnection->owner->ID + " BGPfsm",
+                        bgpUpdateLayer->toString());
+
+                BGPEvent event = {BGPEventType::SendUpdateMsg,
+                                  std::move(bgpUpdateLayer)};
+                bgpConnection->enqueueEvent(std::move(event));
+
+                L_INFO(bgpConnection->owner->ID + " BGPfsm",
+                       "Enqueuing UPDATE message in the events");
+            }
         }
     }
 }

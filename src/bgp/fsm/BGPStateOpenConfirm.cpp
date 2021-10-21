@@ -398,90 +398,152 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateEstablished(stateMachine));
 
             {
-                // Create BGPUpdateMessage
-                std::vector<PathAttribute> newPathAttributes;
+                std::vector<uint16_t> lastASPath =
+                    stateMachine->connection->owner->bgpTable[0].asPath;
+                bool                           sameASPath = true;
+                std::vector<LengthAndIpPrefix> new_nlri;
 
-                // NextHop PathAttribute
-                uint32_t routerIp_int =
-                    stateMachine->connection->srcAddr.toInt();
-                const size_t nextHopDataLength              = 4;
-                uint8_t      nextHopData[nextHopDataLength] = {
-                    (uint8_t)routerIp_int,
-                    (uint8_t)(routerIp_int >> 8),
-                    (uint8_t)(routerIp_int >> 16),
-                    (uint8_t)(routerIp_int >> 24)};
-                PathAttribute nextHopAttribute;
-                nextHopAttribute.setAttributeLengthAndValue(nextHopData,
-                                                            nextHopDataLength);
-                nextHopAttribute.attributeTypeCode =
-                    PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
-                nextHopAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
-                nextHopAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
-                nextHopAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
-                newPathAttributes.push_back(nextHopAttribute);
+                int counter = 0;
 
-                // AS_Path PathAttribute
-                std::vector<uint16_t> asPath;
-                std::vector<uint8_t>  asPath_be8;
+                for (BGPTableRow& bgpTableRow :
+                     stateMachine->connection->owner->bgpTable) {
+                    counter++;
+                    if (lastASPath.size() == bgpTableRow.asPath.size()) {
+                        for (int i = 0; i < lastASPath.size(); i++) {
+                            if (lastASPath[i] != bgpTableRow.asPath[i]) {
+                                sameASPath = false;
+                                break;
+                            }
+                        }
+                        if (sameASPath ||
+                            (!sameASPath &&
+                             counter == stateMachine->connection->owner
+                                            ->bgpTable.size())) {
+                            uint8_t prefLen =
+                                LengthAndIpPrefix::computeLengthIpPrefix(
+                                    bgpTableRow.networkMask);
+                            LengthAndIpPrefix nlri(
+                                prefLen, bgpTableRow.networkIP.toString());
+                            new_nlri.push_back(nlri);
+                        }
+                    }
 
-                uint16_t new_as_num =
-                    (uint16_t)stateMachine->connection->owner->AS_number;
-                asPath.push_back(new_as_num);
+                    if (!sameASPath ||
+                        counter ==
+                            stateMachine->connection->owner->bgpTable.size()) {
+                        // Create BGPUpdateMessage
+                        std::vector<PathAttribute> newPathAttributes;
 
-                uint8_t asPathType = 2;
-                uint8_t asPathLen  = 1;
+                        // NextHop PathAttribute
+                        uint32_t routerIp_int =
+                            stateMachine->connection->srcAddr.toInt();
+                        const size_t nextHopDataLength              = 4;
+                        uint8_t      nextHopData[nextHopDataLength] = {
+                            (uint8_t)routerIp_int,
+                            (uint8_t)(routerIp_int >> 8),
+                            (uint8_t)(routerIp_int >> 16),
+                            (uint8_t)(routerIp_int >> 24)};
+                        PathAttribute nextHopAttribute;
+                        nextHopAttribute.setAttributeLengthAndValue(
+                            nextHopData, nextHopDataLength);
+                        nextHopAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(nextHopAttribute);
 
-                PathAttribute::asPathToAttributeDataArray_be(
-                    asPathType, asPathLen, asPath, asPath_be8);
+                        // AS_Path PathAttribute
+                        std::vector<uint8_t> asPath_be8;
 
-                size_t        asPathDataLength = asPath_be8.size();
-                uint8_t*      asPathData       = asPath_be8.data();
-                PathAttribute asPathAttribute;
-                asPathAttribute.setAttributeLengthAndValue(asPathData,
-                                                           asPathDataLength);
-                asPathAttribute.attributeTypeCode =
-                    PathAttribute::AttributeTypeCode_uint8_t::AS_PATH;
-                asPathAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
-                asPathAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
-                asPathAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
-                newPathAttributes.push_back(asPathAttribute);
+                        uint16_t new_as_num =
+                            (uint16_t)
+                                stateMachine->connection->owner->AS_number;
+                        lastASPath.push_back(new_as_num);
 
-                // Origin PathAttribute
-                const size_t  originDataLength             = 1;
-                uint8_t       originData[originDataLength] = {2};
-                PathAttribute originPathAttribute;
-                originPathAttribute.setAttributeLengthAndValue(
-                    originData, originDataLength);
-                originPathAttribute.attributeTypeCode =
-                    PathAttribute::AttributeTypeCode_uint8_t::ORIGIN;
-                originPathAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL, 0);
-                originPathAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::TRANSITIVE, 1);
-                originPathAttribute.setFlags(
-                    PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL, 0);
-                newPathAttributes.push_back(originPathAttribute);
+                        uint8_t asPathType = 2;
+                        uint8_t asPathLen  = lastASPath.size();
+
+                        PathAttribute::asPathToAttributeDataArray_be(
+                            asPathType, asPathLen, lastASPath, asPath_be8);
+
+                        size_t        asPathDataLength = asPath_be8.size();
+                        uint8_t*      asPathData       = asPath_be8.data();
+                        PathAttribute asPathAttribute;
+                        asPathAttribute.setAttributeLengthAndValue(
+                            asPathData, asPathDataLength);
+                        asPathAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::AS_PATH;
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(asPathAttribute);
+
+                        // Origin PathAttribute
+                        const size_t  originDataLength             = 1;
+                        uint8_t       originData[originDataLength] = {2};
+                        PathAttribute originPathAttribute;
+                        originPathAttribute.setAttributeLengthAndValue(
+                            originData, originDataLength);
+                        originPathAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::ORIGIN;
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(originPathAttribute);
+
+                        std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                        std::unique_ptr<BGPUpdateLayer> updateLayer =
+                            std::make_unique<BGPUpdateLayer>(
+                                withdrawnRoutes, newPathAttributes, new_nlri);
+                        updateLayer->computeCalculateFields();
+
+                        BGPEvent event = {BGPEventType::SendUpdateMsg,
+                                          std::move(updateLayer)};
+                        stateMachine->connection->enqueueEvent(
+                            std::move(event));
+
+                        L_INFO(stateMachine->connection->owner->ID + " " +
+                                   stateMachine->name,
+                               "Enqueuing UPDATE message in the events");
+
+                        sameASPath = true;
+                        lastASPath = bgpTableRow.asPath;
+                        new_nlri.clear();
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                bgpTableRow.networkMask);
+                        LengthAndIpPrefix nlri(
+                            prefLen, bgpTableRow.networkIP.toString());
+                        new_nlri.push_back(nlri);
+                    }
+                }
 
                 // XXX LocalPreferences PathAttribute (if we have time)
 
-                std::vector<LengthAndIpPrefix> new_nlri;
-                for (BGPTableRow& bgpTableRow :
-                     stateMachine->connection->owner->bgpTable) {
-                    uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
-                        bgpTableRow.networkMask);
-
-                    LengthAndIpPrefix nlri(prefLen,
-                                           bgpTableRow.networkIP.toString());
-                    new_nlri.push_back(nlri);
-                }
-
-                std::vector<LengthAndIpPrefix> withdrawnRoutes;
+                /*std::vector<LengthAndIpPrefix> withdrawnRoutes;
 
                 std::unique_ptr<BGPUpdateLayer> updateLayer =
                     std::make_unique<BGPUpdateLayer>(
@@ -498,7 +560,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                     L_INFO(stateMachine->connection->owner->ID + " " +
                                stateMachine->name,
                            "Enqueuing UPDATE message in the events");
-                }
+                }*/
             }
 
             break;

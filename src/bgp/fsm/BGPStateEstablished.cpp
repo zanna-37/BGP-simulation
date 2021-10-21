@@ -326,12 +326,24 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
                 std::vector<PathAttribute>     pathAttributes;
                 std::vector<LengthAndIpPrefix> nlris;
+                std::vector<uint16_t>          asPath;
+
+                std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnRoutes, pathAttributes, nlris);
+                bgpUpdateLayer->computeCalculateFields();
+
+                runDecisionProcess(stateMachine->connection->owner,
+                                   bgpUpdateLayer,
+                                   stateMachine->connection->srcAddr,
+                                   stateMachine->connection);
 
                 stateMachine->connection->bgpApplication->sendBGPUpdateMessage(
                     stateMachine->connection,
                     withdrawnRoutes,
-                    pathAttributes,
-                    nlris);
+                    asPath,
+                    nlris,
+                    false);
             }
 
             // XXX releases all the BGP resources, done
@@ -398,10 +410,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(
-                    stateMachine->connection->owner->ID + " " +
-                        stateMachine->name,
-                    "Sending NOTIFICATION message");
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -501,10 +512,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpUpdateLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(
-                    stateMachine->connection->owner->ID + " " +
-                        stateMachine->name,
-                    "Sending UPDATE message");
+                L_INFO(stateMachine->connection->owner->ID + " " +
+                           stateMachine->name,
+                       "Sending UPDATE message");
             }
 
             break;

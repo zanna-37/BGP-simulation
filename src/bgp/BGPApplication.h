@@ -97,8 +97,8 @@ class BGPApplication {
      * provided in RFC 4271
      * @param connectionToCheck the BGP connection to be checked
      */
-    void           collisionDetection(BGPConnection*    connectionToCheck,
-                                      pcpp::IPv4Address bgpIdentifier);
+    void collisionDetection(BGPConnection*    connectionToCheck,
+                            pcpp::IPv4Address bgpIdentifier);
 
     BGPConnection* createNewBgpConnection(pcpp::IPv4Address srcAddress,
                                           pcpp::IPv4Address dstAddress);
@@ -116,8 +116,9 @@ class BGPApplication {
 
     void sendBGPUpdateMessage(BGPConnection* bgpConnectionToAvoid,
                               std::vector<LengthAndIpPrefix> withdrawnroutes,
-                              std::vector<PathAttribute>     pathAttributes,
-                              std::vector<LengthAndIpPrefix> nlri);
+                              std::vector<uint16_t>          asPath,
+                              std::vector<LengthAndIpPrefix> nlri,
+                              bool                           hasPathAttributes);
 
     friend class ListeningSocketModule;
 };
