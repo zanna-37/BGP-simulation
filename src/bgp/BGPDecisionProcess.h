@@ -17,6 +17,9 @@ void runDecisionProcess(Router *                         router,
 void calculatePreferredRoute(BGPTableRow &newRoute,
                              BGPTableRow &currentPreferredRoute);
 
-void updateIPTable(Router *router, BGPTableRow &route, bool isWithDrawnRoute);
+void updateIPTable(Router *           router,
+                   BGPTableRow &      route,
+                   bool               isWithDrawnRoute,
+                   pcpp::IPv4Address &routerIP);
 
 #endif  // BGPSIMULATION_BGP_BGPDECISIONPROCESS_H

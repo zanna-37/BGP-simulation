@@ -41,9 +41,6 @@ void Router::buildBgpTable() {
                         // exterior in our case we can let '?'
 
     for (NetworkCard *networkCard : *networkCards) {
-        NetworkCard *networkCardPeer =
-            networkCard->link->getPeerNetworkCardOrNull(networkCard);
-
         std::vector<uint16_t> asPath;
 
         pcpp::IPv4Address networkIP(networkCard->IP.toInt() &

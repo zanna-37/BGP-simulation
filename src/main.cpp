@@ -174,10 +174,9 @@ int main(int argc, char *argv[]) {
         }
 
         // TODO REMOVE ME, just examples
-        // std::this_thread::sleep_for(std::chrono::milliseconds(15000));
-        // auto *sender = dynamic_cast<Device *>(devices->at(2));
-        // sender->ping(pcpp::IPv4Address("90.36.25.1"));
-        // END: REMOVE ME just examples
+        std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        auto *sender = dynamic_cast<Device *>(devices->at(1));
+        sender->ping(pcpp::IPv4Address("30.4.0.104"));
 
         while (!stop) {
             sleep(1);  // TODO change from polling to wait

@@ -297,28 +297,25 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 // Create BGPUpdateMessage (no PathAttributes)
                 pcpp::IPv4Address IPAddressPeer =
                     stateMachine->connection->dstAddr;
-                pcpp::IPv4Address netMaskPeer;
+                pcpp::IPv4Address netMask;
                 // L_DEBUG("IPAddressPeer", IPAddressPeer.toString());
                 for (NetworkCard* networkCard :
                      *stateMachine->connection->owner->networkCards) {
-                    NetworkCard* networkCardPeer =
-                        networkCard->link->getPeerNetworkCardOrNull(
-                            networkCard);
                     // L_DEBUG("IP NETWORK CARD PEER",
                     // networkCardPeer->IP.toString());
-                    if (networkCardPeer->IP == IPAddressPeer) {
-                        netMaskPeer = networkCardPeer->netmask;
+                    if (networkCard->IP == stateMachine->connection->srcAddr) {
+                        netMask = networkCard->netmask;
                         // L_DEBUG("IP NETCARD PEER",
                         // netMaskPeer.toString());
                     }
                 }
                 pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
-                                                netMaskPeer.toInt());
+                                                netMask.toInt());
 
                 std::vector<LengthAndIpPrefix> withdrawnRoutes;
 
                 uint8_t prefLenPeer =
-                    LengthAndIpPrefix::computeLengthIpPrefix(netMaskPeer);
+                    LengthAndIpPrefix::computeLengthIpPrefix(netMask);
                 LengthAndIpPrefix withdrawnRoute(prefLenPeer,
                                                  networkIPpeer.toString());
 

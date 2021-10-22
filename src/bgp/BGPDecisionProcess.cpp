@@ -40,7 +40,7 @@ void runDecisionProcess(Router *                         router,
                     LengthAndIpPrefix newWithDrawnRoute(
                         prefLen, itTableRow->networkIP.toString());
                     newWithDrawnRoutes.push_back(newWithDrawnRoute);
-                    updateIPTable(router, *itTableRow, true);
+                    updateIPTable(router, *itTableRow, true, routerIP);
                     itTableRow = router->bgpTable.erase(itTableRow);
                 } else {
                     itTableRow++;
@@ -175,7 +175,7 @@ void runDecisionProcess(Router *                         router,
                         /*if (!itBGPTableRow->preferred) {
                             newRoute.preferred = false;
                         }*/
-                        updateIPTable(router, *itBGPTableRow, true);
+                        updateIPTable(router, *itBGPTableRow, true, routerIP);
                         itBGPTableRow = router->bgpTable.erase(itBGPTableRow);
                     } else {
                         if (networkIPNRLI == itBGPTableRow->networkIP &&
@@ -186,7 +186,8 @@ void runDecisionProcess(Router *                         router,
                             if (itBGPTableRow->preferred) {
                                 newRoute.preferred = false;
                             } else {
-                                updateIPTable(router, *itBGPTableRow, true);
+                                updateIPTable(
+                                    router, *itBGPTableRow, true, routerIP);
                             }
                         }
                         ++itBGPTableRow;
@@ -194,7 +195,7 @@ void runDecisionProcess(Router *                         router,
                 }
                 router->bgpTable.push_back(newRoute);
                 if (newRoute.preferred) {
-                    updateIPTable(router, newRoute, false);
+                    updateIPTable(router, newRoute, false, routerIP);
                 }
                 uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
                     newRoute.networkMask);
@@ -220,7 +221,10 @@ void runDecisionProcess(Router *                         router,
     }
 }
 
-void updateIPTable(Router *router, BGPTableRow &route, bool isWithDrawnRoute) {
+void updateIPTable(Router *           router,
+                   BGPTableRow &      route,
+                   bool               isWithDrawnRoute,
+                   pcpp::IPv4Address &routerIP) {
     if (isWithDrawnRoute) {
         for (auto itRoutingTable = router->routingTable.begin();
              itRoutingTable != router->routingTable.end();) {
@@ -234,9 +238,7 @@ void updateIPTable(Router *router, BGPTableRow &route, bool isWithDrawnRoute) {
         }
     } else {
         for (NetworkCard *networkCard : *router->networkCards) {
-            NetworkCard *networkCardPeer =
-                networkCard->link->getPeerNetworkCardOrNull(networkCard);
-            if (networkCardPeer->IP == route.nextHop) {
+            if (routerIP == networkCard->IP) {
                 TableRow row(route.networkIP,
                              route.networkMask,
                              route.nextHop,
