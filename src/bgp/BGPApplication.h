@@ -121,6 +121,7 @@ class BGPApplication {
                               bool                           hasPathAttributes);
 
     friend class ListeningSocketModule;
+    friend class ApiEndpoint;
 };
 
 #endif  // BGPSIMULATION_BGP_BGPAPPLICATION_H

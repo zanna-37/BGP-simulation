@@ -150,6 +150,10 @@ class ApiEndpoint {
     void getMainCSS(const Pistache::Rest::Request& request,
                     Pistache::Http::ResponseWriter response);
 
+    void sendPacket(const Pistache::Rest::Request& request,
+                    Pistache::Http::ResponseWriter response);
+
+
     using Lock  = std::mutex;
     using Guard = std::lock_guard<Lock>;
     Lock metricsLock;

@@ -87,6 +87,11 @@ void ApiEndpoint::setupRoutes() {
         "/getBGPpeersInfo",
         Pistache::Rest::Routes::bind(&ApiEndpoint::getBGPpeersInfo, this));
 
+    Pistache::Rest::Routes::Post(
+        router,
+        "/sendPacket",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::sendPacket, this));
+
     // Routes for WebPage content
     Pistache::Rest::Routes::Get(
         router,
@@ -1037,19 +1042,19 @@ void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
                                              ->bgpConnections) {
                                         if (router->peer_addresses[i] ==
                                             bgpConnection->dstAddr) {
-                                            int p = bgpConnection->stateMachine
-                                                        ->currentState->name
+                                            int p = bgpConnection
+                                                        ->getCurrentStateName()
                                                         .length();
                                             char status[p + 1];
                                             strcpy(status,
-                                                   bgpConnection->stateMachine
-                                                       ->currentState->name
+                                                   bgpConnection
+                                                       ->getCurrentStateName()
                                                        .c_str());
                                             writer.Key("status");
                                             writer.String(status);
-                                            L_DEBUG("Server",
+                                            /*L_DEBUG("Server",
                                                     bgpConnection->stateMachine
-                                                        ->currentState->name);
+                                                        ->currentState->name);*/
                                         }
                                     }
                                 }
@@ -1089,4 +1094,65 @@ void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
     response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
         "*");
     response.send(Pistache::Http::Code::Ok, buf.GetString());
+}
+
+void ApiEndpoint::sendPacket(const Pistache::Rest::Request &request,
+                             Pistache::Http::ResponseWriter response) {
+    rapidjson::StringBuffer                          buf;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+
+    auto body = request.body();
+
+    rapidjson::Document postDoc;
+
+    L_DEBUG("Server", body);
+
+    postDoc.Parse(body.c_str());
+
+    if (!postDoc.HasParseError() && postDoc.HasMember("send_from") &&
+        postDoc.HasMember("send_to")) {
+        std::string sender = postDoc.FindMember("send_from")->value.GetString();
+        std::string receiver = postDoc.FindMember("send_to")->value.GetString();
+        pcpp::IPv4Address receiverIP;
+
+
+        for (auto device : *devices) {
+            if (device->ID == receiver) {
+                receiverIP = device->networkCards->at(0)->IP;
+            }
+        }
+
+        for (auto device : *devices) {
+            if (device->ID == sender) {
+                device->ping(receiverIP);
+            }
+        }
+
+
+    } else {
+        if (postDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)postDoc.GetErrorOffset()) +
+                          "): " + to_string((postDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+
+
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Pistache::Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"from\" : "
+                      "\"device_x\""
+                      "\n\t\"to\" : \"device_y\""
+                      "\n}");
+    }
+
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
+    response.send(Pistache::Http::Code::Ok, "Packet Sent!");
 }

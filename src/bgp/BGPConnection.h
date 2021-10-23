@@ -34,9 +34,10 @@ class BGPConnection {
 
     std::thread* connectThread = nullptr;
 
-   public:
     BGPStateMachine* stateMachine = nullptr;
-    BGPApplication*  bgpApplication;
+
+   public:
+    BGPApplication* bgpApplication;
 
     /**
      * The owner of the connection, necessary in simulation context
@@ -107,8 +108,8 @@ class BGPConnection {
      */
     void sendData(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
-    void dropConnection(bool gentle);
-    void shutdown();
+    void        dropConnection(bool gentle);
+    void        shutdown();
     /**
      * returns a pointer to the current state name, used to check in collision
      * detection mechanism

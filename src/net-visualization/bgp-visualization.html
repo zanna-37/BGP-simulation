@@ -36,14 +36,6 @@
   </div>
 
   <div style="padding: 1px;">
-    <nav>
-      <div class="nav nav-tabs" id="nav-tab" role="tablist">
-        <button class="nav-link active" id="nav-node-tab" data-bs-toggle="tab" data-bs-target="#nav-node" type="button"
-          role="tab" aria-controls="nav-node" aria-selected="true">Node</button>
-        <button class="nav-link" id="nav-logs-tab" data-bs-toggle="tab" data-bs-target="#nav-logs" type="button"
-          role="tab" aria-controls="nav-logs" aria-selected="false">Logs</button>
-      </div>
-    </nav>
     <div class="tab-content" id="nav-tabContent" style="padding: 15px;">
       <div class="tab-pane fade show active" id="nav-node" role="tabpanel" aria-labelledby="nav-node-tab">
         <div id="nav-node-info" style="margin-bottom: 10px;">
@@ -53,7 +45,6 @@
         <div id="nav-node-routingTable" style="margin-bottom: 10px;">
         </div>
       </div>
-      <div class="tab-pane fade" id="nav-logs" role="tabpanel" aria-labelledby="nav-logs-tab">...</div>
     </div>
   </div>
 
@@ -142,6 +133,43 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" id="closeAddLinkModalBtn">Close</button>
           <button type="button" class="btn btn-primary" id="saveAddLinkChanges">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEND PACKET MODAL -->
+
+  <div class="modal" tabindex="-1" id="sendPacketModal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Send Packet</h5>
+          <button type="button" id="closeSendPacketModalCross" class="btn-close" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form>
+            <div class="form-group row" style="padding-bottom: 10px;" id="SendFromDiv">
+              <label for="SendFrom" class="col-sm-4 col-form-label" id="send_from_label">Send from:</label>
+              <div class="col-sm-8">
+                <select class="form-select" id="send_from">
+                  <option selected>Select Device</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group row" style="padding-bottom: 10px;" id="SendToDiv">
+              <label for="SendTo" class="col-sm-4 col-form-label" id="send_to_label">Send to:</label>
+              <div class="col-sm-8">
+                <select class="form-select" id="send_to">
+                  <option selected>Select Device</option>
+                </select>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="closeSendPacketModalBtn">Close</button>
+          <button type="button" class="btn btn-primary" id="saveSendPacketChanges">Send Packet</button>
         </div>
       </div>
     </div>

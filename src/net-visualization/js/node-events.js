@@ -342,6 +342,64 @@ mdendpoint.addEventListener('click', function () {
     mode_val = "E";
 });
 
+$("#send-packet").click(function () {
+    $("#sendPacketModal").show();
+
+    var nodes = chart.nodes();
+    var nodes_options = "";
+
+    var from_node;
+
+    console.log(nodes);
+
+    for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].data.extra.AS_number == undefined) {
+            nodes_options += "<option>" + nodes[i].id + "</option>";
+        }
+    }
+
+    $("#send_from").append(nodes_options);
+    $("#send_to").append(nodes_options);
+});
+
+$("#saveSendPacketChanges").click(function () {
+    var from = $("#send_from").val();
+    var to = $("#send_to").val();
+
+    console.log(from);
+    console.log(to);
+
+    $.ajax({
+        url: "/sendPacket",
+        dataType: 'json',
+        method: "POST",
+        contentType: 'application/json',
+        crossDomain: true,
+        async: true,
+        headers: {
+            "accept": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
+        data: JSON.stringify({
+            "send_from": from,
+            "send_to": to,
+        })
+    });
+
+    $("#sendPacketModal").hide();
+
+    $('#send_from').children().remove().end().append('<option selected>Select Device</option>');
+    $('#send_to').children().remove().end().append('<option selected>Select Device</option>');
+});
+
+$("#closeSendPacketModalCross").click(function () {
+    $("#sendPacketModal").hide();
+})
+
+$("#closeSendPacketModalBtn").click(function () {
+    $("#sendPacketModal").hide();
+})
+
 $("#add-interface-btn").click(function () {
     num_interface += 1;
     $("#interfaces-label").append("<input type='text' class='form-control' style='margin-bottom: 10px;' id='interface-label-" + num_interface + "'>");
