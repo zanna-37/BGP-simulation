@@ -444,6 +444,7 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                                i == stateMachine->connection->owner->bgpTable
                                             .size() -
                                         1) {
+                        sameASPath = false;
                         uint8_t prefLen =
                             LengthAndIpPrefix::computeLengthIpPrefix(
                                 stateMachine->connection->owner->bgpTable[i]
