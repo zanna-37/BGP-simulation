@@ -398,39 +398,70 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             stateMachine->changeState(new BGPStateEstablished(stateMachine));
 
             {
-                std::vector<uint16_t> lastASPath =
-                    stateMachine->connection->owner->bgpTable[0].asPath;
-                bool                           sameASPath = true;
+                bool        sameASPath = true;
+                BGPTableRow previousBGPTableRow =
+                    stateMachine->connection->owner->bgpTable[0];
+
                 std::vector<LengthAndIpPrefix> new_nlri;
+                uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
+                    previousBGPTableRow.networkMask);
+                LengthAndIpPrefix nlri(
+                    prefLen, previousBGPTableRow.networkIP.toString());
+                new_nlri.push_back(nlri);
 
-                int counter = 0;
-
-                for (BGPTableRow& bgpTableRow :
-                     stateMachine->connection->owner->bgpTable) {
-                    counter++;
-                    if (lastASPath.size() == bgpTableRow.asPath.size()) {
-                        for (int i = 0; i < lastASPath.size(); i++) {
-                            if (lastASPath[i] != bgpTableRow.asPath[i]) {
+                for (int i = 1;
+                     i < stateMachine->connection->owner->bgpTable.size();
+                     i++) {
+                    if (previousBGPTableRow.asPath.size() ==
+                        stateMachine->connection->owner->bgpTable[i]
+                            .asPath.size()) {
+                        for (int j = 0; j < previousBGPTableRow.asPath.size();
+                             j++) {
+                            if (previousBGPTableRow.asPath[j] !=
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .asPath[j]) {
                                 sameASPath = false;
                                 break;
                             }
                         }
                         if (sameASPath ||
-                            (!sameASPath &&
-                             counter == stateMachine->connection->owner
-                                            ->bgpTable.size())) {
+                            (!sameASPath && i == stateMachine->connection->owner
+                                                         ->bgpTable.size() -
+                                                     1)) {
                             uint8_t prefLen =
                                 LengthAndIpPrefix::computeLengthIpPrefix(
-                                    bgpTableRow.networkMask);
+                                    stateMachine->connection->owner->bgpTable[i]
+                                        .networkMask);
                             LengthAndIpPrefix nlri(
-                                prefLen, bgpTableRow.networkIP.toString());
+                                prefLen,
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .networkIP.toString());
                             new_nlri.push_back(nlri);
                         }
+                    } else if (previousBGPTableRow.asPath.size() !=
+                                   stateMachine->connection->owner->bgpTable[i]
+                                       .asPath.size() &&
+                               i == stateMachine->connection->owner->bgpTable
+                                            .size() -
+                                        1) {
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .networkMask);
+                        LengthAndIpPrefix nlri(
+                            prefLen,
+                            stateMachine->connection->owner->bgpTable[i]
+                                .networkIP.toString());
+                        new_nlri.push_back(nlri);
+
+
+                    } else {
+                        sameASPath = false;
                     }
 
                     if (!sameASPath ||
-                        counter ==
-                            stateMachine->connection->owner->bgpTable.size()) {
+                        i == stateMachine->connection->owner->bgpTable.size() -
+                                 1) {
                         // Create BGPUpdateMessage
                         std::vector<PathAttribute> newPathAttributes;
 
@@ -466,13 +497,24 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                         uint16_t new_as_num =
                             (uint16_t)
                                 stateMachine->connection->owner->AS_number;
-                        lastASPath.push_back(new_as_num);
+
+                        std::vector<uint16_t> asPath;
+
+                        if (!sameASPath) {
+                            asPath = previousBGPTableRow.asPath;
+                        } else {
+                            asPath =
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .asPath;
+                        }
+
+                        asPath.push_back(new_as_num);
 
                         uint8_t asPathType = 2;
-                        uint8_t asPathLen  = lastASPath.size();
+                        uint8_t asPathLen  = asPath.size();
 
                         PathAttribute::asPathToAttributeDataArray_be(
-                            asPathType, asPathLen, lastASPath, asPath_be8);
+                            asPathType, asPathLen, asPath, asPath_be8);
 
                         size_t        asPathDataLength = asPath_be8.size();
                         uint8_t*      asPathData       = asPath_be8.data();
@@ -530,13 +572,14 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                                "Enqueuing UPDATE message in the events");
 
                         sameASPath = true;
-                        lastASPath = bgpTableRow.asPath;
+                        previousBGPTableRow =
+                            stateMachine->connection->owner->bgpTable[i];
                         new_nlri.clear();
                         uint8_t prefLen =
                             LengthAndIpPrefix::computeLengthIpPrefix(
-                                bgpTableRow.networkMask);
+                                previousBGPTableRow.networkMask);
                         LengthAndIpPrefix nlri(
-                            prefLen, bgpTableRow.networkIP.toString());
+                            prefLen, previousBGPTableRow.networkIP.toString());
                         new_nlri.push_back(nlri);
                     }
                 }

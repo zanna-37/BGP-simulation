@@ -125,6 +125,8 @@ void BGPApplication::sendBGPUpdateMessage(
     std::vector<uint16_t>          asPath,
     std::vector<LengthAndIpPrefix> nlri,
     bool                           hasPathAttributes) {
+    uint16_t new_as_num = (uint16_t)bgpConnectionToAvoid->owner->AS_number;
+    asPath.push_back(new_as_num);
     for (BGPConnection* bgpConnection : bgpConnections) {
         if (bgpConnection != bgpConnectionToAvoid) {
             std::vector<PathAttribute> newPathAttributes;
@@ -153,8 +155,6 @@ void BGPApplication::sendBGPUpdateMessage(
 
                 // AS_Path PathAttribute
                 std::vector<uint8_t> asPath_be8;
-                uint16_t new_as_num = (uint16_t)bgpConnection->owner->AS_number;
-                asPath.push_back(new_as_num);
 
                 uint8_t asPathType = 2;  // TODO: Check that this is AS_SEQUENCE
                 uint8_t asPathLen  = asPath.size();
