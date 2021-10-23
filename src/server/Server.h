@@ -87,6 +87,9 @@ class ApiEndpoint {
     void getBGPpeersInfo(const Pistache::Rest::Request& request,
                          Pistache::Http::ResponseWriter response);
 
+    void getRoutingTable(const Pistache::Rest::Request& request,
+                         Pistache::Http::ResponseWriter response);
+
     /**
      * @brief Initialize the document/Object with all the data information about
      * the Network

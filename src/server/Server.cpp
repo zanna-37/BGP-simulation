@@ -89,6 +89,11 @@ void ApiEndpoint::setupRoutes() {
 
     Pistache::Rest::Routes::Post(
         router,
+        "/getRoutingTable",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getRoutingTable, this));
+
+    Pistache::Rest::Routes::Post(
+        router,
         "/sendPacket",
         Pistache::Rest::Routes::bind(&ApiEndpoint::sendPacket, this));
 
@@ -671,9 +676,10 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
                     L_DEBUG("Server", "Value in the the RapidJSON doc changed");
 
                     for (auto dev : *devices) {
-                        if (dev->ID.compare(from)) {
+                        if (dev->ID == from || dev->ID == to) {
                             for (auto net : *dev->networkCards) {
-                                if (net->netInterface.compare(from_interface)) {
+                                if (net->netInterface == from_interface ||
+                                    net->netInterface == to_interface) {
                                     net->link->connection_status =
                                         FAILED;  // TODO Use setter when it will
                                                  // be ready on the class.
@@ -1095,6 +1101,112 @@ void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
         "*");
     response.send(Pistache::Http::Code::Ok, buf.GetString());
 }
+
+void ApiEndpoint::getRoutingTable(const Pistache::Rest::Request &request,
+                                  Pistache::Http::ResponseWriter response) {
+    rapidjson::StringBuffer                          buf;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+    rapidjson::Document                              routerIdDoc;
+
+    auto body = request.body();
+
+    routerIdDoc.Parse(body.c_str());
+
+    writer.StartObject();
+    writer.Key("routingTable");
+    writer.StartArray();
+
+    if (!routerIdDoc.HasParseError() && routerIdDoc.HasMember("id")) {
+        for (auto device : *devices) {
+            if (device->ID == routerIdDoc["id"].GetString()) {
+                L_DEBUG("Server", routerIdDoc["id"].GetString());
+                auto *router = dynamic_cast<Router *>(device);
+                for (int i = 0; i < router->routingTable.size(); i++) {
+                    writer.StartObject();
+                    // IP Address
+                    writer.Key("destination");
+                    int n =
+                        router->routingTable[i].networkIP.toString().length();
+                    char networkip[n + 1];
+                    strcpy(
+                        networkip,
+                        router->routingTable[i].networkIP.toString().c_str());
+                    writer.String(networkip);
+
+                    // NextHop
+                    writer.Key("nexthop");
+                    int j = router->routingTable[i]
+                                .defaultGateway.toString()
+                                .length();
+                    char nexthop[j + 1];
+                    strcpy(nexthop,
+                           router->routingTable[i]
+                               .defaultGateway.toString()
+                               .c_str());
+                    writer.String(nexthop);
+
+                    // Interface
+                    writer.Key("interface");
+                    int  k = router->routingTable[i].netInterface.length();
+                    char interface[k + 1];
+                    strcpy(interface,
+                           router->routingTable[i].netInterface.c_str());
+                    writer.String(interface);
+
+                    pcpp::IPv4Address networkIP =
+                        router->routingTable[i].networkIP;
+                    pcpp::IPv4Address nextHop =
+                        router->routingTable[i].defaultGateway;
+                    for (int j = 0; j < router->bgpTable.size(); j++) {
+                        if (networkIP == router->bgpTable[j].networkIP &&
+                            nextHop == router->bgpTable[j].nextHop) {
+                            std::string asPath;
+                            for (auto as : router->bgpTable[j].asPath) {
+                                asPath += std::to_string(as) + " ";
+                            }
+                            // AS_PATH
+                            writer.Key("asPath");
+                            int  m = asPath.length();
+                            char aspath[m + 1];
+                            strcpy(aspath, asPath.c_str());
+                            writer.String(aspath);
+                        }
+                    }
+
+                    writer.EndObject();
+                }
+            }
+        }
+    } else {
+        if (routerIdDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)routerIdDoc.GetErrorOffset()) +
+                          "): " + to_string((routerIdDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Pistache::Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"id\" : "
+                      "\"device_id\""
+                      "\n}");
+    }
+
+    writer.EndArray();
+    writer.EndObject();
+
+    L_DEBUG("Server", buf.GetString());
+
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
+    response.send(Pistache::Http::Code::Ok, buf.GetString());
+}
+
 
 void ApiEndpoint::sendPacket(const Pistache::Rest::Request &request,
                              Pistache::Http::ResponseWriter response) {

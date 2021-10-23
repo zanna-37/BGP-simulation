@@ -474,6 +474,7 @@ function showNodeInfo(node) {
                 console.log(bgp_body_rows)
             }
         });
+
         bgp_body += bgp_body_rows + "</tbody>";
         console.log(bgp_body);
 
@@ -486,15 +487,51 @@ function showNodeInfo(node) {
 
         var BGP_table = "<table class='table table-striped'>" + bgp_head + bgp_body + "</table>";
 
+        var routing_body = "<tbody>";
+        var routing_body_rows = "";
+        $.ajax({
+            url: "/getRoutingTable",
+            dataType: 'json',
+            method: "POST",
+            contentType: 'application/json',
+            crossDomain: false,
+            async: false,
+            headers: {
+                "accept": "application/json",
+                "Access-Control-Allow-Origin": "*",
+            },
+            data: JSON.stringify({
+                "id": node.id
+            }),
+        }).done(function (response) {
+            for (var i = 0; i < response.routingTable.length; i++) {
+
+                var asPath = response.routingTable[i].asPath;
+                if (asPath == undefined) {
+                    asPath = "";
+                }
+
+                routing_body_rows += "<tr>" +
+                    "<td>" + response.routingTable[i].destination + "</td>" +
+                    "<td>" + response.routingTable[i].nexthop + "</td>" +
+                    "<td>" + response.routingTable[i].interface + "</td>" +
+                    "<td>" + asPath + "</td>" +
+                    "</tr>";
+            }
+        });
+
+        routing_body += routing_body_rows + "</tbody>";
+
         var routing_head = "<thead>" + "<tr>" +
             "<th>" + "Destination" + "</th>" +
             "<th>" + "Next Hop" + "</th>" +
-            "<th>" + "Weight" + "</th>" +
             "<th>" + "Interface" + "</th>" +
             "<th>" + "AS Path" + "</th>" +
             "</tr>" + "</thead>"
 
-        var routing_table = "<table class='table table-striped'>" + routing_head + "</table>"
+        var routing_table = "<table class='table table-striped'>" + routing_head + routing_body + "</table>"
+
+        console.log(routing_table);
 
         if (num_bgp_peers > 0) {
             $("#nav-node-BGPpeers").append(BGP_table);
