@@ -25,7 +25,6 @@ using namespace std::chrono_literals;
 
 class BGPConnection {
    private:
-    BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
 
     /**
@@ -34,6 +33,8 @@ class BGPConnection {
     std::thread* receivingThread = nullptr;
 
     std::thread* connectThread = nullptr;
+
+    BGPStateMachine* stateMachine = nullptr;
 
    public:
     BGPApplication* bgpApplication;
@@ -107,8 +108,8 @@ class BGPConnection {
      */
     void sendData(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
-    void dropConnection(bool gentle);
-    void shutdown();
+    void        dropConnection(bool gentle);
+    void        shutdown();
     /**
      * returns a pointer to the current state name, used to check in collision
      * detection mechanism

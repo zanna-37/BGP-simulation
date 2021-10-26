@@ -7,6 +7,10 @@
 #include <new>
 #include <string>
 
+#include "../bgp/BGPApplication.h"
+#include "../bgp/BGPConnection.h"
+#include "../bgp/fsm/BGPState.h"
+#include "../bgp/fsm/BGPStateMachine.h"
 #include "../entities/Device.h"
 #include "../entities/EndPoint.h"
 #include "../entities/Link.h"
@@ -50,17 +54,10 @@ void ApiEndpoint::start(volatile sig_atomic_t *stop) {
 
 void ApiEndpoint::setupRoutes() {
     L_DEBUG("Server", "Setting up routes");
-
-    Pistache::Rest::Routes::Get(
-        router, "/", Pistache::Rest::Routes::bind(&ApiEndpoint::index, this));
     Pistache::Rest::Routes::Get(
         router,
         "/showGUI",
         Pistache::Rest::Routes::bind(&ApiEndpoint::showGUI, this));
-    Pistache::Rest::Routes::Get(
-        router,
-        "/getNetwork",
-        Pistache::Rest::Routes::bind(&ApiEndpoint::getNetwork, this));
     Pistache::Rest::Routes::Get(
         router,
         "/getNetZoomCharts",
@@ -84,6 +81,21 @@ void ApiEndpoint::setupRoutes() {
         router,
         "/addLink",
         Pistache::Rest::Routes::bind(&ApiEndpoint::addLink, this));
+
+    Pistache::Rest::Routes::Post(
+        router,
+        "/getBGPpeersInfo",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getBGPpeersInfo, this));
+
+    Pistache::Rest::Routes::Post(
+        router,
+        "/getRoutingTable",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::getRoutingTable, this));
+
+    Pistache::Rest::Routes::Post(
+        router,
+        "/sendPacket",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::sendPacket, this));
 
     // Routes for WebPage content
     Pistache::Rest::Routes::Get(
@@ -256,258 +268,6 @@ void ApiEndpoint::initDoc() {
     L_DEBUG("Server", "Network object created");
 }
 
-void ApiEndpoint::index(const Pistache::Rest::Request &request,
-                        Pistache::Http::ResponseWriter response) {
-    rapidjson::StringBuffer                          buf;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
-
-
-    writer.StartObject();
-
-    writer.Key("nodes");
-    writer.StartArray();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("R1");
-    writer.Key("loaded");
-    writer.Bool(true);
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(236,46,46,0.8)");
-    writer.Key("label");
-    writer.String("Router1");
-    writer.Key("image");
-    writer.String("showGUI/router-icon.png");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("AS_number");
-    writer.String("AS_1");
-    writer.Key("networkCard");
-    writer.StartArray();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth0");
-    writer.Key("IP");
-    writer.String("90.36.25.1");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth1");
-    writer.Key("IP");
-    writer.String("85.90.20.1");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.EndArray();
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("R2");
-    writer.Key("loaded");
-    writer.Bool(true);
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(47,195,47,0.8)");
-    writer.Key("label");
-    writer.String("Router2");
-    writer.Key("image");
-    writer.String("showGUI/router-icon.png");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("AS_number");
-    writer.String("AS_2");
-    writer.Key("default_gateway");
-    writer.String("85.90.20.1");
-    writer.Key("networkCard");
-    writer.StartArray();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth0");
-    writer.Key("IP");
-    writer.String("26.37.3.2");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth5");
-    writer.Key("IP");
-    writer.String("85.90.20.2");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.EndArray();
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("E1");
-    writer.Key("loaded");
-    writer.Bool(true);
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(28,124,213,0.8)");
-    writer.Key("label");
-    writer.String("Endpoint1");
-    writer.Key("image");
-    writer.String("showGUI/endpoint-icon.png");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("default_gateway");
-    writer.String("90.36.25.1");
-    writer.Key("networkCard");
-    writer.StartArray();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth0");
-    writer.Key("IP");
-    writer.String("90.36.25.123");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.EndArray();
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("E2");
-    writer.Key("loaded");
-    writer.Bool(true);
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("fillColor");
-    writer.String("rgba(58,174,0,0.8)");
-    writer.Key("label");
-    writer.String("Endpoint2");
-    writer.Key("image");
-    writer.String("showGUI/endpoint-icon.png");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("default_gateway");
-    writer.String("26.37.3.2");
-    writer.Key("networkCard");
-    writer.StartArray();
-    writer.StartObject();
-    writer.Key("interface");
-    writer.String("eth0");
-    writer.Key("IP");
-    writer.String("26.37.3.1");
-    writer.Key("netmask");
-    writer.String("255.255.0.0");
-    writer.EndObject();
-    writer.EndArray();
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.EndArray();
-
-    writer.Key("links");
-    writer.StartArray();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("link_R1-E1");
-    writer.Key("from");
-    writer.String("R1");
-    writer.Key("to");
-    writer.String("E1");
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("toDecoration");
-    writer.String("arrow");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("from_interface");
-    writer.String("eth0");
-    writer.Key("to_interface");
-    writer.String("eth0");
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("link_R2-E2");
-    writer.Key("from");
-    writer.String("R2");
-    writer.Key("to");
-    writer.String("E2");
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("toDecoration");
-    writer.String("arrow");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("from_interface");
-    writer.String("eth0");
-    writer.Key("to_interface");
-    writer.String("eth0");
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.StartObject();
-    writer.Key("id");
-    writer.String("link_R1-R2");
-    writer.Key("from");
-    writer.String("R1");
-    writer.Key("to");
-    writer.String("R2");
-    writer.Key("style");
-    writer.StartObject();
-    writer.Key("toDecoration");
-    writer.String("arrow");
-    writer.EndObject();
-    writer.Key("extra");
-    writer.StartObject();
-    writer.Key("from_interface");
-    writer.String("eth1");
-    writer.Key("to_interface");
-    writer.String("eth5");
-    writer.EndObject();
-    writer.EndObject();
-
-    writer.EndArray();
-
-
-    writer.EndObject();
-
-    response.headers().add<Pistache::Http::Header::ContentType>(
-        MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
-        "*");
-    response.send(Pistache::Http::Code::Ok, buf.GetString());
-}
-
-
-void ApiEndpoint::getNetwork(const Pistache::Rest::Request &request,
-                             Pistache::Http::ResponseWriter response) {
-    rapidjson::StringBuffer                          buf;
-    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
-
-    doc.Accept(writer);
-
-    response.headers().add<Pistache::Http::Header::ContentType>(
-        MIME(Application, Json));
-    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
-        "*");
-    response.send(Pistache::Http::Code::Ok, buf.GetString());
-}
-
 void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
                                    Pistache::Http::ResponseWriter response) {
     using namespace rapidjson;
@@ -605,9 +365,6 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
         link.AddMember("from", Value(link_it["from"], allocator), allocator);
         link.AddMember("to", Value(link_it["to"], allocator), allocator);
 
-        style.AddMember("toDecoration", Value("arrow", allocator), allocator);
-        style.AddMember("fromDecoration", Value("arrow", allocator), allocator);
-
         extra.AddMember("from_interface",
                         Value(link_it["from_interface"], allocator),
                         allocator);
@@ -615,7 +372,6 @@ void ApiEndpoint::getNetZoomCharts(const Pistache::Rest::Request &request,
                         Value(link_it["to_interface"], allocator),
                         allocator);
 
-        link.AddMember("style", style, allocator);
         link.AddMember("extra", extra, allocator);
 
         zoomDoc["links"].PushBack(link, allocator);
@@ -736,7 +492,9 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
 
 
         if (postDoc.HasMember("asNumber")) {
-            int AS_number = postDoc.FindMember("asNumber")->value.GetInt();
+            std::string AS_number_string =
+                postDoc.FindMember("asNumber")->value.GetString();
+            int              AS_number = std::stoi(AS_number_string);
             rapidjson::Value asNumber;
             asNumber.SetInt(AS_number);
             device.AddMember("asNumber", asNumber, doc.GetAllocator());
@@ -884,56 +642,44 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
             rapidjson::Value link(rapidjson::kObjectType),
                 link_reverse(rapidjson::kObjectType);
 
-            // Link is using copies of the values, Link_reverse is consuming the
-            // values.
+            std::string from = postDoc.FindMember("from")->value.GetString();
+            std::string to   = postDoc.FindMember("to")->value.GetString();
+            std::string from_interface =
+                postDoc.FindMember("from_interface")->value.GetString();
+            std::string to_interface =
+                postDoc.FindMember("to_interface")->value.GetString();
 
-            link.AddMember("from",
-                           rapidjson::Value(postDoc.FindMember("from")->value,
-                                            postDoc.GetAllocator()),
-                           postDoc.GetAllocator());
-            link.AddMember("to",
-                           rapidjson::Value(postDoc.FindMember("to")->value,
-                                            postDoc.GetAllocator()),
-                           postDoc.GetAllocator());
-            link.AddMember(
-                "from_interface",
-                rapidjson::Value(postDoc.FindMember("from_interface")->value,
-                                 postDoc.GetAllocator()),
-                postDoc.GetAllocator());
-            link.AddMember(
-                "to_interface",
-                rapidjson::Value(postDoc.FindMember("to_interface")->value,
-                                 postDoc.GetAllocator()),
-                postDoc.GetAllocator());
-            link.AddMember("con_status", "active", postDoc.GetAllocator());
+            // reverse link
+            std::string from_reverse           = to;
+            std::string to_reverse             = from;
+            std::string from_interface_reverse = to_interface;
+            std::string to_interface_reverse   = from_interface;
 
-            link_reverse.AddMember("from",
-                                   postDoc.FindMember("to")->value,
-                                   postDoc.GetAllocator());
-            link_reverse.AddMember("to",
-                                   postDoc.FindMember("from")->value,
-                                   postDoc.GetAllocator());
-            link_reverse.AddMember("from_interface",
-                                   postDoc.FindMember("to_interface")->value,
-                                   postDoc.GetAllocator());
-            link_reverse.AddMember("to_interface",
-                                   postDoc.FindMember("from_interface")->value,
-                                   postDoc.GetAllocator());
-            link_reverse.AddMember(
-                "con_status", "active", postDoc.GetAllocator());
-
-            for (auto &l : doc["links"].GetArray()) {
-                if ((l == link || l == link_reverse)) {
-                    rapidjson::Value::MemberIterator it =
-                        l.FindMember("con_status");
-                    it->value.SetString("failed", postDoc.GetAllocator());
+            for (auto &link : doc["links"].GetArray()) {
+                rapidjson::Value::MemberIterator itr;
+                itr                     = link.FindMember("from");
+                std::string currentFrom = itr->value.GetString();
+                itr                     = link.FindMember("to");
+                std::string currentTo   = itr->value.GetString();
+                itr                     = link.FindMember("from_interface");
+                std::string currentFromInterface = itr->value.GetString();
+                itr = link.FindMember("to_interface");
+                std::string currentToInterface = itr->value.GetString();
+                if ((from == currentFrom && to == currentTo &&
+                     from_interface == currentFromInterface &&
+                     to_interface == currentToInterface) ||
+                    (from_reverse == currentFrom && to_reverse == currentTo &&
+                     from_interface_reverse == currentFromInterface &&
+                     to_interface_reverse == currentToInterface)) {
+                    itr = link.FindMember("con_status");
+                    itr->value.SetString("failed", doc.GetAllocator());
                     L_DEBUG("Server", "Value in the the RapidJSON doc changed");
 
                     for (auto dev : *devices) {
-                        if (dev->ID.compare(link["from"].GetString())) {
+                        if (dev->ID == from || dev->ID == to) {
                             for (auto net : *dev->networkCards) {
-                                if (net->netInterface.compare(
-                                        link["from_interface"].GetString())) {
+                                if (net->netInterface == from_interface ||
+                                    net->netInterface == to_interface) {
                                     net->link->connection_status =
                                         FAILED;  // TODO Use setter when it will
                                                  // be ready on the class.
@@ -1129,61 +875,99 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
         postDoc.HasMember("to") && postDoc.HasMember("from_interface") &&
         postDoc.HasMember("to_interface")) {
         // Search for the link and change the value
-        rapidjson::Value link(rapidjson::kObjectType),
-            link_reverse(rapidjson::kObjectType);
+        rapidjson::Value link(rapidjson::kObjectType);
+        rapidjson::Value link_reverse(rapidjson::kObjectType);
 
         // Link is using copies of the values, Link_reverse is consuming the
         // values.
+        std::string device1 = postDoc.FindMember("from")->value.GetString();
+        rapidjson::Value from;
+        from.SetString(device1.c_str(), device1.length(), doc.GetAllocator());
+        link.AddMember("from", from, doc.GetAllocator());
 
-        link.AddMember("from",
-                       rapidjson::Value(postDoc.FindMember("from")->value,
-                                        postDoc.GetAllocator()),
-                       postDoc.GetAllocator());
-        link.AddMember("to",
-                       rapidjson::Value(postDoc.FindMember("to")->value,
-                                        postDoc.GetAllocator()),
-                       postDoc.GetAllocator());
-        link.AddMember(
-            "from_interface",
-            rapidjson::Value(postDoc.FindMember("from_interface")->value,
-                             postDoc.GetAllocator()),
-            postDoc.GetAllocator());
-        link.AddMember(
-            "to_interface",
-            rapidjson::Value(postDoc.FindMember("to_interface")->value,
-                             postDoc.GetAllocator()),
-            postDoc.GetAllocator());
-        link.AddMember("con_status", "active", postDoc.GetAllocator());
+        std::string      device2 = postDoc.FindMember("to")->value.GetString();
+        rapidjson::Value to;
+        to.SetString(device2.c_str(), device2.length(), doc.GetAllocator());
+        link.AddMember("to", to, doc.GetAllocator());
 
+        std::string interface1 =
+            postDoc.FindMember("from_interface")->value.GetString();
+        rapidjson::Value from_interface;
+        from_interface.SetString(
+            interface1.c_str(), interface1.length(), doc.GetAllocator());
+        link.AddMember("from_interface", from_interface, doc.GetAllocator());
+
+        std::string interface2 =
+            postDoc.FindMember("to_interface")->value.GetString();
+        rapidjson::Value to_interface;
+        to_interface.SetString(
+            interface2.c_str(), interface2.length(), doc.GetAllocator());
+        link.AddMember("to_interface", to_interface, doc.GetAllocator());
+
+        link.AddMember("con_status", "active", doc.GetAllocator());
+
+        link_reverse.AddMember("from", to, doc.GetAllocator());
+        link_reverse.AddMember("to", from, doc.GetAllocator());
         link_reverse.AddMember(
-            "from", postDoc.FindMember("to")->value, postDoc.GetAllocator());
+            "from_interface", to_interface, doc.GetAllocator());
         link_reverse.AddMember(
-            "to", postDoc.FindMember("from")->value, postDoc.GetAllocator());
-        link_reverse.AddMember("from_interface",
-                               postDoc.FindMember("to_interface")->value,
-                               postDoc.GetAllocator());
-        link_reverse.AddMember("to_interface",
-                               postDoc.FindMember("from_interface")->value,
-                               postDoc.GetAllocator());
-        link_reverse.AddMember("con_status", "active", postDoc.GetAllocator());
+            "to_interface", from_interface, doc.GetAllocator());
+        link_reverse.AddMember("con_status", "active", doc.GetAllocator());
+
+        std::string from_reverse           = device2;
+        std::string to_reverse             = device1;
+        std::string from_interface_reverse = interface2;
+        std::string to_interface_reverse   = interface1;
 
         if (doc["links"].Empty()) {
-            doc["links"].PushBack(link, postDoc.GetAllocator());
+            doc["links"].PushBack(link, doc.GetAllocator());
             L_DEBUG("Server", "Pushed back empty links");
         } else {
             bool exists = false;
             for (auto &l : doc["links"].GetArray()) {
-                if (l == link || l == link_reverse) {
+                rapidjson::Value::MemberIterator itr;
+                itr                     = l.FindMember("from");
+                std::string currentFrom = itr->value.GetString();
+                itr                     = l.FindMember("to");
+                std::string currentTo   = itr->value.GetString();
+                itr                     = l.FindMember("from_interface");
+                std::string currentFromInterface = itr->value.GetString();
+                itr                              = l.FindMember("to_interface");
+                std::string currentToInterface   = itr->value.GetString();
+                if ((device1 == currentFrom && device2 == currentTo &&
+                     interface1 == currentFromInterface &&
+                     interface2 == currentToInterface) ||
+                    (from_reverse == currentFrom && to_reverse == currentTo &&
+                     from_interface_reverse == currentFromInterface &&
+                     to_interface_reverse == currentToInterface)) {
                     L_DEBUG("Server", "Link :" + to_string(l == link));
                     L_DEBUG("Server",
                             "Reverse Link :" + to_string(l == link_reverse));
-
+                    itr = l.FindMember("con_status");
+                    itr->value.SetString("active", doc.GetAllocator());
                     exists = true;
                 }
             }
             if (!exists) {
-                doc["links"].PushBack(link, postDoc.GetAllocator());
+                doc["links"].PushBack(link, doc.GetAllocator());
                 L_DEBUG("Server", "Pushed back non existing link");
+            }
+            for (auto dev : *devices) {
+                if (dev->ID.compare(device1)) {
+                    for (auto net : *dev->networkCards) {
+                        if (net->netInterface.compare(interface1)) {
+                            net->link->connection_status =
+                                ACTIVE;  // TODO Use setter when it will
+                                         // be ready on the class.
+                            L_INFO("Server",
+                                   "Link connected. Device: " + dev->ID +
+                                       " Interface: " + net->netInterface);
+                            L_DEBUG("Server",
+                                    "Link status: " +
+                                        net->link->getConnectionStatusString());
+                        }
+                    }
+                }
             }
         }
 
@@ -1215,4 +999,272 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
     response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
         "*");
     response.send(Pistache::Http::Code::Ok, "Link added Successfully!");
+}
+
+void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
+                                  Pistache::Http::ResponseWriter response) {
+    rapidjson::StringBuffer                          buf;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+    rapidjson::Document                              routerIdDoc;
+
+    auto body = request.body();
+
+    routerIdDoc.Parse(body.c_str());
+
+    writer.StartObject();
+    writer.Key("BGPpeers");
+    writer.StartArray();
+
+    if (!routerIdDoc.HasParseError() && routerIdDoc.HasMember("id")) {
+        for (auto device : *devices) {
+            if (device->ID == routerIdDoc["id"].GetString()) {
+                L_DEBUG("Server", routerIdDoc["id"].GetString());
+                auto *router = dynamic_cast<Router *>(device);
+                for (int i = 0; i < router->peer_addresses.size(); i++) {
+                    writer.StartObject();
+                    // IP Address
+                    writer.Key("ip_address");
+                    int  n = router->peer_addresses[i].toString().length();
+                    char peer_ip_address[n + 1];
+                    strcpy(peer_ip_address,
+                           router->peer_addresses[i].toString().c_str());
+                    writer.String(peer_ip_address);
+
+                    // Identifier
+                    for (auto x : *devices) {
+                        if (auto *peer_router = dynamic_cast<Router *>(x)) {
+                            for (auto netCard : *peer_router->networkCards) {
+                                if (netCard->IP.toString() ==
+                                    router->peer_addresses[i].toString()) {
+                                    int  m = netCard->owner->ID.length();
+                                    char peer_identifier[m + 1];
+                                    strcpy(peer_identifier,
+                                           netCard->owner->ID.c_str());
+                                    writer.Key("identifier");
+                                    writer.String(peer_identifier);
+                                    // Status
+                                    for (auto &bgpConnection :
+                                         router->bgpApplication
+                                             ->bgpConnections) {
+                                        if (router->peer_addresses[i] ==
+                                            bgpConnection->dstAddr) {
+                                            int p = bgpConnection
+                                                        ->getCurrentStateName()
+                                                        .length();
+                                            char status[p + 1];
+                                            strcpy(status,
+                                                   bgpConnection
+                                                       ->getCurrentStateName()
+                                                       .c_str());
+                                            writer.Key("status");
+                                            writer.String(status);
+                                            /*L_DEBUG("Server",
+                                                    bgpConnection->stateMachine
+                                                        ->currentState->name);*/
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    writer.EndObject();
+                }
+            }
+        }
+    } else {
+        if (routerIdDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)routerIdDoc.GetErrorOffset()) +
+                          "): " + to_string((routerIdDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Pistache::Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"id\" : "
+                      "\"device_id\""
+                      "\n}");
+    }
+
+    writer.EndArray();
+    writer.EndObject();
+
+    L_DEBUG("Server", buf.GetString());
+
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
+    response.send(Pistache::Http::Code::Ok, buf.GetString());
+}
+
+void ApiEndpoint::getRoutingTable(const Pistache::Rest::Request &request,
+                                  Pistache::Http::ResponseWriter response) {
+    rapidjson::StringBuffer                          buf;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+    rapidjson::Document                              routerIdDoc;
+
+    auto body = request.body();
+
+    routerIdDoc.Parse(body.c_str());
+
+    writer.StartObject();
+    writer.Key("routingTable");
+    writer.StartArray();
+
+    if (!routerIdDoc.HasParseError() && routerIdDoc.HasMember("id")) {
+        for (auto device : *devices) {
+            if (device->ID == routerIdDoc["id"].GetString()) {
+                L_DEBUG("Server", routerIdDoc["id"].GetString());
+                auto *router = dynamic_cast<Router *>(device);
+                for (int i = 0; i < router->routingTable.size(); i++) {
+                    writer.StartObject();
+                    // IP Address
+                    writer.Key("destination");
+                    int n =
+                        router->routingTable[i].networkIP.toString().length();
+                    char networkip[n + 1];
+                    strcpy(
+                        networkip,
+                        router->routingTable[i].networkIP.toString().c_str());
+                    writer.String(networkip);
+
+                    // NextHop
+                    writer.Key("nexthop");
+                    int j = router->routingTable[i]
+                                .defaultGateway.toString()
+                                .length();
+                    char nexthop[j + 1];
+                    strcpy(nexthop,
+                           router->routingTable[i]
+                               .defaultGateway.toString()
+                               .c_str());
+                    writer.String(nexthop);
+
+                    // Interface
+                    writer.Key("interface");
+                    int  k = router->routingTable[i].netInterface.length();
+                    char interface[k + 1];
+                    strcpy(interface,
+                           router->routingTable[i].netInterface.c_str());
+                    writer.String(interface);
+
+                    pcpp::IPv4Address networkIP =
+                        router->routingTable[i].networkIP;
+                    pcpp::IPv4Address nextHop =
+                        router->routingTable[i].defaultGateway;
+                    for (int j = 0; j < router->bgpTable.size(); j++) {
+                        if (networkIP == router->bgpTable[j].networkIP &&
+                            nextHop == router->bgpTable[j].nextHop) {
+                            std::string asPath;
+                            for (auto as : router->bgpTable[j].asPath) {
+                                asPath += std::to_string(as) + " ";
+                            }
+                            // AS_PATH
+                            writer.Key("asPath");
+                            int  m = asPath.length();
+                            char aspath[m + 1];
+                            strcpy(aspath, asPath.c_str());
+                            writer.String(aspath);
+                        }
+                    }
+
+                    writer.EndObject();
+                }
+            }
+        }
+    } else {
+        if (routerIdDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)routerIdDoc.GetErrorOffset()) +
+                          "): " + to_string((routerIdDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Pistache::Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"id\" : "
+                      "\"device_id\""
+                      "\n}");
+    }
+
+    writer.EndArray();
+    writer.EndObject();
+
+    L_DEBUG("Server", buf.GetString());
+
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
+    response.send(Pistache::Http::Code::Ok, buf.GetString());
+}
+
+
+void ApiEndpoint::sendPacket(const Pistache::Rest::Request &request,
+                             Pistache::Http::ResponseWriter response) {
+    rapidjson::StringBuffer                          buf;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+
+    auto body = request.body();
+
+    rapidjson::Document postDoc;
+
+    L_DEBUG("Server", body);
+
+    postDoc.Parse(body.c_str());
+
+    if (!postDoc.HasParseError() && postDoc.HasMember("send_from") &&
+        postDoc.HasMember("send_to")) {
+        std::string sender = postDoc.FindMember("send_from")->value.GetString();
+        std::string receiver = postDoc.FindMember("send_to")->value.GetString();
+        pcpp::IPv4Address receiverIP;
+
+
+        for (auto device : *devices) {
+            if (device->ID == receiver) {
+                receiverIP = device->networkCards->at(0)->IP;
+            }
+        }
+
+        for (auto device : *devices) {
+            if (device->ID == sender) {
+                device->ping(receiverIP);
+            }
+        }
+
+
+    } else {
+        if (postDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)postDoc.GetErrorOffset()) +
+                          "): " + to_string((postDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
+
+
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Pistache::Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"from\" : "
+                      "\"device_x\""
+                      "\n\t\"to\" : \"device_y\""
+                      "\n}");
+    }
+
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
+    response.send(Pistache::Http::Code::Ok, "Packet Sent!");
 }
