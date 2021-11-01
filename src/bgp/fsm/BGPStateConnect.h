@@ -13,8 +13,9 @@ class BGPStateConnect : public BGPState {
    public:
     BGPStateConnect(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         name = "CONNECT";
-        // L_DEBUG(stateMachine->connection->owner->ID + " " +
-        // stateMachine->name, "State created: " + name);
+        // L_DEBUG_CONN(stateMachine->connection->owner->ID + " " +
+        // stateMachine->name, stateMachine->connection->toString(), "State
+        // created: " + name);
     };
 
     ~BGPStateConnect() override = default;

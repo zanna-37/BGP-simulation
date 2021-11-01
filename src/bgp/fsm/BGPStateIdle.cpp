@@ -100,8 +100,9 @@ bool BGPStateIdle ::onEvent(BGPEvent event) {
         case BGPEventType::SendUpdateMsg:
             // Event for checking that the fsm is in a good state before sending
             // the message
-            L_ERROR(
+            L_ERROR_CONN(
                 stateMachine->connection->owner->ID + " " + stateMachine->name,
+                stateMachine->connection->toString(),
                 "UPDATE message cannot be sent in Idle state");
             break;
 

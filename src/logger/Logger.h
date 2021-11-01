@@ -6,20 +6,37 @@
 #include <mutex>
 #include <string>
 
+const std::string EMPTY_STRING = "";
+
 #define L_DEBUG(owner, message) \
-    Logger::getInstance()->log(LogLevel::DEBUG, owner, message)
+    Logger::getInstance()->log(LogLevel::DEBUG, owner, EMPTY_STRING, message)
 #define L_VERBOSE(owner, message) \
-    Logger::getInstance()->log(LogLevel::VERBOSE, owner, message)
+    Logger::getInstance()->log(LogLevel::VERBOSE, owner, EMPTY_STRING, message)
 #define L_INFO(owner, message) \
-    Logger::getInstance()->log(LogLevel::INFO, owner, message)
+    Logger::getInstance()->log(LogLevel::INFO, owner, EMPTY_STRING, message)
 #define L_SUCCESS(owner, message) \
-    Logger::getInstance()->log(LogLevel::SUCCESS, owner, message)
+    Logger::getInstance()->log(LogLevel::SUCCESS, owner, EMPTY_STRING, message)
 #define L_WARNING(owner, message) \
-    Logger::getInstance()->log(LogLevel::WARNING, owner, message)
+    Logger::getInstance()->log(LogLevel::WARNING, owner, EMPTY_STRING, message)
 #define L_ERROR(owner, message) \
-    Logger::getInstance()->log(LogLevel::ERROR, owner, message)
+    Logger::getInstance()->log(LogLevel::ERROR, owner, EMPTY_STRING, message)
 #define L_FATAL(owner, message) \
-    Logger::getInstance()->log(LogLevel::FATAL, owner, message)
+    Logger::getInstance()->log(LogLevel::FATAL, owner, EMPTY_STRING, message)
+
+#define L_DEBUG_CONN(owner, connection, message) \
+    Logger::getInstance()->log(LogLevel::DEBUG, owner, connection, message)
+#define L_VERBOSE_CONN(owner, connection, message) \
+    Logger::getInstance()->log(LogLevel::VERBOSE, owner, connection, message)
+#define L_INFO_CONN(owner, connection, message) \
+    Logger::getInstance()->log(LogLevel::INFO, owner, connection, message)
+#define L_SUCCESS_CONN(owner, connection, message) \
+    Logger::getInstance()->log(LogLevel::SUCCESS, owner, connection, message)
+#define L_WARNING_CONN(owner, connection, message) \
+    Logger::getInstance()->log(LogLevel::WARNING, owner, connection, message)
+#define L_ERROR_CONN(owner, connection, message) \
+    Logger::getInstance()->log(LogLevel::ERROR, owner, connection, message)
+#define L_FATAL_CONN(owner, connection, message) \
+    Logger::getInstance()->log(LogLevel::FATAL, owner, connection, message)
 
 enum class LogLevel : short {
     /**
@@ -128,7 +145,10 @@ class Logger {
      * characters.
      * @param message The message to be logged.
      */
-    void log(LogLevel logLevel, const std::string& owner, std::string message);
+    void log(LogLevel           logLevel,
+             const std::string& owner,
+             const std::string& connection,
+             std::string        message);
 
    private:
     static std::shared_ptr<Logger> logger;
@@ -181,6 +201,10 @@ class Logger {
     const int padOwnerInternalLength = 10;
     const int padOwnerExternalLength =
         encloseInBrackets("", padOwnerInternalLength).size();
+
+    const int padConnectionInternalLength = 47;
+    const int padConnectionExternalLength =
+        encloseInBrackets("", padConnectionInternalLength).size();
 
 
     static std::string encloseInBrackets(const std::string& message,

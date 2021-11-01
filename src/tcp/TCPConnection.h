@@ -120,6 +120,9 @@ class TCPConnection {
      */
     void send(std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
 
+
+    std::string toString();
+
    private:
     std::atomic<bool> running = {false};
 

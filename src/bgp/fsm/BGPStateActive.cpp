@@ -167,9 +167,10 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpOpenLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending OPEN message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending OPEN message");
 
                 // sets its HoldTimer to a large value, and
                 stateMachine->setNegotiatedHoldTime(
@@ -370,8 +371,9 @@ bool BGPStateActive ::onEvent(BGPEvent event) {
         case BGPEventType::SendUpdateMsg:
             // Event for checking that the fsm is in a good state before sending
             // the message
-            L_ERROR(
+            L_ERROR_CONN(
                 stateMachine->connection->owner->ID + " " + stateMachine->name,
+                stateMachine->connection->toString(),
                 "UPDATE message cannot be sent in Active state");
             break;
 

@@ -46,9 +46,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // XXX releases all BGP resources, done
@@ -86,9 +87,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
 
@@ -136,9 +138,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -180,9 +183,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpKeepaliveLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending KEEPALIVE message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending KEEPALIVE message");
             }
 
             // restarts the KeepaliveTimer
@@ -251,7 +255,6 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::BGPOpen:
-            L_DEBUG(stateMachine->connection->owner->ID, "Event -> BGPOpen");
             // DONE MANDATORY TO BE DONE!
             // DONE If this connection is to be dropped due to connection
             // collision, the local system:
@@ -314,9 +317,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -360,9 +364,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
@@ -568,9 +573,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                         stateMachine->connection->enqueueEvent(
                             std::move(event));
 
-                        L_INFO(stateMachine->connection->owner->ID + " " +
-                                   stateMachine->name,
-                               "Enqueuing UPDATE message in the events");
+                        L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                        stateMachine->name,
+                                    stateMachine->connection->toString(),
+                                    "Enqueuing UPDATE message in the events");
 
                         sameASPath = true;
                         previousBGPTableRow =
@@ -601,9 +607,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                                       std::move(updateLayer)};
                     stateMachine->connection->enqueueEvent(std::move(event));
 
-                    L_INFO(stateMachine->connection->owner->ID + " " +
+                    L_INFO_CONN(stateMachine->connection->owner->ID + " " +
                                stateMachine->name,
-                           "Enqueuing UPDATE message in the events");
+                               stateMachine->connection->toString(),
+                               "Enqueuing UPDATE message in the events");
                 }*/
             }
 
@@ -631,9 +638,10 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -664,8 +672,9 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
         case BGPEventType::SendUpdateMsg:
             // Event for checking that the fsm is in a good state before sending
             // the message
-            L_ERROR(
+            L_ERROR_CONN(
                 stateMachine->connection->owner->ID + " " + stateMachine->name,
+                stateMachine->connection->toString(),
                 "UPDATE message cannot be sent in OpenConfirm state");
             break;
 

@@ -13,8 +13,9 @@ class BGPStateIdle : public BGPState {
    public:
     BGPStateIdle(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         name = "IDLE";
-        // L_DEBUG(stateMachine->connection->owner->ID + " " +
-        // stateMachine->name, "State created: " + name);
+        // L_DEBUG_CONN(stateMachine->connection->owner->ID + " " +
+        // stateMachine->name, stateMachine->connection->toString(), "State
+        // created: " + name);
     };
 
 

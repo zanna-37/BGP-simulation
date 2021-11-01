@@ -118,6 +118,8 @@ class BGPConnection {
     std::string getCurrentStateName();
 
     bool setConnectedSocketIfFree(Socket* socket);
+
+    std::string toString();
 };
 
 #endif  // BGPSIMULATION_BGP_BGPCONNECTION_H

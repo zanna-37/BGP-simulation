@@ -27,9 +27,10 @@ BGPStateMachine::~BGPStateMachine() {
 }
 void BGPStateMachine::incrementConnectRetryCounter() {
     connectRetryCounter += 1;
-    L_DEBUG(connection->owner->ID,
-            "connectRetryCounter incremented. Current value: " +
-                std::to_string(connectRetryCounter));
+    L_DEBUG_CONN(connection->owner->ID,
+                 connection->toString(),
+                 "connectRetryCounter incremented. Current value: " +
+                     std::to_string(connectRetryCounter));
 }
 
 void BGPStateMachine::resetConnectRetryTimer() {
@@ -86,7 +87,8 @@ void BGPStateMachine::resetDelayOpenTimer() {
 }
 
 void BGPStateMachine::initializeTimers() {
-    //Reset just first time to the default values, after that, use the default values
+    // Reset just first time to the default values, after that, use the default
+    // values
     initializeTimes();
     resetConnectRetryTimer();
     resetHoldTimer();

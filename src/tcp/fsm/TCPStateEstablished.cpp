@@ -26,8 +26,9 @@
 TCPStateEstablished::TCPStateEstablished(TCPStateMachine* stateMachine)
     : TCPState(stateMachine) {
     name = "ESTABLISHED";
-    // L_DEBUG(stateMachine->connection->owner->ID + " " + stateMachine->name,
-    // "State created: " + name);
+    // L_DEBUG_CONN(stateMachine->connection->owner->ID
+    // stateMachine->connection->toString(),+ " " + stateMachine->name, "State
+    // created: " + name);
 }
 
 bool TCPStateEstablished::onEvent(TCPEvent event) {
@@ -55,10 +56,12 @@ bool TCPStateEstablished::onEvent(TCPEvent event) {
                                              TCPFlag::ACK);
             layers->push(std::move(tcpLayer));
 
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Sending PACKET to " +
-                        stateMachine->connection->dstAddr.toString() + ":" +
-                        std::to_string(stateMachine->connection->dstPort));
+            L_DEBUG_CONN(stateMachine->connection->owner->ID,
+                         stateMachine->connection->toString(),
+                         "Sending PACKET to " +
+                             stateMachine->connection->dstAddr.toString() +
+                             ":" +
+                             std::to_string(stateMachine->connection->dstPort));
             stateMachine->connection->enqueuePacketToPeerOutbox(
                 std::move(layers));
 
@@ -223,18 +226,22 @@ bool TCPStateEstablished::onEvent(TCPEvent event) {
             // should be piggybacked on a segment being transmitted if
             // possible without incurring undue delay.
             if (!segment->empty()) {
-                L_DEBUG(stateMachine->connection->owner->ID,
-                        "Received APP_PACKET from " +
-                            stateMachine->connection->dstAddr.toString() + ":" +
-                            std::to_string(stateMachine->connection->dstPort));
+                L_DEBUG_CONN(
+                    stateMachine->connection->owner->ID,
+                    stateMachine->connection->toString(),
+                    "Received APP_PACKET from " +
+                        stateMachine->connection->dstAddr.toString() + ":" +
+                        std::to_string(stateMachine->connection->dstPort));
                 stateMachine->connection->sendAckToPeer();
                 stateMachine->connection->enqueuePacketToInbox(
                     std::move(segment));
             } else {
-                L_DEBUG(stateMachine->connection->owner->ID,
-                        "Received ACK (alone) from " +
-                            stateMachine->connection->dstAddr.toString() + ":" +
-                            std::to_string(stateMachine->connection->dstPort));
+                L_DEBUG_CONN(
+                    stateMachine->connection->owner->ID,
+                    stateMachine->connection->toString(),
+                    "Received ACK (alone) from " +
+                        stateMachine->connection->dstAddr.toString() + ":" +
+                        std::to_string(stateMachine->connection->dstPort));
             }
 
             if (isFlag8Set(receivedFlags, TCPFlag::FIN)) {

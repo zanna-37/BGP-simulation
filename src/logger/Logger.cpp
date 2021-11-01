@@ -44,6 +44,7 @@ void addPadAfterEndline(std::string&       data,
 
 void Logger::log(LogLevel           logLevel,
                  const std::string& owner,
+                 const std::string& connection,
                  std::string        message) {
     if (logLevel >= targetLevel) {
         std::string        output;
@@ -82,6 +83,9 @@ void Logger::log(LogLevel           logLevel,
         }
         padToAdd += printTimestamp ? padTimestampExternalLength : 0;
         padToAdd += padOwnerExternalLength;
+        if (connection != EMPTY_STRING) {
+            padToAdd += padConnectionExternalLength;
+        }
 
         addPadAfterEndline(message, "\n", padToAdd);
 
@@ -120,6 +124,10 @@ void Logger::log(LogLevel           logLevel,
         }
 
         oss << encloseInBrackets(owner, padOwnerInternalLength);
+
+        if (connection != EMPTY_STRING) {
+            oss << encloseInBrackets(connection, padConnectionInternalLength);
+        }
         oss << message;
 
         if (enableColor) {

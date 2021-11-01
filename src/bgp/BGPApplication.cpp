@@ -58,13 +58,16 @@ void BGPApplication::passiveOpenAll() {
 
 void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
                                         pcpp::IPv4Address bgpIdentifier) {
-    L_DEBUG(connectionToCheck->owner->ID, "Collision detection");
+    L_DEBUG_CONN(connectionToCheck->owner->ID,
+                 connectionToCheck->toString(),
+                 "Collision detection");
     for (BGPConnection* connection : bgpConnections) {
         if (connection->getCurrentStateName() == "OPEN_CONFIRM") {
             if (connectionToCheck->dstAddr == connection->dstAddr &&
                 connection != connectionToCheck) {
-                L_INFO(
-                    connection->owner->ID,
+                L_INFO_CONN(
+                    connectionToCheck->owner->ID,
+                    connectionToCheck->toString(),
                     "Found Collision between " + bgpIdentifier.toString() +
                         " and " +
                         connection->bgpApplication->BGPIdentifier.toString());
@@ -198,8 +201,9 @@ void BGPApplication::sendBGPUpdateMessage(
                     std::make_unique<BGPUpdateLayer>(
                         withdrawnroutes, newPathAttributes, nlri);
                 bgpUpdateLayer->computeCalculateFields();
-                L_DEBUG(bgpConnection->owner->ID + " BGPfsm",
-                        bgpUpdateLayer->toString());
+                L_DEBUG_CONN(bgpConnection->owner->ID + " BGPfsm",
+                             bgpConnection->toString(),
+                             bgpUpdateLayer->toString());
                 /*std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
                     layers =
                         make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
@@ -210,28 +214,31 @@ void BGPApplication::sendBGPUpdateMessage(
                                   std::move(bgpUpdateLayer)};
                 bgpConnection->enqueueEvent(std::move(event));
 
-                L_INFO(bgpConnection->owner->ID + " BGPfsm",
-                       "Enqueuing UPDATE message in the events");
+                L_INFO_CONN(bgpConnection->owner->ID + " BGPfsm",
+                            bgpConnection->toString(),
+                            "Enqueuing UPDATE message in the events");
 
                 /*bgpConnection->sendData(std::move(layers));
 
-                L_INFO(bgpConnection->owner->ID + " BGPfsm",
-                       "Sending UPDATE message");*/
+                L_INFO_CONN(bgpConnection->owner->ID + " BGPfsm",
+                bgpConnection->toString(), "Sending UPDATE message");*/
             } else {
                 // Send BGPUpdateMessage
                 std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
                     std::make_unique<BGPUpdateLayer>(
                         withdrawnroutes, newPathAttributes, nlri);
                 bgpUpdateLayer->computeCalculateFields();
-                L_DEBUG(bgpConnection->owner->ID + " BGPfsm",
-                        bgpUpdateLayer->toString());
+                L_DEBUG_CONN(bgpConnection->owner->ID + " BGPfsm",
+                             bgpConnection->toString(),
+                             bgpUpdateLayer->toString());
 
                 BGPEvent event = {BGPEventType::SendUpdateMsg,
                                   std::move(bgpUpdateLayer)};
                 bgpConnection->enqueueEvent(std::move(event));
 
-                L_INFO(bgpConnection->owner->ID + " BGPfsm",
-                       "Enqueuing UPDATE message in the events");
+                L_INFO_CONN(bgpConnection->owner->ID + " BGPfsm",
+                            bgpConnection->toString(),
+                            "Enqueuing UPDATE message in the events");
             }
         }
     }
