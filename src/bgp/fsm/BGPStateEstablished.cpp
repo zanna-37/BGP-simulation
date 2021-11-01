@@ -465,6 +465,54 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 L_INFO(stateMachine->connection->owner->ID + " " +
                            stateMachine->name,
                        "Sending NOTIFICATION message");
+
+                // Create BGPUpdateMessage (no PathAttributes)
+                pcpp::IPv4Address IPAddressPeer =
+                    stateMachine->connection->dstAddr;
+                pcpp::IPv4Address netMask;
+                // L_DEBUG("IPAddressPeer", IPAddressPeer.toString());
+                for (NetworkCard* networkCard :
+                     *stateMachine->connection->owner->networkCards) {
+                    // L_DEBUG("IP NETWORK CARD PEER",
+                    // networkCardPeer->IP.toString());
+                    if (networkCard->IP == stateMachine->connection->srcAddr) {
+                        netMask = networkCard->netmask;
+                        // L_DEBUG("IP NETCARD PEER",
+                        // netMaskPeer.toString());
+                    }
+                }
+                pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
+                                                netMask.toInt());
+
+                std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                uint8_t prefLenPeer =
+                    LengthAndIpPrefix::computeLengthIpPrefix(netMask);
+                LengthAndIpPrefix withdrawnRoute(prefLenPeer,
+                                                 networkIPpeer.toString());
+
+                withdrawnRoutes.push_back(withdrawnRoute);
+
+                std::vector<PathAttribute>     pathAttributes;
+                std::vector<LengthAndIpPrefix> nlris;
+                std::vector<uint16_t>          asPath;
+
+                std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnRoutes, pathAttributes, nlris);
+                bgpUpdateLayer->computeCalculateFields();
+
+                runDecisionProcess(stateMachine->connection->owner,
+                                   bgpUpdateLayer,
+                                   stateMachine->connection->srcAddr,
+                                   stateMachine->connection);
+
+                stateMachine->connection->bgpApplication->sendBGPUpdateMessage(
+                    stateMachine->connection,
+                    withdrawnRoutes,
+                    asPath,
+                    nlris,
+                    false);
             }
 
             // TODO deletes all routes associated with this connection,

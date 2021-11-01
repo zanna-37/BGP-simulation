@@ -117,25 +117,50 @@ function modifyNodeNumbers(event) {
         event.chart.removeData({ nodes: [{ id: event.clickNode.id }] });
     } else if (event.clickLink) {
         var link = event.clickLink;
-        $.ajax({
-            url: "/breakLink",
-            dataType: 'json',
-            method: "POST",
-            contentType: 'application/json',
-            crossDomain: true,
-            async: true,
-            headers: {
-                "accept": "application/json",
-                "Access-Control-Allow-Origin": "*",
-            },
-            data: JSON.stringify({
-                "from": link.data.from,
-                "to": link.data.to,
-                "from_interface": link.data.extra.from_interface,
-                "to_interface": link.data.extra.to_interface
-            })
-        });
-        event.chart.removeData({ links: [{ id: event.clickLink.id }] });
+        if (link.data.style == undefined) {
+            link.data.style = { "fillColor": "#333" };
+        }
+        if (link.data.style.fillColor == "red") {
+            $.ajax({
+                url: "/addLink",
+                dataType: 'json',
+                method: "POST",
+                contentType: 'application/json',
+                crossDomain: true,
+                async: true,
+                headers: {
+                    "accept": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: JSON.stringify({
+                    "from": link.data.from,
+                    "to": link.data.to,
+                    "from_interface": link.data.extra.from_interface,
+                    "to_interface": link.data.extra.to_interface
+                })
+            });
+            link.data.style = { "fillColor": "#333" };
+        } else {
+            $.ajax({
+                url: "/breakLink",
+                dataType: 'json',
+                method: "POST",
+                contentType: 'application/json',
+                crossDomain: true,
+                async: true,
+                headers: {
+                    "accept": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: JSON.stringify({
+                    "from": link.data.from,
+                    "to": link.data.to,
+                    "from_interface": link.data.extra.from_interface,
+                    "to_interface": link.data.extra.to_interface
+                })
+            });
+            link.data.style = { "fillColor": "red" };
+        }
     }
 
     event.preventDefault();

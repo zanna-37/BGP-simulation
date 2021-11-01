@@ -953,14 +953,15 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
                 L_DEBUG("Server", "Pushed back non existing link");
             }
             for (auto dev : *devices) {
-                if (dev->ID.compare(device1)) {
+                if (dev->ID == device1 || dev->ID == device2) {
                     for (auto net : *dev->networkCards) {
-                        if (net->netInterface.compare(interface1)) {
+                        if (net->netInterface == interface1 ||
+                            net->netInterface == interface2) {
                             net->link->connection_status =
                                 ACTIVE;  // TODO Use setter when it will
                                          // be ready on the class.
                             L_INFO("Server",
-                                   "Link connected. Device: " + dev->ID +
+                                   "Link connetcted. Device: " + dev->ID +
                                        " Interface: " + net->netInterface);
                             L_DEBUG("Server",
                                     "Link status: " +
