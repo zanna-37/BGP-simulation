@@ -93,6 +93,8 @@ void Device::bootUp() {
 
                     std::string logMessage = "Received packet from " +
                                              networkCard->netInterface + ": ";
+                    // TODO IMPORTANT FIXME check all the interfaces, not just
+                    // the one that is receiving the packet!
                     if (dstAddress == networkCard->IP) {
                         L_DEBUG(ID,
                                 logMessage + "input chain, processing message");
