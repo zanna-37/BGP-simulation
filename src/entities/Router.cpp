@@ -55,6 +55,7 @@ void Router::buildBgpTable() {
                         0,
                         32768);
 
+        row.preferred = true;
         bgpTable.push_back(row);
     }
 }
