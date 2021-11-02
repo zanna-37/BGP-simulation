@@ -19,14 +19,14 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
    public:
 #ifdef DEBUG_GUARD
     constexpr static const std::chrono::seconds kConnectRetryTime_defaultVal =
-        12s;
-    constexpr static const std::chrono::seconds kHoldTime_defaultVal = 9s;
+        36s;
+    constexpr static const std::chrono::seconds kHoldTime_defaultVal = 27s;
     constexpr static const std::chrono::seconds kHoldTime_large_defaultVal =
-        24s;
+        72s;
     constexpr static const std::chrono::seconds kKeepaliveTime_defaultVal =
         kHoldTime_defaultVal / 3;
     constexpr static const std::chrono::seconds
-        kMinASOriginationIntervalTime_defaultVal = 15s;
+        kMinASOriginationIntervalTime_defaultVal = 45s;
 #else
     constexpr static const std::chrono::seconds kConnectRetryTime_defaultVal =
         120s;
