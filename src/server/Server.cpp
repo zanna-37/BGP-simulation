@@ -468,7 +468,7 @@ void ApiEndpoint::addNode(const Pistache::Rest::Request &request,
 
     rapidjson::Document postDoc;
 
-    L_DEBUG("Server", body);
+    // L_DEBUG("Server", body);
 
     postDoc.Parse(body.c_str());
 
@@ -627,7 +627,7 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
 
     rapidjson::Document postDoc;
 
-    L_DEBUG("Server", body);
+    // L_DEBUG("Server", body);
 
     postDoc.Parse(body.c_str());
 
@@ -749,7 +749,7 @@ void ApiEndpoint::deactivateNode(const Pistache::Rest::Request &request,
 
     rapidjson::Document postDoc;
 
-    L_DEBUG("Server", body);
+    // L_DEBUG("Server", body);
 
     postDoc.Parse(body.c_str());
 
@@ -836,7 +836,7 @@ void ApiEndpoint::activateNode(const Pistache::Rest::Request &request,
 
     rapidjson::Document postDoc;
 
-    L_DEBUG("Server", body);
+    // L_DEBUG("Server", body);
 
     postDoc.Parse(body.c_str());
 
@@ -922,7 +922,7 @@ void ApiEndpoint::addLink(const Pistache::Rest::Request &request,
 
     rapidjson::Document postDoc;
 
-    L_DEBUG("Server", body);
+    // L_DEBUG("Server", body);
 
     postDoc.Parse(body.c_str());
 
@@ -1074,7 +1074,7 @@ void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
     if (!routerIdDoc.HasParseError() && routerIdDoc.HasMember("id")) {
         for (auto device : *devices) {
             if (device->ID == routerIdDoc["id"].GetString()) {
-                L_DEBUG("Server", routerIdDoc["id"].GetString());
+                // L_DEBUG("Server", routerIdDoc["id"].GetString());
                 auto *router = dynamic_cast<Router *>(device);
                 for (int i = 0; i < router->peer_addresses.size(); i++) {
                     writer.StartObject();
@@ -1149,7 +1149,7 @@ void ApiEndpoint::getBGPpeersInfo(const Pistache::Rest::Request &request,
     writer.EndArray();
     writer.EndObject();
 
-    L_DEBUG("Server", buf.GetString());
+    // L_DEBUG("Server", buf.GetString());
 
     response.headers().add<Pistache::Http::Header::ContentType>(
         MIME(Application, Json));
@@ -1175,7 +1175,7 @@ void ApiEndpoint::getRoutingTable(const Pistache::Rest::Request &request,
     if (!routerIdDoc.HasParseError() && routerIdDoc.HasMember("id")) {
         for (auto device : *devices) {
             if (device->ID == routerIdDoc["id"].GetString()) {
-                L_DEBUG("Server", routerIdDoc["id"].GetString());
+                // L_DEBUG("Server", routerIdDoc["id"].GetString());
                 auto *router = dynamic_cast<Router *>(device);
                 for (int i = 0; i < router->routingTable.size(); i++) {
                     writer.StartObject();
@@ -1254,7 +1254,7 @@ void ApiEndpoint::getRoutingTable(const Pistache::Rest::Request &request,
     writer.EndArray();
     writer.EndObject();
 
-    L_DEBUG("Server", buf.GetString());
+    // L_DEBUG("Server", buf.GetString());
 
     response.headers().add<Pistache::Http::Header::ContentType>(
         MIME(Application, Json));
@@ -1273,7 +1273,7 @@ void ApiEndpoint::sendPacket(const Pistache::Rest::Request &request,
 
     rapidjson::Document postDoc;
 
-    L_DEBUG("Server", body);
+    // L_DEBUG("Server", body);
 
     postDoc.Parse(body.c_str());
 
