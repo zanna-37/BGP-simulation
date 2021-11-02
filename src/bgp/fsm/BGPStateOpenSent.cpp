@@ -266,8 +266,6 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                                              3));
                     stateMachine->setNegotiatedHoldTime(
                         std::chrono::seconds(be16toh(openHeader->holdTime_be)));
-                    stateMachine->setNegotiatedMinASOriginationIntervalTime(
-                        std::chrono::seconds(be16toh(openHeader->holdTime_be)));
                 }
             }
 

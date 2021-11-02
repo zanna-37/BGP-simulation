@@ -192,16 +192,15 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
      * minASOriginationIntervalTimer
      * @return the minASOriginationIntervalTime value
      */
-    std::chrono::seconds getNegotiatedMinASOriginationIntervalTime() const {
-        return negotiatedMinASOriginationIntervalTime;
+    std::chrono::seconds getMinASOriginationIntervalTime() const {
+        return minASOriginationIntervalTime;
     }
     /**
      * Set the minASOriginationIntervalTime default value
      * @param value the value of minASOriginationIntervalTime
      */
-    void setNegotiatedMinASOriginationIntervalTime(
-        const std::chrono::seconds& value) {
-        negotiatedMinASOriginationIntervalTime = value;
+    void setMinASOriginationIntervalTime(const std::chrono::seconds& value) {
+        minASOriginationIntervalTime = value;
     }
 
     /**
@@ -283,7 +282,7 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     std::chrono::seconds connectRetryTime                       = 0s;
     std::chrono::seconds negotiatedHoldTime                     = 0s;
     std::chrono::seconds negotiatedKeepaliveTime                = 0s;
-    std::chrono::seconds negotiatedMinASOriginationIntervalTime = 0s;
+    std::chrono::seconds minASOriginationIntervalTime           = 0s;
 
     // Mandatory session attributes
     int connectRetryCounter = 0;
