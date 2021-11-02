@@ -11,15 +11,12 @@
 
 void runDecisionProcess(Router *                         router,
                         std::unique_ptr<BGPUpdateLayer> &BGPUpdateMessage,
-                        pcpp::IPv4Address &              routerIP,
+                        pcpp::IPv4Address &              localRouterIP,
                         BGPConnection *                  bgpConnectionToAvoid);
 
-void calculatePreferredRoute(BGPTableRow &newRoute,
-                             BGPTableRow &currentPreferredRoute);
+void dispreferWorstRoute(BGPTableRow &newRoute,
+                         BGPTableRow &currentPreferredRoute);
 
-void updateIPTable(Router *           router,
-                   BGPTableRow &      route,
-                   bool               isWithDrawnRoute,
-                   pcpp::IPv4Address &routerIP);
+void updateIPTable(Router *router, BGPTableRow &route, bool isWithDrawnRoute);
 
 #endif  // BGPSIMULATION_BGP_BGPDECISIONPROCESS_H

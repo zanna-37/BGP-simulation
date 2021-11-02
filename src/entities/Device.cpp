@@ -187,10 +187,10 @@ void Device::processMessage(
         pcpp::icmphdr *icmpHeader_weak = icmpLayer_weak->getIcmpHeader();
         // sending Echo reply request
         if (icmpHeader_weak->type == pcpp::ICMP_ECHO_REQUEST) {
-            L_DEBUG(ID,
-                    "Received ICMP Echo request from " +
-                        ipLayer_weak->getSrcIPv4Address().toString() +
-                        ", sending reply...");
+            L_INFO(ID,
+                   "Received ICMP Echo request from " +
+                       ipLayer_weak->getSrcIPv4Address().toString() +
+                       ", sending reply...");
             auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
             icmpLayerToSend->setEchoReplyData(0, 0, 0, nullptr, 0);
 

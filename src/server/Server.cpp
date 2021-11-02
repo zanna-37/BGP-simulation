@@ -1213,11 +1213,11 @@ void ApiEndpoint::getRoutingTable(const Pistache::Rest::Request &request,
                         router->routingTable[i].networkIP;
                     pcpp::IPv4Address nextHop =
                         router->routingTable[i].defaultGateway;
-                    for (int j = 0; j < router->bgpTable.size(); j++) {
-                        if (networkIP == router->bgpTable[j].networkIP &&
-                            nextHop == router->bgpTable[j].nextHop) {
+                    for (auto &row : router->bgpTable) {
+                        if (networkIP == row.networkIP &&
+                            nextHop == row.nextHop && row.preferred) {
                             std::string asPath;
-                            for (auto as : router->bgpTable[j].asPath) {
+                            for (auto as : row.asPath) {
                                 asPath += std::to_string(as) + " ";
                             }
                             // AS_PATH
@@ -1226,6 +1226,7 @@ void ApiEndpoint::getRoutingTable(const Pistache::Rest::Request &request,
                             char aspath[m + 1];
                             strcpy(aspath, asPath.c_str());
                             writer.String(aspath);
+                            break;
                         }
                     }
 
