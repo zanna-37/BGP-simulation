@@ -96,25 +96,63 @@ function modifyNodeNumbers(event) {
         eventAddNode = event;
     }
     if (event.clickNode) {
-        $("#nav-node-info").empty();
-        $("#nav-node-BGPpeers").empty();
-        $("#nav-node-routingTable").empty();
-        $.ajax({
-            url: "/removeNode",
-            dataType: 'json',
-            method: "POST",
-            contentType: 'application/json',
-            crossDomain: true,
-            async: true,
-            headers: {
-                "accept": "application/json",
-                "Access-Control-Allow-Origin": "*",
-            },
-            data: JSON.stringify({
-                "id": event.clickNode.id,
-            })
-        });
-        event.chart.removeData({ nodes: [{ id: event.clickNode.id }] });
+        if (event.clickNode.data.extra.status == undefined) {
+            event.clickNode.data.extra.status = "activeted";
+        }
+
+        if (event.clickNode.data.extra.status == "activeted") {
+            event.clickNode.data.extra.status = "deactivated"
+            $("#nav-node-info").empty();
+            $("#nav-node-BGPpeers").empty();
+            $("#nav-node-routingTable").empty();
+            $.ajax({
+                url: "/deactivateNode",
+                dataType: 'json',
+                method: "POST",
+                contentType: 'application/json',
+                crossDomain: true,
+                async: true,
+                headers: {
+                    "accept": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: JSON.stringify({
+                    "id": event.clickNode.id,
+                })
+            });
+            var links = chart.links();
+            for (var i = 0; i < links.length; i++) {
+                if (links[i].data.from == event.clickNode.id || links[i].data.to == event.clickNode.id) {
+                    links[i].data.style = { "fillColor": "red" };
+                }
+            }
+        } else if (event.clickNode.data.extra.status == "deactivated") {
+            event.clickNode.data.extra.status = "activated"
+            $("#nav-node-info").empty();
+            $("#nav-node-BGPpeers").empty();
+            $("#nav-node-routingTable").empty();
+            $.ajax({
+                url: "/activateNode",
+                dataType: 'json',
+                method: "POST",
+                contentType: 'application/json',
+                crossDomain: true,
+                async: true,
+                headers: {
+                    "accept": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: JSON.stringify({
+                    "id": event.clickNode.id,
+                })
+            });
+            var links = chart.links();
+            for (var i = 0; i < links.length; i++) {
+                if (links[i].data.from == event.clickNode.id || links[i].data.to == event.clickNode.id) {
+                    links[i].data.style = { "fillColor": "#333" };
+                }
+            }
+        }
     } else if (event.clickLink) {
         var link = event.clickLink;
         if (link.data.style == undefined) {

@@ -47,6 +47,33 @@ void runDecisionProcess(Router *                         router,
                 }
             }
         }
+
+        // If withdrawnroute is nexthop for other routes we have to remove them
+        pcpp::IPv4Address peerIP = bgpConnectionToAvoid->dstAddr;
+        pcpp::IPv4Address peerNetMask;
+        for (NetworkCard *netCard : *router->networkCards) {
+            if (netCard->IP == routerIP) {
+                peerNetMask = netCard->netmask;
+            }
+        }
+        pcpp::IPv4Address peerNetworkIP(peerIP.toInt() & peerNetMask.toInt());
+
+        for (LengthAndIpPrefix withDrawnRoute : withDrawnRoutes) {
+            pcpp::IPv4Address withdrawnedNetworkIP(
+                withDrawnRoute.ipPrefix.toString());
+            if (withdrawnedNetworkIP == peerNetworkIP) {
+                for (auto itTableRow = router->bgpTable.begin();
+                     itTableRow != router->bgpTable.end();) {
+                    if (itTableRow->nextHop == peerIP) {
+                        // remove withdrawned route
+                        updateIPTable(router, *itTableRow, true, routerIP);
+                        itTableRow = router->bgpTable.erase(itTableRow);
+                    } else {
+                        itTableRow++;
+                    }
+                }
+            }
+        }
     }
 
     // check if there are new routes

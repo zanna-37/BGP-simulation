@@ -69,12 +69,20 @@ class ApiEndpoint {
                    Pistache::Http::ResponseWriter response);
 
     /**
-     * @brief Remove a node from the Network
+     * @brief Deactivate a node from the Network
      *
      * @param response Handler used to send back the reply
      */
-    void removeNode(const Pistache::Rest::Request& request,
-                    Pistache::Http::ResponseWriter response);
+    void deactivateNode(const Pistache::Rest::Request& request,
+                        Pistache::Http::ResponseWriter response);
+
+    /**
+     * @brief Activate a node from the Network
+     *
+     * @param response Handler used to send back the reply
+     */
+    void activateNode(const Pistache::Rest::Request& request,
+                      Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Activate a link of the network

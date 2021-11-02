@@ -74,8 +74,13 @@ void ApiEndpoint::setupRoutes() {
 
     Pistache::Rest::Routes::Post(
         router,
-        "/removeNode",
-        Pistache::Rest::Routes::bind(&ApiEndpoint::removeNode, this));
+        "/deactivateNode",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::deactivateNode, this));
+
+    Pistache::Rest::Routes::Post(
+        router,
+        "/activateNode",
+        Pistache::Rest::Routes::bind(&ApiEndpoint::activateNode, this));
 
     Pistache::Rest::Routes::Post(
         router,
@@ -734,8 +739,8 @@ void ApiEndpoint::breakLink(const Pistache::Rest::Request &request,
     response.send(Pistache::Http::Code::Ok, "Link removed Successfully!");
 }
 
-void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
-                             Pistache::Http::ResponseWriter response) {
+void ApiEndpoint::deactivateNode(const Pistache::Rest::Request &request,
+                                 Pistache::Http::ResponseWriter response) {
     // TODO: add logic to remove node from devices array
     rapidjson::StringBuffer                          buf;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
@@ -750,79 +755,129 @@ void ApiEndpoint::removeNode(const Pistache::Rest::Request &request,
 
     if (!postDoc.HasParseError() && postDoc.HasMember("id")) {
         std::string ID = postDoc["id"].GetString();
-        if (ID[0] == 'R') {
-            if (doc["routers"].Empty()) {
-                L_DEBUG("Server", "There are no routers in the network");
 
-                response.headers()
-                    .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
-                response.send(Pistache::Http::Code::Accepted,
-                              "There are no routers into the network!");
-            } else {
-                for (rapidjson::Value::ConstValueIterator itr =
-                         doc["routers"].Begin();
-                     itr != doc["routers"].End();) {
-                    std::string currentID =
-                        itr->FindMember("ID")->value.GetString();
-                    if (currentID == ID) {
-                        itr = doc["routers"].Erase(itr);
-                        L_DEBUG("Server",
-                                "Router removed from doc. Endpoint ID: " + ID);
-                        L_DEBUG("Server",
-                                "Routers doc size: " +
-                                    std::to_string(doc["routers"].Size()));
-                        for (auto it = devices->begin();
-                             it != devices->end();) {
-                            if ((*it)->ID == ID) {
-                                it = devices->erase(it);
-                                L_DEBUG("Server",
-                                        "Devices vector size: " +
-                                            std::to_string(devices->size()));
-                            } else {
-                                ++it;
-                            }
-                        }
-                    } else {
-                        ++itr;
-                    }
+        for (auto &link : doc["links"].GetArray()) {
+            rapidjson::Value::MemberIterator itr;
+            itr                     = link.FindMember("from");
+            std::string currentFrom = itr->value.GetString();
+            itr                     = link.FindMember("to");
+            std::string currentTo   = itr->value.GetString();
+            if (ID == currentFrom || ID == currentTo) {
+                itr = link.FindMember("con_status");
+                itr->value.SetString("failed", doc.GetAllocator());
+                L_DEBUG("Server", "Value in the the RapidJSON doc changed");
+            }
+        }
+        for (auto dev : *devices) {
+            if (dev->ID == ID) {
+                for (auto net : *dev->networkCards) {
+                    NetworkCard *netCardPeer =
+                        net->link->getPeerNetworkCardOrNull(net);
+                    netCardPeer->link->connection_status = FAILED;
+                    L_INFO("Server",
+                           "Link disconnetcted. Device: " +
+                               netCardPeer->owner->ID +
+                               " Interface: " + netCardPeer->netInterface);
+                    L_DEBUG("Server",
+                            "Link status: " +
+                                netCardPeer->link->getConnectionStatusString());
+
+                    net->link->connection_status =
+                        FAILED;  // TODO Use setter when it will
+                                 // be ready on the class.
+                    L_INFO("Server",
+                           "Link disconnetcted. Device: " + dev->ID +
+                               " Interface: " + net->netInterface);
+                    L_DEBUG("Server",
+                            "Link status: " +
+                                net->link->getConnectionStatusString());
                 }
             }
-        } else if (ID[0] == 'E') {
-            if (doc["endpoints"].Empty()) {
-                L_DEBUG("Server", "There are no endpoints in the network");
+        }
+    } else {
+        if (postDoc.HasParseError()) {
+            L_WARNING("Server",
+                      "Parsing Error(offset " +
+                          to_string((unsigned)postDoc.GetErrorOffset()) +
+                          "): " + to_string((postDoc.GetParseError())));
+        } else {
+            L_WARNING("Server", "JSON key values are wrong");
+        }
 
-                response.headers()
-                    .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
-                response.send(Pistache::Http::Code::Accepted,
-                              "There are no endpoints into the network!");
-            } else {
-                for (rapidjson::Value::ConstValueIterator itr =
-                         doc["endpoints"].Begin();
-                     itr != doc["endpoints"].End();) {
-                    std::string currentID =
-                        itr->FindMember("ID")->value.GetString();
-                    if (currentID == ID) {
-                        itr = doc["endpoints"].Erase(itr);
-                        L_DEBUG(
-                            "Server",
-                            "Endpoint removed from doc. Endpoint ID: " + ID);
-                        L_DEBUG("Server",
-                                "Endpoints doc size: " +
-                                    std::to_string(doc["endpoints"].Size()));
-                        for (auto it = devices->begin();
-                             it != devices->end();) {
-                            if ((*it)->ID == ID) {
-                                it = devices->erase(it);
-                                L_DEBUG("Server",
-                                        "Devices vector size: " +
-                                            std::to_string(devices->size()));
-                            } else {
-                                ++it;
-                            }
-                        }
-                    } else {
-                        ++itr;
-                    }
+
+        response.headers()
+            .add<Pistache::Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Pistache::Http::Code::Bad_Request,
+                      "Wrong POST request!\nThe request needs to have the "
+                      "following JSON format:\n{\n\t\"id\" : "
+                      "\"device_id\""
+                      "\n}");
+    }
+
+
+    // TODO Modify default reply
+    // postDoc.Accept(writer);
+
+
+    response.headers().add<Pistache::Http::Header::ContentType>(
+        MIME(Application, Json));
+    response.headers().add<Pistache::Http::Header::AccessControlAllowOrigin>(
+        "*");
+    response.send(Pistache::Http::Code::Ok, "Node deactivated Successfully!");
+}
+
+void ApiEndpoint::activateNode(const Pistache::Rest::Request &request,
+                               Pistache::Http::ResponseWriter response) {
+    // TODO: add logic to remove node from devices array
+    rapidjson::StringBuffer                          buf;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buf);
+
+    auto body = request.body();
+
+    rapidjson::Document postDoc;
+
+    L_DEBUG("Server", body);
+
+    postDoc.Parse(body.c_str());
+
+    if (!postDoc.HasParseError() && postDoc.HasMember("id")) {
+        std::string ID = postDoc["id"].GetString();
+
+        for (auto &link : doc["links"].GetArray()) {
+            rapidjson::Value::MemberIterator itr;
+            itr                     = link.FindMember("from");
+            std::string currentFrom = itr->value.GetString();
+            itr                     = link.FindMember("to");
+            std::string currentTo   = itr->value.GetString();
+            if (ID == currentFrom || ID == currentTo) {
+                itr = link.FindMember("con_status");
+                itr->value.SetString("active", doc.GetAllocator());
+                L_DEBUG("Server", "Value in the the RapidJSON doc changed");
+            }
+        }
+        for (auto dev : *devices) {
+            if (dev->ID == ID) {
+                for (auto net : *dev->networkCards) {
+                    NetworkCard *netCardPeer =
+                        net->link->getPeerNetworkCardOrNull(net);
+                    netCardPeer->link->connection_status = ACTIVE;
+                    L_INFO(
+                        "Server",
+                        "Link connetcted. Device: " + netCardPeer->owner->ID +
+                            " Interface: " + netCardPeer->netInterface);
+                    L_DEBUG("Server",
+                            "Link status: " +
+                                netCardPeer->link->getConnectionStatusString());
+
+                    net->link->connection_status =
+                        ACTIVE;  // TODO Use setter when it will
+                                 // be ready on the class.
+                    L_INFO("Server",
+                           "Link connetcted. Device: " + dev->ID +
+                               " Interface: " + net->netInterface);
+                    L_DEBUG("Server",
+                            "Link status: " +
+                                net->link->getConnectionStatusString());
                 }
             }
         }
