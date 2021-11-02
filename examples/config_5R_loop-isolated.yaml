@@ -1,10 +1,10 @@
 ---
 # Topology
-# E1 <--> R1 <------> R2 <--> E2
-#          ^          ^
-#          '--> R3 <--'
-#               ^
-#               '--> R4 <--> E4
+# E1 <--> R1 <-------------> R2 <--> E2
+#         ^                  ^
+#         '--> R5 <--> R3 <--'
+#                      ^
+#                      '--> R4 <--> E4
 
 # Logic behind the IPs assignment:
 #
@@ -42,10 +42,10 @@ routers:
       - interface: eth2
         IP: 11.22.0.1
         netmask: 255.255.0.0
-      - interface: eth3
-        IP: 11.33.0.1
+      - interface: eth5
+        IP: 11.55.0.1
         netmask: 255.255.0.0
-    peers: [ 11.22.0.2, 11.33.0.3 ]
+    peers: [ 11.22.0.2, 11.55.0.5 ]
 
   - id: R2
     AS_number: 2
@@ -64,10 +64,10 @@ routers:
 
   - id: R3
     AS_number: 3
-    default_gateway: 11.33.0.1
+    default_gateway: 33.55.0.5
     networkCard:
-      - interface: eth1
-        IP: 11.33.0.3
+      - interface: eth5
+        IP: 33.55.0.3
         netmask: 255.255.0.0
       - interface: eth2
         IP: 22.33.0.3
@@ -75,7 +75,7 @@ routers:
       - interface: eth4
         IP: 33.44.0.3
         netmask: 255.255.0.0
-    peers: [ 11.33.0.1, 22.33.0.2, 33.44.0.4 ]
+    peers: [ 33.55.0.5, 22.33.0.2, 33.44.0.4 ]
 
   - id: R4
     AS_number: 4
@@ -87,6 +87,17 @@ routers:
         IP: 33.44.0.4
         netmask: 255.255.0.0
     peers: [ 33.44.0.3 ]
+
+  - id: R5
+    AS_number: 5
+    networkCard:
+      - interface: eth1
+        IP: 11.55.0.5
+        netmask: 255.255.0.0
+      - interface: eth3
+        IP: 33.55.0.5
+        netmask: 255.255.0.0
+    peers: [ 11.55.0.1, 33.55.0.3 ]
 
 clients:
   - id: E1
@@ -121,13 +132,16 @@ links:
   - device_ids: [ R1, R2 ]
     device_source_interfaces: [ eth2, eth1 ]
     connection_status: active
-  - device_ids: [ R1, R3 ]
-    device_source_interfaces: [ eth3, eth1 ]
+  - device_ids: [ R1, R5 ]
+    device_source_interfaces: [ eth5, eth1 ]
     connection_status: active
   - device_ids: [ R2, R3 ]
     device_source_interfaces: [ eth3, eth2 ]
     connection_status: active
   - device_ids: [ R3, R4 ]
     device_source_interfaces: [ eth4, eth3 ]
+    connection_status: active
+  - device_ids: [ R3, R5 ]
+    device_source_interfaces: [ eth5, eth3 ]
     connection_status: active
 ...
