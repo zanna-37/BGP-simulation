@@ -68,8 +68,8 @@ void BGPApplication::collisionDetection(BGPConnection*    connectionToCheck,
                 L_INFO_CONN(
                     connectionToCheck->owner->ID,
                     connectionToCheck->toString(),
-                    "Found Collision between " + bgpIdentifier.toString() +
-                        " and " +
+                    "Found Collision between these BGPIdentifiers" +
+                        bgpIdentifier.toString() + " and " +
                         connection->bgpApplication->BGPIdentifier.toString());
 
                 BGPEvent event = {BGPEventType::OpenCollisionDump, nullptr};

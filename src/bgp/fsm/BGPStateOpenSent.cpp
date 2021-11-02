@@ -222,7 +222,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                     openLayer->getOpenHeaderOrNull();
 
                 pcpp::IPv4Address bgpIdentifier =
-                    pcpp::IPv4Address(be32toh(openHeader->BGPIdentifier_be));
+                    pcpp::IPv4Address(openHeader->BGPIdentifier_be);
 
                 stateMachine->connection->bgpApplication->collisionDetection(
                     stateMachine->connection, bgpIdentifier);
