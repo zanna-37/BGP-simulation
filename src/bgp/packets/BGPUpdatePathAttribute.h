@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "../../logger/Logger.h"
+
 
 /**
  * @warning This datastructure does not check the validity of the data.
@@ -15,9 +17,10 @@
 class PathAttribute {
    public:
     enum AttributeTypeFlags_uint8_t : uint8_t {
-        OPTIONAL = 1 << 0,  // binary 0000'0001
-        PARTIAL  = 1 << 1,  // binary 0000'0010
-        EXTENDED = 1 << 2,  // binary 0000'0100
+        OPTIONAL   = 1 << 7,  // binary 1000'0000
+        TRANSITIVE = 1 << 6,  // binary 0100'0000
+        PARTIAL    = 1 << 5,  // binary 0010'0000
+        EXTENDED   = 1 << 4,  // binary 0001'0000
     };
 
     enum AttributeTypeCode_uint8_t : uint8_t {
@@ -30,8 +33,8 @@ class PathAttribute {
         AGGREGATOR       = 7
     };
 
-    AttributeTypeFlags_uint8_t attributeTypeFlags{};
-    AttributeTypeCode_uint8_t  attributeTypeCode{};
+    uint8_t                   attributeTypeFlags = 0;
+    AttributeTypeCode_uint8_t attributeTypeCode{};
 
    private:
     uint8_t attributeLength_normal{};
@@ -46,7 +49,7 @@ class PathAttribute {
     uint8_t* attributeData_be = nullptr;
 
    public:
-    static bool isFlagSet(AttributeTypeFlags_uint8_t flagsToTest,
+    static bool isFlagSet(uint8_t                    flagsToTest,
                           AttributeTypeFlags_uint8_t flagValue) {
         return (flagsToTest & flagValue) == flagValue;
     };
@@ -75,7 +78,7 @@ class PathAttribute {
         AttributeTypeFlags_uint8_t value_bits =
             value ? flagType : (AttributeTypeFlags_uint8_t)0;
 
-        auto mask = (AttributeTypeFlags_uint8_t)~flagType;
+        auto mask = (uint8_t)~flagType;
 
         /**
          * \verbatim
@@ -85,7 +88,7 @@ class PathAttribute {
          *     mask                     = 11110111;
          * result:
          * [in]        oldAttributeTypeFlags 01000000
-         * [operation]               OR mask 11110111   --> make is made from
+         * [operation]              AND mask 11110111   --> make is made from
          *                                    |  |          ~value_bits
          * [intermediate result]             01000000
          *                                    |  |
@@ -102,7 +105,7 @@ class PathAttribute {
          *     mask                     = 11110111;
          * result:
          * [in]        oldAttributeTypeFlags 01001000
-         * [operation]               OR mask 11110111 ---> make is made from
+         * [operation]              AND mask 11110111 ---> make is made from
          *                                    |  |         ~value_bits
          * [intermediate result]             01000000
          *                                    |  |
@@ -114,8 +117,8 @@ class PathAttribute {
          * [out]       newAttributeTypeFlags 01001000
          * \endverbatim
          */
-        this->attributeTypeFlags = (AttributeTypeFlags_uint8_t)(
-            (this->attributeTypeFlags | mask) | value_bits);
+        this->attributeTypeFlags =
+            (uint8_t)((this->attributeTypeFlags & mask) | value_bits);
     }
 
     /**
@@ -141,11 +144,14 @@ class PathAttribute {
 
     /**
      * Set the length of the attribute and its value taking care of setting the
-     * \a EXTENDED bit flag when the size is larger that a byte.
-     * @param data The value to store.
-     * @param attributeSize The size of \a data
+     * \a EXTENDED bit flag when the size is larger than a byte.
+     *
+     * @param data_be The value to store in BigEndian format. The validity of
+     * the pointer is a caller responsibility. It will not be freed upon object
+     * destruction.
+     * @param attributeSize The size of \a data_be
      */
-    void setAttributeLengthAndValue(uint8_t* data, uint16_t attributeSize) {
+    void setAttributeLengthAndValue(uint8_t* data_be, uint16_t attributeSize) {
         bool extended = attributeSize > UINT8_MAX;
         if (extended) {
             setFlags(EXTENDED, true);
@@ -156,8 +162,15 @@ class PathAttribute {
             this->attributeLength_higherBits = (attributeSize >> 8);
         }
 
-        this->attributeData_be = data;
+        this->attributeData_be = data_be;
     }
+
+    /**
+     * @brief Get the Attribute whole attribute into a uint8_t vector
+     *
+     * @param data_be8 Vector to fill
+     */
+    void getAttribute_be8(std::vector<uint8_t>* data_be8);
 
     /**
      * Transform the data contained in \a vector into bytes.
@@ -185,6 +198,43 @@ class PathAttribute {
     static void parsePathAttributes(uint8_t*                    byteArray,
                                     size_t                      arrayLen,
                                     std::vector<PathAttribute>& vectorToFill);
+
+    /**
+     * @brief Build the data attribute array given an AS_PATH vector.
+     *
+     * @param[in] asType Segment type of the AS_PATH
+     * @param[in] asPathLen Number of ASs in the path
+     * @param[in] asPath Vector with the AS's numbers
+     * @param[out] asData_be Attribute data for the AS_PATH attribute
+     * construction
+     */
+    static void asPathToAttributeDataArray_be(
+        const uint8_t                asType,
+        const uint8_t                asPathLen,
+        const std::vector<uint16_t>& asPath,
+        std::vector<uint8_t>&        asData_be);
+
+    /**
+     * @brief Build AS_PATH vector given the data attribute array in big endian
+     * format.
+     *
+     * @param[in] asData_be Attribute data for the AS_PATH attribute
+     * @param[in] asData_be_length Length of asData_be
+     * @param[out] asType Segment type of the AS_PATH
+     * @param[out] asPathLen Number of ASs in the path
+     * @param[out] asPath Vector with the AS's numbers
+     * construction
+     */
+    static void attributeDataArray_beToAsPath(const uint8_t* asData_be,
+                                              const size_t   asData_be_length,
+                                              uint8_t&       asType,
+                                              std::vector<uint16_t>& asPath);
+
+    /**
+     * @brief Check that the AS_PATH attribute is synctattically correct
+     *
+     */
+    bool checkAsPathAttribute() const;
 
     std::string toString() const;
 };

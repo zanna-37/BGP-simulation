@@ -133,3 +133,115 @@ std::string PathAttribute::toString() const {
 
     return output;
 }
+
+void PathAttribute::asPathToAttributeDataArray_be(
+    const uint8_t                asType,
+    const uint8_t                asPathLen,
+    const std::vector<uint16_t>& asPath,
+    std::vector<uint8_t>&        asData_be) {
+    if (asType == 1 || asType == 2) {
+        asData_be.push_back(asType);
+    } else {
+        L_ERROR("ASDataBld", "AS Segment Type not handled");
+    }
+    if (asPathLen == asPath.size()) {
+        asData_be.push_back(asPathLen);
+    } else {
+        L_ERROR(
+            "ASDataBld",
+            "AS path segment length not matching wiht the nuber of AS numbers");
+    }
+
+    for (auto AS_h : asPath) {
+        uint16_t AS_be16 = htobe16(AS_h);
+        asData_be.push_back((uint8_t)(AS_be16));
+        asData_be.push_back((uint8_t)(AS_be16 >> 8));
+    }
+}
+
+void PathAttribute::attributeDataArray_beToAsPath(
+    const uint8_t*         asData_be,
+    const size_t           asData_be_length,
+    uint8_t&               asType,
+    std::vector<uint16_t>& asPath) {
+    auto currentByte = 0;
+    if (currentByte < asData_be_length) {
+        asType = asData_be[currentByte++];
+        if (asType != 1 && asType != 2) {
+            L_ERROR("ASDataBld", "AS Segment Type not handled");
+        }
+
+        if (currentByte < asData_be_length) {
+            uint8_t declaredASPathLen = asData_be[currentByte++];
+
+            uint8_t twoTimesTheRealASPathLen = asData_be_length - currentByte;
+            if (twoTimesTheRealASPathLen % 2 == 0) {
+                if (declaredASPathLen == (twoTimesTheRealASPathLen / 2)) {
+                    while (currentByte < asData_be_length) {
+                        uint8_t  low  = asData_be[currentByte++];
+                        uint8_t  high = asData_be[currentByte++];
+                        uint16_t tmp =
+                            be16toh((uint16_t)low + ((uint16_t)high << 8));
+                        asPath.push_back(tmp);
+                    }
+                } else {
+                    L_FATAL("ASDataBld",
+                            "The declared ASPathLen is not respected");
+                }
+            } else {
+                L_FATAL("ASDataBld", "asData_be is malformed");
+            }
+        } else {
+            L_FATAL("ASDataBld", "asData_be is too short");
+        }
+    } else {
+        L_FATAL("ASDataBld", "asData_be is empty");
+    }
+}
+
+bool PathAttribute::checkAsPathAttribute() const {
+    // XXX: NOTE: the constructor and check of the AS segment needs to be
+    // implemented for paths longer than 255
+
+    size_t   len = this->getAttributeLength_h();
+    uint8_t* val = this->getAttributeValue_be();
+
+    if (len < 4) {
+        L_ERROR("AsPathChk",
+                "AS_PATH segment too short, it must contain at list a "
+                "complete segment");
+        return false;
+    }
+
+    if (len > 255 * 2 + 2) {
+        L_ERROR("AsPathChk",
+                "AS_PATH Attribute check does not handle multiple segments");
+        return false;
+    }
+
+    if (val[0] != 1 && val[0] != 2) {
+        L_ERROR("AsPathChk", "AS_PATH segment type not recognised");
+        return false;
+    }
+
+
+    if (val[1] == 0 || val[1] != (len - 2) / 2) {
+        L_ERROR("AsPathChk",
+                "AS_PATH segment length and attribute length do not match!");
+        return false;
+    }
+
+    return true;
+}
+
+void PathAttribute::getAttribute_be8(std::vector<uint8_t>* data_be8) {
+    data_be8->push_back(this->attributeTypeFlags);
+    data_be8->push_back(this->attributeTypeCode);
+    uint16_t tmp_len = this->getAttributeLength_h();
+    data_be8->push_back((uint8_t)tmp_len);
+    data_be8->push_back((uint8_t)(tmp_len >> 8));
+    uint8_t* tmp_val = this->getAttributeValue_be();
+    for (int i = 0; i < tmp_len; i++) {
+        data_be8->push_back(tmp_val[i]);
+    }
+}

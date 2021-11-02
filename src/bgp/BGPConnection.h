@@ -25,11 +25,7 @@ using namespace std::chrono_literals;
 
 class BGPConnection {
    private:
-    BGPStateMachine* stateMachine = nullptr;
     // other BGPConnection variables
-
-
-    std::thread* listeningThread = nullptr;
 
     /**
      * The thread that manages any incoming application packet.
@@ -37,6 +33,8 @@ class BGPConnection {
     std::thread* receivingThread = nullptr;
 
     std::thread* connectThread = nullptr;
+
+    BGPStateMachine* stateMachine = nullptr;
 
    public:
     BGPApplication* bgpApplication;
@@ -47,9 +45,10 @@ class BGPConnection {
     Router*           owner   = nullptr;
     std::string       name    = "BGPconnection";
     std::atomic<bool> running = {false};
-    pcpp::IPv4Address srcAddr = pcpp::IPv4Address::Zero;  // TODO remove(?)
-    pcpp::IPv4Address dstAddr = pcpp::IPv4Address::Zero;  // TODO remove(?)
-    uint16_t          srcPort = 179;                      // TODO remove!!
+    pcpp::IPv4Address srcAddr;
+    pcpp::IPv4Address dstAddr;
+    uint16_t          srcPort;
+    uint16_t          dstPort;
 
 
     std::mutex connectedSocket_mutex;
@@ -58,13 +57,14 @@ class BGPConnection {
      * The newly created connected socket is assigned to this attribute, when
      * the TCP connection is established
      */
-    Socket* connectedSocket [[deprecated(
-        "Do not use directly. Use setConnectedSocketToAvailableBGPConn() or "
-        "getConnectedSocket()")]] =
-        nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
+    Socket* connectedSocket = nullptr /*GUARDED_BY(connectedSocket_mutex)*/;
 
     // Constructors
-    BGPConnection(Router* owner, BGPApplication* bgpApplication);
+    BGPConnection(Router*           owner,
+                  BGPApplication*   bgpApplication,
+                  pcpp::IPv4Address srcAddress,
+                  pcpp::IPv4Address dstAddress,
+                  uint16_t          dstPort);
 
     // Destructor
     ~BGPConnection();
@@ -89,9 +89,9 @@ class BGPConnection {
     void asyncConnectToPeer();
 
     /**
-     * Close the BGP connection and notifies the state machine
+     * Send a \a TcpConnectionFails event to the State Machine.
      */
-    void closeConnection();
+    void signalTCPConnectionFails();
 
     std::chrono::seconds getNegotiatedHoldTime();
 
@@ -108,20 +108,18 @@ class BGPConnection {
      */
     void sendData(
         std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
-    void listenForRemotelyInitiatedConnections();
-    void dropConnection(bool gentle);
-    void shutdown();
-
-   private:
-    [[nodiscard]] BGPConnection* setConnectedSocketToAvailableBGPConn(
-        Socket* newConnectedSocket);
-
-    /** TODO
-     * @warning \a connectedSocket_mutex MUST be held before calling this
-     * function.
-     * @return
+    void        dropConnection(bool gentle);
+    void        shutdown();
+    /**
+     * returns a pointer to the current state name, used to check in collision
+     * detection mechanism
+     * @return the current state name of the State Machine
      */
-    [[nodiscard]] Socket* getConnectedSocket();
+    std::string getCurrentStateName();
+
+    bool setConnectedSocketIfFree(Socket* socket);
+
+    std::string toString();
 };
 
 #endif  // BGPSIMULATION_BGP_BGPCONNECTION_H

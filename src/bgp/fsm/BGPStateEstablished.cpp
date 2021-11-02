@@ -2,13 +2,18 @@
 
 #include <chrono>
 
+#include "../../entities/Link.h"
 #include "../../entities/Router.h"
+#include "../../utils/SmartPointerUtils.h"
+#include "../BGPApplication.h"
 #include "../BGPConnection.h"
+#include "../BGPDecisionProcess.h"
 #include "../BGPEvent.h"
 #include "../BGPTimer.h"
 #include "../packets/BGPKeepaliveLayer.h"
 #include "../packets/BGPLayer.h"
 #include "../packets/BGPNotificationLayer.h"
+#include "../packets/BGPUpdateLayer.h"
 #include "BGPStateIdle.h"
 #include "BGPStateMachine.h"
 
@@ -25,16 +30,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
         case BGPEventType::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             // (Events 1, 3-7) are ignored in the Active state.
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> ManualStart, AutomaticStart, "
-                    "ManualStart_with_PassiveTcpEstablishment, "
-                    "AutomaticStart_with_PassiveTcpEstablishment, "
-                    "AutomaticStart_with_DampPeerOscillations, "
-                    "AutomaticStart_with_DampPeerOscillations_and_"
-                    "PassiveTcpEstablishment");
             break;
         case BGPEventType::ManualStop:
-            L_DEBUG(stateMachine->connection->owner->ID, "Event -> ManualStop");
             // sends the NOTIFICATION message with a Cease,
 
             {
@@ -50,18 +47,66 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
+
+                // Create BGPUpdateMessage (no PathAttributes)
+                pcpp::IPv4Address IPAddressPeer =
+                    stateMachine->connection->dstAddr;
+                pcpp::IPv4Address netMask;
+                // L_DEBUG("IPAddressPeer", IPAddressPeer.toString());
+                for (NetworkCard* networkCard :
+                     *stateMachine->connection->owner->networkCards) {
+                    // L_DEBUG("IP NETWORK CARD PEER",
+                    // networkCardPeer->IP.toString());
+                    if (networkCard->IP == stateMachine->connection->srcAddr) {
+                        netMask = networkCard->netmask;
+                        // L_DEBUG("IP NETCARD PEER",
+                        // netMaskPeer.toString());
+                    }
+                }
+                pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
+                                                netMask.toInt());
+
+                std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                uint8_t prefLenPeer =
+                    LengthAndIpPrefix::computeLengthIpPrefix(netMask);
+                LengthAndIpPrefix withdrawnRoute(prefLenPeer,
+                                                 networkIPpeer.toString());
+
+                withdrawnRoutes.push_back(withdrawnRoute);
+
+                std::vector<PathAttribute>     pathAttributes;
+                std::vector<LengthAndIpPrefix> nlris;
+                std::vector<uint16_t>          asPath;
+
+                std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnRoutes, pathAttributes, nlris);
+                bgpUpdateLayer->computeCalculateFields();
+
+                runDecisionProcess(stateMachine->connection->owner,
+                                   bgpUpdateLayer,
+                                   stateMachine->connection->srcAddr,
+                                   stateMachine->connection);
+
+                stateMachine->connection->bgpApplication->sendBGPUpdateMessage(
+                    stateMachine->connection,
+                    withdrawnRoutes,
+                    asPath,
+                    nlris,
+                    false);
             }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO deletes all routes associated with this connection,
-            // TODO BGP table needed
-
             // XXX releases BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -76,8 +121,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::AutomaticStop:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> AutomaticStop");
             // OPTIONAL
             // sends a NOTIFICATION with a Cease,
 
@@ -94,19 +137,22 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
 
             // sets the ConnectRetryTimer to zero
             stateMachine->resetConnectRetryTimer();
 
-            // XXX deletes all routes associated with this connection,
-            // XXX copy from above
+            // TODO deletes all routes associated with this connection,
+            // TODO copy from above
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -129,8 +175,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::HoldTimer_Expires:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> HoldTimer_Expires");
             // sends a NOTIFICATION message with the Error Code Hold Timer
             // Expired,
 
@@ -147,9 +191,58 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
+
+                // Create BGPUpdateMessage (no PathAttributes)
+                pcpp::IPv4Address IPAddressPeer =
+                    stateMachine->connection->dstAddr;
+                pcpp::IPv4Address netMask;
+                // L_DEBUG("IPAddressPeer", IPAddressPeer.toString());
+                for (NetworkCard* networkCard :
+                     *stateMachine->connection->owner->networkCards) {
+                    // L_DEBUG("IP NETWORK CARD PEER",
+                    // networkCardPeer->IP.toString());
+                    if (networkCard->IP == stateMachine->connection->srcAddr) {
+                        netMask = networkCard->netmask;
+                        // L_DEBUG("IP NETCARD PEER",
+                        // netMaskPeer.toString());
+                    }
+                }
+                pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
+                                                netMask.toInt());
+
+                std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                uint8_t prefLenPeer =
+                    LengthAndIpPrefix::computeLengthIpPrefix(netMask);
+                LengthAndIpPrefix withdrawnRoute(prefLenPeer,
+                                                 networkIPpeer.toString());
+
+                withdrawnRoutes.push_back(withdrawnRoute);
+
+                std::vector<PathAttribute>     pathAttributes;
+                std::vector<LengthAndIpPrefix> nlris;
+                std::vector<uint16_t>          asPath;
+
+                std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnRoutes, pathAttributes, nlris);
+                bgpUpdateLayer->computeCalculateFields();
+
+                runDecisionProcess(stateMachine->connection->owner,
+                                   bgpUpdateLayer,
+                                   stateMachine->connection->srcAddr,
+                                   stateMachine->connection);
+
+                stateMachine->connection->bgpApplication->sendBGPUpdateMessage(
+                    stateMachine->connection,
+                    withdrawnRoutes,
+                    asPath,
+                    nlris,
+                    false);
             }
 
 
@@ -157,6 +250,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -174,12 +269,9 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
-
             break;
 
         case BGPEventType::KeepaliveTimer_Expires:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> KeepaliveTimer_Expires");
             // sends a KEEPALIVE message, and
 
             {
@@ -193,11 +285,11 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpKeepaliveLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending KEEPALIVE message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending KEEPALIVE message");
             }
-
 
             // FIXME restarts its KeepaliveTimer, unless the negotiated HoldTime
             // value is zero. --> Should be correct now
@@ -208,8 +300,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::TcpConnection_Valid:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> TcpConnection_Valid");
             // OPTIONAL
             // XXX received for a valid port, will cause the second connection
             // to be tracked.
@@ -218,15 +308,11 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::Tcp_CR_Invalid:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> Tcp_CR_Invalid");
 
             break;
 
         case BGPEventType::Tcp_CR_Acked:
         case BGPEventType::TcpConnectionConfirmed:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> Tcp_CR_Acked, TcpConnectionConfirmed");
             // MANDATORY  -- How?
             // TODO the second connection SHALL be tracked until it sends an
             // OPEN message.
@@ -235,8 +321,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::BGPOpen:
-            L_DEBUG(stateMachine->connection->owner->ID, "Event -> BGPOpen");
-
             // If a valid OPEN message (BGPOpen (Event 19)) is received,
             // and if the CollisionDetectEstablishedState optional attribute is
             // TRUE, the OPEN message will be checked to see if it collides
@@ -249,21 +333,38 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // FIXME If the CollisionDetectEstablishedState is FALSE the RFC
             // does not give any instructions I suppose that the message needs
             // to be ignored
-
             break;
 
         case BGPEventType::OpenCollisionDump:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> OpenCollisionDump");
             // OPTIONAL
             // XXX sends a NOTIFICATION with a Cease,
+            {
+                std::unique_ptr<BGPLayer> bgpNotificationLayer =
+                    std::make_unique<BGPNotificationLayer>(
+                        BGPNotificationLayer::CEASE,
+                        BGPNotificationLayer::ERR_X_NO_SUB_ERR);
+                bgpNotificationLayer->computeCalculateFields();
+
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpNotificationLayer));
+
+                stateMachine->connection->sendData(std::move(layers));
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
+            }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // XXX deletes all routes associated with this connection,
+            // TODO deletes all routes associated with this connection,
 
             // XXX releases all BGP resources,
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -287,16 +388,62 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
         case BGPEventType::NotifMsgVerErr:
         case BGPEventType::NotifMsg:
         case BGPEventType::TcpConnectionFails:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> NotifMsgVerErr, NotifMsg, TcpConnectionFails");
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
-            // TODO deletes all routes associated with this connection,
-            // bgp table needed
+            {
+                // Create BGPUpdateMessage (no PathAttributes)
+                pcpp::IPv4Address IPAddressPeer =
+                    stateMachine->connection->dstAddr;
+                pcpp::IPv4Address netMask;
+                // L_DEBUG("IPAddressPeer", IPAddressPeer.toString());
+                for (NetworkCard* networkCard :
+                     *stateMachine->connection->owner->networkCards) {
+                    // L_DEBUG("IP NETWORK CARD PEER",
+                    // networkCardPeer->IP.toString());
+                    if (networkCard->IP == stateMachine->connection->srcAddr) {
+                        netMask = networkCard->netmask;
+                        // L_DEBUG("IP NETCARD PEER",
+                        // netMaskPeer.toString());
+                    }
+                }
+                pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
+                                                netMask.toInt());
 
+                std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                uint8_t prefLenPeer =
+                    LengthAndIpPrefix::computeLengthIpPrefix(netMask);
+                LengthAndIpPrefix withdrawnRoute(prefLenPeer,
+                                                 networkIPpeer.toString());
+
+                withdrawnRoutes.push_back(withdrawnRoute);
+
+                std::vector<PathAttribute>     pathAttributes;
+                std::vector<LengthAndIpPrefix> nlris;
+                std::vector<uint16_t>          asPath;
+
+                std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnRoutes, pathAttributes, nlris);
+                bgpUpdateLayer->computeCalculateFields();
+
+                runDecisionProcess(stateMachine->connection->owner,
+                                   bgpUpdateLayer,
+                                   stateMachine->connection->srcAddr,
+                                   stateMachine->connection);
+
+                stateMachine->connection->bgpApplication->sendBGPUpdateMessage(
+                    stateMachine->connection,
+                    withdrawnRoutes,
+                    asPath,
+                    nlris,
+                    false);
+            }
 
             // XXX releases all the BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -311,8 +458,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::KeepAliveMsg:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> KeepAliveMsg");
             // restarts its HoldTimer, if the negotiated HoldTime value is
             // non-zero, and
             if (stateMachine->getNegotiatedHoldTime() != 0ms) {
@@ -323,10 +468,17 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // remains in the Established state.
             break;
 
-        case BGPEventType::UpdateMsg:
-            L_DEBUG(stateMachine->connection->owner->ID, "Event -> UpdateMsg");
-            // MANDATORY
-            // TODO processes the message,
+        case BGPEventType::UpdateMsg: {
+            // BGPUpdateMessage to be processed
+            std::unique_ptr<BGPUpdateLayer> updateLayer;
+            dynamic_pointer_move(updateLayer, event.layers);
+
+            // Run Decision Process
+            runDecisionProcess(stateMachine->connection->owner,
+                               updateLayer,
+                               stateMachine->connection->srcAddr,
+                               stateMachine->connection);
+        }
 
             // restarts its HoldTimer, if the negotiated HoldTime value is
             // non-zero, and
@@ -336,18 +488,13 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             }
 
             // remains in the Established state.
-
-            handled = false;
             break;
 
         case BGPEventType::UpdateMsgErr:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> UpdateMsgErr");
             // MANDATORY
             // sends a NOTIFICATION message with an Update error,
             // take the message error to insert in the notification
 
-            // FIXME the error of the UPDATE message is not well computed yet
             {
                 std::unique_ptr<BGPLayer> bgpNotificationLayer =
                     std::move(event.layers);
@@ -358,10 +505,10 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(
-                    stateMachine->connection->owner->ID + " " +
-                        stateMachine->name,
-                    "Sending NOTIFICATION message FIXME -> No uptdate error");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
@@ -371,6 +518,8 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
             // table needed
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -396,11 +545,6 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
         case BGPEventType::BGPOpen_with_DelayOpenTimer_running:
         case BGPEventType::BGPHeaderErr:
         case BGPEventType::BGPOpenMsgErr:
-            L_DEBUG(
-                stateMachine->connection->owner->ID,
-                "Event -> ConnectRetryTimer_Expires, DelayOpenTimer_Expires, "
-                "IdleHoldTimer_Expires, BGPOpen_with_DelayOpenTimer_running, "
-                "BGPHeaderErr, BGPOpenMsgErr");
             // sends a NOTIFICATION message with the Error Code Finite
             // State Machine Error,
 
@@ -417,18 +561,67 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
-            }
 
-            // TODO deletes all routes associated with this connection,
-            // bgp table needed
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
+
+                // Create BGPUpdateMessage (no PathAttributes)
+                pcpp::IPv4Address IPAddressPeer =
+                    stateMachine->connection->dstAddr;
+                pcpp::IPv4Address netMask;
+                // L_DEBUG("IPAddressPeer", IPAddressPeer.toString());
+                for (NetworkCard* networkCard :
+                     *stateMachine->connection->owner->networkCards) {
+                    // L_DEBUG("IP NETWORK CARD PEER",
+                    // networkCardPeer->IP.toString());
+                    if (networkCard->IP == stateMachine->connection->srcAddr) {
+                        netMask = networkCard->netmask;
+                        // L_DEBUG("IP NETCARD PEER",
+                        // netMaskPeer.toString());
+                    }
+                }
+                pcpp::IPv4Address networkIPpeer(IPAddressPeer.toInt() &
+                                                netMask.toInt());
+
+                std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                uint8_t prefLenPeer =
+                    LengthAndIpPrefix::computeLengthIpPrefix(netMask);
+                LengthAndIpPrefix withdrawnRoute(prefLenPeer,
+                                                 networkIPpeer.toString());
+
+                withdrawnRoutes.push_back(withdrawnRoute);
+
+                std::vector<PathAttribute>     pathAttributes;
+                std::vector<LengthAndIpPrefix> nlris;
+                std::vector<uint16_t>          asPath;
+
+                std::unique_ptr<BGPUpdateLayer> bgpUpdateLayer =
+                    std::make_unique<BGPUpdateLayer>(
+                        withdrawnRoutes, pathAttributes, nlris);
+                bgpUpdateLayer->computeCalculateFields();
+
+                runDecisionProcess(stateMachine->connection->owner,
+                                   bgpUpdateLayer,
+                                   stateMachine->connection->srcAddr,
+                                   stateMachine->connection);
+
+                stateMachine->connection->bgpApplication->sendBGPUpdateMessage(
+                    stateMachine->connection,
+                    withdrawnRoutes,
+                    asPath,
+                    nlris,
+                    false);
+            }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -446,6 +639,229 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+            break;
+
+        case BGPEventType::SendUpdateMsg:
+            // Event for checking that the fsm is in a good state before sending
+            // the message
+
+            {
+                std::unique_ptr<BGPLayer> bgpUpdateLayer =
+                    std::move(event.layers);
+
+                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                    layers =
+                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
+                layers->push(std::move(bgpUpdateLayer));
+
+                stateMachine->connection->sendData(std::move(layers));
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending UPDATE message");
+            }
+
+            break;
+
+        case BGPEventType::MinASOriginationIntervalTimer_Expires:
+            // sends Update message
+
+            {
+                bool        sameASPath = true;
+                BGPTableRow previousBGPTableRow =
+                    stateMachine->connection->owner->bgpTable[0];
+
+                std::vector<LengthAndIpPrefix> new_nlri;
+                uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
+                    previousBGPTableRow.networkMask);
+                LengthAndIpPrefix nlri(
+                    prefLen, previousBGPTableRow.networkIP.toString());
+                new_nlri.push_back(nlri);
+
+                for (int i = 1;
+                     i < stateMachine->connection->owner->bgpTable.size();
+                     i++) {
+                    if (previousBGPTableRow.asPath.size() ==
+                        stateMachine->connection->owner->bgpTable[i]
+                            .asPath.size()) {
+                        for (int j = 0; j < previousBGPTableRow.asPath.size();
+                             j++) {
+                            if (previousBGPTableRow.asPath[j] !=
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .asPath[j]) {
+                                sameASPath = false;
+                                break;
+                            }
+                        }
+                        if (sameASPath ||
+                            (!sameASPath && i == stateMachine->connection->owner
+                                                         ->bgpTable.size() -
+                                                     1)) {
+                            uint8_t prefLen =
+                                LengthAndIpPrefix::computeLengthIpPrefix(
+                                    stateMachine->connection->owner->bgpTable[i]
+                                        .networkMask);
+                            LengthAndIpPrefix nlri(
+                                prefLen,
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .networkIP.toString());
+                            new_nlri.push_back(nlri);
+                        }
+                    } else if (previousBGPTableRow.asPath.size() !=
+                                   stateMachine->connection->owner->bgpTable[i]
+                                       .asPath.size() &&
+                               i == stateMachine->connection->owner->bgpTable
+                                            .size() -
+                                        1) {
+                        sameASPath = false;
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .networkMask);
+                        LengthAndIpPrefix nlri(
+                            prefLen,
+                            stateMachine->connection->owner->bgpTable[i]
+                                .networkIP.toString());
+                        new_nlri.push_back(nlri);
+
+
+                    } else {
+                        sameASPath = false;
+                    }
+
+                    if (!sameASPath ||
+                        i == stateMachine->connection->owner->bgpTable.size() -
+                                 1) {
+                        // Create BGPUpdateMessage
+                        std::vector<PathAttribute> newPathAttributes;
+
+                        // NextHop PathAttribute
+                        uint32_t routerIp_int =
+                            stateMachine->connection->srcAddr.toInt();
+                        const size_t nextHopDataLength              = 4;
+                        uint8_t      nextHopData[nextHopDataLength] = {
+                            (uint8_t)routerIp_int,
+                            (uint8_t)(routerIp_int >> 8),
+                            (uint8_t)(routerIp_int >> 16),
+                            (uint8_t)(routerIp_int >> 24)};
+                        PathAttribute nextHopAttribute;
+                        nextHopAttribute.setAttributeLengthAndValue(
+                            nextHopData, nextHopDataLength);
+                        nextHopAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(nextHopAttribute);
+
+                        // AS_Path PathAttribute
+                        std::vector<uint8_t> asPath_be8;
+
+                        uint16_t new_as_num =
+                            (uint16_t)
+                                stateMachine->connection->owner->AS_number;
+
+                        std::vector<uint16_t> asPath;
+
+                        if (!sameASPath) {
+                            asPath = previousBGPTableRow.asPath;
+                        } else {
+                            asPath =
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .asPath;
+                        }
+
+                        asPath.push_back(new_as_num);
+
+                        uint8_t asPathType = 2;
+                        uint8_t asPathLen  = asPath.size();
+
+                        PathAttribute::asPathToAttributeDataArray_be(
+                            asPathType, asPathLen, asPath, asPath_be8);
+
+                        size_t        asPathDataLength = asPath_be8.size();
+                        uint8_t*      asPathData       = asPath_be8.data();
+                        PathAttribute asPathAttribute;
+                        asPathAttribute.setAttributeLengthAndValue(
+                            asPathData, asPathDataLength);
+                        asPathAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::AS_PATH;
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(asPathAttribute);
+
+                        // Origin PathAttribute
+                        const size_t  originDataLength             = 1;
+                        uint8_t       originData[originDataLength] = {2};
+                        PathAttribute originPathAttribute;
+                        originPathAttribute.setAttributeLengthAndValue(
+                            originData, originDataLength);
+                        originPathAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::ORIGIN;
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(originPathAttribute);
+
+                        std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                        std::unique_ptr<BGPUpdateLayer> updateLayer =
+                            std::make_unique<BGPUpdateLayer>(
+                                withdrawnRoutes, newPathAttributes, new_nlri);
+                        updateLayer->computeCalculateFields();
+
+                        BGPEvent event = {BGPEventType::SendUpdateMsg,
+                                          std::move(updateLayer)};
+                        stateMachine->connection->enqueueEvent(
+                            std::move(event));
+
+                        L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                        stateMachine->name,
+                                    stateMachine->connection->toString(),
+                                    "Enqueuing UPDATE message in the events");
+
+                        sameASPath = true;
+                        previousBGPTableRow =
+                            stateMachine->connection->owner->bgpTable[i];
+                        new_nlri.clear();
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                previousBGPTableRow.networkMask);
+                        LengthAndIpPrefix nlri(
+                            prefLen, previousBGPTableRow.networkIP.toString());
+                        new_nlri.push_back(nlri);
+                    }
+                }
+            }
+
+            // FIXME restarts its KeepaliveTimer, unless the negotiated
+            // HoldTime value is zero. --> Should be correct now
+            if (stateMachine->getNegotiatedHoldTime() != 0ms) {
+                stateMachine->resetMinASOriginationIntervalTimer();
+                stateMachine->minASOriginationIntervalTimer->start();
+            }
             break;
 
         default:

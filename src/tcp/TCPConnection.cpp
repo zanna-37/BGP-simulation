@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <utility>
+#include <iomanip>
 
 #include "../entities/Device.h"
 #include "../logger/Logger.h"
@@ -26,11 +27,13 @@ TCPConnection::TCPConnection(Device* owner) : owner(owner) {
 
 TCPConnection::~TCPConnection() {
     if (!dynamic_cast<TCPStateClosed*>(stateMachine->getCurrentState())) {
-        L_WARNING("TCP",
-                  "TCPConnection has been deallocated without being in the "
-                  "closed state. Currently in " +
-                      stateMachine->getCurrentState()->name +
-                      ".\nCall close() before deleting the connection");
+        L_WARNING_CONN("TCP",
+                       toString(),
+                       "TCPConnection has been deallocated without "
+                       "being in the "
+                       "closed state. Currently in " +
+                           stateMachine->getCurrentState()->name +
+                           ".\nCall close() before deleting the connection");
     }
 
     // wake up everybody just in case. It shouldn't be needed but "better safe
@@ -46,16 +49,18 @@ TCPConnection::~TCPConnection() {
 void TCPConnection::abort() {
     stateMachine->enqueueEvent(TCPEvent::Abort);
     // TODO wait for the abort call to be completed
-    L_DEBUG(stateMachine->connection->owner->ID,
-            "TODO wait for the abort call to be completed");
+    L_DEBUG_CONN(stateMachine->connection->owner->ID,
+                 toString(),
+                 "TODO wait for the abort call to be completed");
     std::this_thread::sleep_for(3000ms);  // TODO remove
 }
 
 void TCPConnection::close() {
     stateMachine->enqueueEvent(TCPEvent::Close);
     // TODO wait for the close call to be completed
-    L_DEBUG(stateMachine->connection->owner->ID,
-            "TODO wait for the close call to be completed");
+    L_DEBUG_CONN(stateMachine->connection->owner->ID,
+                 toString(),
+                 "TODO wait for the close call to be completed");
     std::this_thread::sleep_for(3000ms);  // TODO remove
 }
 
@@ -114,8 +119,10 @@ int TCPConnection::listen() {
     stateMachine->enqueueEvent(TCPEvent::OpenPassive);
 
     // TODO wait for the listen call to be completed and return result
-    L_DEBUG(stateMachine->connection->owner->ID,
-            "TODO wait for the listen call to be completed and return result");
+    L_DEBUG_CONN(
+        stateMachine->connection->owner->ID,
+        toString(),
+        "TODO wait for the listen call to be completed and return result");
     std::this_thread::sleep_for(200ms);  // TODO remove
     return 0;
 }
@@ -140,8 +147,10 @@ int TCPConnection::connect() {
     stateMachine->enqueueEvent(TCPEvent::OpenActive);
 
     // TODO wait until the connection is established and return result
-    L_DEBUG(stateMachine->connection->owner->ID,
-            "TODO wait until the connection is established and return result");
+    L_DEBUG_CONN(
+        stateMachine->connection->owner->ID,
+        toString(),
+        "TODO wait until the connection is established and return result");
     std::this_thread::sleep_for(200ms);  // TODO remove
 
     return 0;
@@ -196,27 +205,29 @@ void TCPConnection::enqueuePacketToOutbox(
     owner->sendPacket(std::move(layers), dstAddr);
 }
 
-std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-TCPConnection::waitForApplicationData() {
+int TCPConnection::waitForApplicationData(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>& layers) {
     std::unique_lock<std::mutex> appReceivingQueue_uniqueLock(
         appReceivingQueue_mutex);
 
+    assert(!layers);  // Pass an empty object that will (possibly) be filled
     assert(dstPort != 0);  // Waiting data from a listening-only connection? Use
                            // socket.accept();
     while (appReceivingQueue.empty() && running) {
         appReceivingQueue_wakeup.wait(appReceivingQueue_uniqueLock);
 
         if (appReceivingQueue.empty() && running) {
-            L_DEBUG(name, "Spurious wakeup");
+            L_DEBUG_CONN(name, toString(), "Spurious wakeup");
         }
     }
-
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers;
-    if (!appReceivingQueue.empty()) {
+    if (running) {
+        assert(!appReceivingQueue.empty());
         layers = std::move(appReceivingQueue.front());
         appReceivingQueue.pop();
+        return 0;
+    } else {
+        return -1;
     }
-    return std::move(layers);
 }
 
 void TCPConnection::enqueuePacketToInbox(
@@ -230,7 +241,7 @@ void TCPConnection::enqueuePacketToInbox(
 
 std::shared_ptr<TCPConnection>
 TCPConnection::createConnectedConnectionFromListening(
-    const pcpp::IPv4Address& dstAddr, const uint16_t dstPort) {
+    const pcpp::IPv4Address& remoteSrcAddr, const uint16_t remoteSrcPort) {
     // TODO use this in the listening state if we receive a SYN
     // TODO the caller (so not this function) need to push the new connection
     // into a pendingConnection queue and notify the accept() method.
@@ -239,8 +250,8 @@ TCPConnection::createConnectedConnectionFromListening(
         std::make_shared<TCPConnection>(owner);
     newTcpConnection->srcAddr = srcAddr;
     newTcpConnection->srcPort = srcPort;
-    newTcpConnection->dstAddr = dstAddr;
-    newTcpConnection->dstPort = dstPort;
+    newTcpConnection->dstAddr = remoteSrcAddr;
+    newTcpConnection->dstPort = remoteSrcPort;
 
     // Make the connection as it would have been in a listening state.
     newTcpConnection->running = true;
@@ -260,9 +271,11 @@ void TCPConnection::send(
 }
 
 void TCPConnection::sendSynToPeer() {
-    L_DEBUG(stateMachine->connection->owner->ID,
-            "Sending SYN to " + stateMachine->connection->dstAddr.toString() +
-                ":" + std::to_string(stateMachine->connection->dstPort));
+    L_DEBUG_CONN(stateMachine->connection->owner->ID,
+                 toString(),
+                 "Sending SYN to " +
+                     stateMachine->connection->dstAddr.toString() + ":" +
+                     std::to_string(stateMachine->connection->dstPort));
 
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
         std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
@@ -275,9 +288,11 @@ void TCPConnection::sendSynToPeer() {
 }
 
 void TCPConnection::sendFinToPeer() {
-    L_DEBUG(stateMachine->connection->owner->ID,
-            "Sending FIN to " + stateMachine->connection->dstAddr.toString() +
-                ":" + std::to_string(stateMachine->connection->dstPort));
+    L_DEBUG_CONN(stateMachine->connection->owner->ID,
+                 toString(),
+                 "Sending FIN to " +
+                     stateMachine->connection->dstAddr.toString() + ":" +
+                     std::to_string(stateMachine->connection->dstPort));
 
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
         std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
@@ -290,9 +305,11 @@ void TCPConnection::sendFinToPeer() {
 }
 
 void TCPConnection::sendAckToPeer() {
-    L_DEBUG(stateMachine->connection->owner->ID,
-            "Sending ACK to " + stateMachine->connection->dstAddr.toString() +
-                ":" + std::to_string(stateMachine->connection->dstPort));
+    L_DEBUG_CONN(stateMachine->connection->owner->ID,
+                 toString(),
+                 "Sending ACK to " +
+                     stateMachine->connection->dstAddr.toString() + ":" +
+                     std::to_string(stateMachine->connection->dstPort));
 
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
         std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
@@ -305,10 +322,11 @@ void TCPConnection::sendAckToPeer() {
 }
 
 void TCPConnection::sendSynAckToPeer() {
-    L_DEBUG(stateMachine->connection->owner->ID,
-            "Sending SYN+ACK to " +
-                stateMachine->connection->dstAddr.toString() + ":" +
-                std::to_string(stateMachine->connection->dstPort));
+    L_DEBUG_CONN(stateMachine->connection->owner->ID,
+                 toString(),
+                 "Sending SYN+ACK to " +
+                     stateMachine->connection->dstAddr.toString() + ":" +
+                     std::to_string(stateMachine->connection->dstPort));
 
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
         std::make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
@@ -322,8 +340,9 @@ void TCPConnection::sendSynAckToPeer() {
 void TCPConnection::sendRstToPeer() { sendRstTo(dstAddr, dstPort); }
 
 void TCPConnection::sendRstTo(pcpp::IPv4Address dstAddr, uint16_t dstPort) {
-    L_DEBUG(
+    L_DEBUG_CONN(
         stateMachine->connection->owner->ID,
+        toString(),
         "Sending RST to " + dstAddr.toString() + ":" + std::to_string(dstPort));
 
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
@@ -334,4 +353,13 @@ void TCPConnection::sendRstTo(pcpp::IPv4Address dstAddr, uint16_t dstPort) {
 
     layers->push(std::move(tcpLayer));
     enqueuePacketToOutbox(std::move(layers), dstAddr);
+}
+
+std::string TCPConnection::toString() {
+    std::ostringstream str;
+    str << std::setw(21) << srcAddr.toString() + ":" + std::to_string(srcPort) <<
+                           " <--> " << dstAddr.toString() + ":" +
+                           std::to_string(dstPort);
+
+    return str.str();
 }

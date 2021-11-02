@@ -11,6 +11,8 @@
 
 #include "configuration/parser/Parser.h"
 #include "entities/Device.h"
+#include "entities/EndPoint.h"
+#include "entities/Router.h"
 #include "logger/Logger.h"
 #include "pistache/net.h"
 #include "pistache/os.h"
@@ -161,23 +163,20 @@ int main(int argc, char *argv[]) {
                       "/showGUI\nPress Ctrl+C to end the simulation");
 
         for (auto device : *devices) {
-            /* TODO REMOVE ME, just an example
-            if (auto *x = dynamic_cast<Router *>(device)) {
-                cout << x->ID << endl;
-            } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
-                cout << x->ID << endl;
-            }
-            */
+            // if (auto *x = dynamic_cast<Router *>(device)) {
+            // cout << x->ID << endl;
+            // } else if (auto *x = dynamic_cast<EndPoint *>(device)) {
+            // cout << x->ID << endl;
+            // }
             device->bootUp();
             std::this_thread::sleep_for(
                 std::chrono::milliseconds(500));  // TODO remove me
         }
 
         // TODO REMOVE ME, just examples
-        // std::this_thread::sleep_for(std::chrono::milliseconds(15000));
-        // auto *sender = dynamic_cast<Device *>(devices->at(2));
-        // sender->ping(pcpp::IPv4Address("90.36.25.1"));
-        // END: REMOVE ME just examples
+        /*std::this_thread::sleep_for(std::chrono::milliseconds(20000));
+        auto *sender = dynamic_cast<Device *>(devices->at(1));
+        sender->ping(pcpp::IPv4Address("30.4.0.104"));*/
 
         while (!stop) {
             sleep(1);  // TODO change from polling to wait

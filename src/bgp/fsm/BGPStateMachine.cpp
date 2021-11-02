@@ -24,12 +24,14 @@ BGPStateMachine::~BGPStateMachine() {
     delete keepAliveTimer;
     delete holdTimer;
     delete delayOpenTimer;
+    delete minASOriginationIntervalTimer;
 }
 void BGPStateMachine::incrementConnectRetryCounter() {
     connectRetryCounter += 1;
-    L_DEBUG(connection->owner->ID,
-            "connectRetryCounter incremented. Current value: " +
-                std::to_string(connectRetryCounter));
+    L_DEBUG_CONN(connection->owner->ID,
+                 connection->toString(),
+                 "connectRetryCounter incremented. Current value: " +
+                     std::to_string(connectRetryCounter));
 }
 
 void BGPStateMachine::resetConnectRetryTimer() {
@@ -85,12 +87,31 @@ void BGPStateMachine::resetDelayOpenTimer() {
         new BGPTimer("DelayOpenTimer", this, std::move(event), delayOpenTime);
 }
 
+void BGPStateMachine::resetMinASOriginationIntervalTimer() {
+    if (minASOriginationIntervalTimer != nullptr) {
+        minASOriginationIntervalTimer->stop();
+        delete minASOriginationIntervalTimer;
+    }
+    BGPEvent event = {
+        BGPEventType::MinASOriginationIntervalTimer_Expires,
+        nullptr,
+    };
+
+    minASOriginationIntervalTimer =
+        new BGPTimer("MinASOriginationIntervalTimer",
+                     this,
+                     std::move(event),
+                     getNegotiatedMinASOriginationIntervalTime());
+}
+
 void BGPStateMachine::initializeTimers() {
-    //Reset just first time to the default values, after that, use the default values
+    // Reset just first time to the default values, after that, use the default
+    // values
     initializeTimes();
     resetConnectRetryTimer();
     resetHoldTimer();
     resetKeepAliveTimer();
+    resetMinASOriginationIntervalTimer();
     resetDelayOpenTimer();
 }
 
@@ -98,6 +119,8 @@ void BGPStateMachine::initializeTimes() {
     setConnectRetryTime(kConnectRetryTime_defaultVal);
     setNegotiatedHoldTime(kHoldTime_defaultVal);
     setNegotiatedKeepaliveTime(kKeepaliveTime_defaultVal);
+    setNegotiatedMinASOriginationIntervalTime(
+        kMinASOriginationIntervalTime_defaultVal);
 }
 
 std::string BGPStateMachine::toString() {

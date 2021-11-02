@@ -4,6 +4,7 @@
 #include <atomic>
 #include <cstdint>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "../socket/Socket.h"
@@ -11,27 +12,52 @@
 
 // forward declarations
 #include "../entities/Router.fwd.h"
+#include "./packets/BGPUpdateLayer.h"
+#include "./packets/BGPUpdateLengthAndIpPrefix.h"
+#include "./packets/BGPUpdatePathAttribute.h"
+#include "BGPApplication.fwd.h"
 #include "BGPConnection.fwd.h"
 
+
+class ListeningSocketModule {
+   private:
+    BGPApplication*   bgpApp;
+    Socket*           listeningSocket;
+    std::thread*      listeningSocketsThread;
+    std::atomic<bool> running = {false};
+
+   public:
+    Socket* getSocket();
+
+    ListeningSocketModule(Socket* socket, BGPApplication* BGPAppParent);
+    ~ListeningSocketModule();
+
+    void startListeningThread(pcpp::IPv4Address srcAddress);
+    void stopListeningThread();
+};
 
 class BGPApplication {
    private:
     // The value of the BGP Identifier is determined upon
     // startup and is the same for every local interface and BGP peer.
-    // TODO define if we want to leave the first nework card as bgpIdentifier
+    // TODO define if we want to leave the first network card as bgpIdentifier
     pcpp::IPv4Address BGPIdentifier = nullptr;
 
-   public:
-    static const int BGPDefaultPort = 179;  // TODO change to uint16_t
 
+    std::mutex                          listeningSockets_mutex;
+    std::vector<ListeningSocketModule*> listeningSocketModules;
+
+    ListeningSocketModule* getOrCreateCorrespondingListeningSocketModule(
+        pcpp::IPv4Address srcAddress, uint16_t srcPort);
+
+   protected:
     /**
      * List of the bgp connections active when the application is running
      */
     std::vector<BGPConnection*> bgpConnections;
 
-    std::vector<Socket*> listeningSockets;
-
-    std::atomic<bool> running = {false};
+   public:
+    static const int BGPDefaultPort = 179;  // TODO change to uint16_t will do
 
     // BGP Routing Table
 
@@ -71,12 +97,31 @@ class BGPApplication {
      * provided in RFC 4271
      * @param connectionToCheck the BGP connection to be checked
      */
-    void           collisionDetection(BGPConnection* connectionToCheck);
-    BGPConnection* createNewBgpConnection();
-    Socket*        getCorrespondingListeningSocket(pcpp::IPv4Address srcAddress,
-                                                   uint16_t          srcPort);
+    void collisionDetection(BGPConnection*    connectionToCheck,
+                            pcpp::IPv4Address bgpIdentifier);
+
+    BGPConnection* createNewBgpConnection(pcpp::IPv4Address srcAddress,
+                                          pcpp::IPv4Address dstAddress);
 
     pcpp::IPv4Address getBGPIdentifier() { return BGPIdentifier; }
+
+    void startListeningOnSocket(pcpp::IPv4Address srcAddress);
+
+    void stopListeningOnSocket(pcpp::IPv4Address srcAddress);
+
+    BGPConnection* setConnectedSocketToAvailableBGPConn(
+        Socket*           newConnectedSocket,
+        pcpp::IPv4Address bgpConnectionSrcAddressToBindTo,
+        pcpp::IPv4Address bgpConnectionDstAddressToBindTo);
+
+    void sendBGPUpdateMessage(BGPConnection* bgpConnectionToAvoid,
+                              std::vector<LengthAndIpPrefix> withdrawnroutes,
+                              std::vector<uint16_t>          asPath,
+                              std::vector<LengthAndIpPrefix> nlri,
+                              bool                           hasPathAttributes);
+
+    friend class ListeningSocketModule;
+    friend class ApiEndpoint;
 };
 
 #endif  // BGPSIMULATION_BGP_BGPAPPLICATION_H

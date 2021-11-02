@@ -5,6 +5,7 @@
 
 #include <bitset>
 #include <cstring>
+#include <vector>
 
 #include "../../logger/Logger.h"
 
@@ -114,7 +115,8 @@ size_t BGPNotificationLayer::getNotificationData_be(uint8_t* bufferToFill,
     return notificationDataLength;
 }
 
-bool BGPNotificationLayer::checkMessageErr(uint8_t subcode) const {
+bool BGPNotificationLayer::checkMessageErr(
+    uint8_t* subcode, std::vector<uint8_t>* data_be8) const {
     BGPNotificationHeader* notificationHeader = getNotificationHeaderOrNull();
 
     switch (notificationHeader->errorCode) {

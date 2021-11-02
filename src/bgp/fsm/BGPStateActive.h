@@ -13,8 +13,9 @@ class BGPStateActive : public BGPState {
    public:
     BGPStateActive(BGPStateMachine* stateMachine) : BGPState(stateMachine) {
         name = "ACTIVE";
-        // L_DEBUG(stateMachine->connection->owner->ID + " " +
-        // stateMachine->name, "State created: " + name);
+        // L_DEBUG_CONN(stateMachine->connection->owner->ID + " " +
+        // stateMachine->name, stateMachine->connection->toString(), "State
+        // created: " + name);
     };
 
     ~BGPStateActive() override = default;

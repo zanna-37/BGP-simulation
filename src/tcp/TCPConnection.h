@@ -23,7 +23,7 @@
 
 class TCPConnection {
    public:
-    std::string name = "TCPConnection";
+    std::string      name         = "TCPConnection";
     /**
      * The connection state machine. It is based on RFC 793
      */
@@ -32,7 +32,7 @@ class TCPConnection {
     /**
      * The owner of the connection
      */
-    Device* owner = nullptr;
+    Device*           owner   = nullptr;
     /**
      * The connection source IP address
      */
@@ -40,7 +40,7 @@ class TCPConnection {
     /**
      * The connection source port
      */
-    uint16_t srcPort = 0;
+    uint16_t          srcPort = 0;
     /**
      * The connection destination IP address
      */
@@ -48,7 +48,7 @@ class TCPConnection {
     /**
      * The connection source port
      */
-    uint16_t dstPort = 0;
+    uint16_t          dstPort = 0;
 
     TCPConnection(Device* owner);
     ~TCPConnection();
@@ -95,11 +95,15 @@ class TCPConnection {
 
     /**
      * Blocking function that waits for the receiving application queue to
-     * receive data
-     * @return the application layers
+     * receive data.
+     * @param layers The application layers that are filled with the received
+     * data, ready to be passed to the application. Always pass an empty object.
+     * In case of errors the content of this variable is not defined.
+     *
+     * @return 0 if successful or -1 in case of errors.
      */
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-    waitForApplicationData();
+    [[nodiscard]] int waitForApplicationData(
+        std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>& layers);
 
     /**
      * Enquque the application layers to the application layers queue
@@ -115,6 +119,9 @@ class TCPConnection {
      * and TCP header
      */
     void send(std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers);
+
+
+    std::string toString();
 
    private:
     std::atomic<bool> running = {false};
@@ -188,13 +195,13 @@ class TCPConnection {
      * connection into the pendingConnection queue and notify the accept()
      * method.
      *
-     * @param destAddr The remote address the SYN come from.
-     * @param destPort The remote port the SYN come from.
+     * @param remoteSrcAddr The remote address the SYN come from.
+     * @param remoteSrcPort The remote port the SYN come from.
      * @return A new connection that is technically put in the listening state,
      * but is ready to evolve.
      */
     std::shared_ptr<TCPConnection> createConnectedConnectionFromListening(
-        const pcpp::IPv4Address& destAddr, const uint16_t destPort);
+        const pcpp::IPv4Address& remoteSrcAddr, const uint16_t remoteSrcPort);
 
     /**
      * Push the packet to the sending queue to be hand over to the lower stack

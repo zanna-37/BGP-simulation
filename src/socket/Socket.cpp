@@ -32,7 +32,10 @@ void Socket::close() {
     // tcpConnection->close();
 }
 
-int Socket::listen() { return tcpConnection->listen(); }
+int Socket::listen() {
+    running = true;
+    return tcpConnection->listen();
+}
 
 int Socket::bind(const pcpp::IPv4Address& srcAddr, const uint16_t& srcPort) {
     tcpConnection->srcAddr = srcAddr;
@@ -53,6 +56,7 @@ Socket* Socket::accept() {
 }
 
 int Socket::connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort) {
+    running = true;
     NetworkCard* nextHopNetworkCard =
         device->getNextHopNetworkCardOrNull(dstAddr);
     if (nextHopNetworkCard == nullptr) {
@@ -72,17 +76,13 @@ int Socket::connect(const pcpp::IPv4Address& dstAddr, uint16_t dstPort) {
     }
 }
 
-void Socket::dataArrived() {
-    // TODO DELME
-    std::unique_lock<std::mutex> tcpConnection_uniqueLock(tcpConnection_mutex);
-    tcpConnection_wakeup.notify_one();
-    tcpConnection_uniqueLock.unlock();
-}
-
-std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> Socket::recv() {
-    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers =
-        tcpConnection->waitForApplicationData();
-    return layers;
+int Socket::recv(
+    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>& layers) {
+    int recvStatus = tcpConnection->waitForApplicationData(layers);
+    if (recvStatus != 0) {
+        running = false;
+    }
+    return recvStatus;
 }
 
 

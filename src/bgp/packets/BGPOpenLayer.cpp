@@ -68,7 +68,8 @@ BGPOpenLayer::BGPOpenLayer(uint16_t                 myAutonomousSystemNumber,
     openHeader->optionalParametersLength    = optionalParamsDataLen;
 }
 
-bool BGPOpenLayer::checkMessageErr(uint8_t subcode) const {
+bool BGPOpenLayer::checkMessageErr(uint8_t*              subcode,
+                                   std::vector<uint8_t>* data_be8) const {
     // OPEN Message Error subcodes:
 
     //      1 - Unsupported Version Number.
@@ -80,23 +81,24 @@ bool BGPOpenLayer::checkMessageErr(uint8_t subcode) const {
 
     BGPOpenHeader* openHeader = getOpenHeaderOrNull();
     if (openHeader->version != BGPOpenLayer::version) {
-        subcode = 1;
+        *subcode = 1;
         L_ERROR("OpenMSGErr", "BGP version not supported");
         return false;
     } else if (!checkAS()) {
-        subcode = 2;
+        *subcode = 2;
         L_ERROR("OpenMSGErr", "Peer AS number invalid");
         return false;
-    } else if (be16toh(openHeader->holdTime_be) == 1 || be16toh(openHeader->holdTime_be) == 2) {
-        subcode = 6;
+    } else if (be16toh(openHeader->holdTime_be) == 1 ||
+               be16toh(openHeader->holdTime_be) == 2) {
+        *subcode = 6;
         L_ERROR("OpenMSGErr", "Unacceptable Hold Time");
         return false;
     } else if (!checkValidIP()) {
-        subcode = 3;
+        *subcode = 3;
         L_ERROR("OpenMSGErr", "BGP Identifier is not an unicast IP address");
         return false;
     } else if (openHeader->optionalParametersLength > 0) {
-        subcode = 4;
+        *subcode = 4;
         L_ERROR("OpenMSGErr", "No optional paramenter are supported");
         return false;
     }

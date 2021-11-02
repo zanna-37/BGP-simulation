@@ -31,7 +31,7 @@ class ApiEndpoint {
      * @brief Start servign the APIs
      *
      */
-    void start(volatile sig_atomic_t *stop);
+    void start(volatile sig_atomic_t* stop);
 
     std::vector<Device*>* devices = nullptr;
     rapidjson::Document   doc;
@@ -44,20 +44,12 @@ class ApiEndpoint {
     void setupRoutes();
 
     /**
-     * @brief Get the status of the Network
-     *
-     * @param response Handler used to send back the reply
-     */
-    void getNetwork(const Pistache::Rest::Request& request,
-                    Pistache::Http::ResponseWriter response);
-
-    /**
      * @brief Get the status of the Network for ZoomCharts
      *
      * @param response Handler used to send back the reply
      */
     void getNetZoomCharts(const Pistache::Rest::Request& request,
-                    Pistache::Http::ResponseWriter response);
+                          Pistache::Http::ResponseWriter response);
 
 
     /**
@@ -77,12 +69,20 @@ class ApiEndpoint {
                    Pistache::Http::ResponseWriter response);
 
     /**
-     * @brief Remove a node from the Network
+     * @brief Deactivate a node from the Network
      *
      * @param response Handler used to send back the reply
      */
-    void removeNode(const Pistache::Rest::Request& request,
-                    Pistache::Http::ResponseWriter response);
+    void deactivateNode(const Pistache::Rest::Request& request,
+                        Pistache::Http::ResponseWriter response);
+
+    /**
+     * @brief Activate a node from the Network
+     *
+     * @param response Handler used to send back the reply
+     */
+    void activateNode(const Pistache::Rest::Request& request,
+                      Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Activate a link of the network
@@ -92,13 +92,11 @@ class ApiEndpoint {
     void addLink(const Pistache::Rest::Request& request,
                  Pistache::Http::ResponseWriter response);
 
-    /**
-     * @brief General reply with JSON without rapidjson object
-     *
-     * @param response Handler used to send back the reply
-     */
-    void index(const Pistache::Rest::Request& request,
-               Pistache::Http::ResponseWriter response);
+    void getBGPpeersInfo(const Pistache::Rest::Request& request,
+                         Pistache::Http::ResponseWriter response);
+
+    void getRoutingTable(const Pistache::Rest::Request& request,
+                         Pistache::Http::ResponseWriter response);
 
     /**
      * @brief Initialize the document/Object with all the data information about
@@ -162,6 +160,10 @@ class ApiEndpoint {
      */
     void getMainCSS(const Pistache::Rest::Request& request,
                     Pistache::Http::ResponseWriter response);
+
+    void sendPacket(const Pistache::Rest::Request& request,
+                    Pistache::Http::ResponseWriter response);
+
 
     using Lock  = std::mutex;
     using Guard = std::lock_guard<Lock>;

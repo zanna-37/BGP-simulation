@@ -60,6 +60,51 @@ size_t LengthAndIpPrefix::lengthAndIpPrefixDataToByteArray(
     return currentDataLen;
 }
 
+uint8_t LengthAndIpPrefix::computeLengthIpPrefix(pcpp::IPv4Address netMask) {
+    uint8_t        prefixLen = 0;
+    const uint8_t* bytes     = netMask.toBytes();
+
+    for (int i = 0; i < 4; i++) {
+        switch (bytes[i]) {
+            case 255:
+                prefixLen = prefixLen + 8;
+                break;
+            case 254:
+                prefixLen = prefixLen + 7;
+                break;
+            case 252:
+                prefixLen = prefixLen + 6;
+                break;
+            case 248:
+                prefixLen = prefixLen + 5;
+                break;
+            case 240:
+                prefixLen = prefixLen + 4;
+                break;
+            case 224:
+                prefixLen = prefixLen + 3;
+                break;
+            case 192:
+                prefixLen = prefixLen + 2;
+                break;
+            case 128:
+                prefixLen = prefixLen + 1;
+                break;
+            case 0:
+                prefixLen = prefixLen + 0;
+                break;
+
+            default:
+                L_ERROR("NLRIbuild",
+                        "This state in prefix length "
+                        "calculation should never be reached");
+                break;
+        }
+    }
+
+    return prefixLen;
+}
+
 void LengthAndIpPrefix::parsePrefixAndIPData(
     uint8_t*                        byteArray,
     size_t                          arrayLen,

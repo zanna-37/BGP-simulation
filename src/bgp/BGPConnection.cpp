@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <utility>
+#include <iomanip>
 
 #include "../entities/Router.h"
 #include "../logger/Logger.h"
@@ -21,8 +22,17 @@
 #include "packets/BGPUpdateLayer.h"
 
 
-BGPConnection::BGPConnection(Router* owner, BGPApplication* bgpApplication)
-    : owner(owner), bgpApplication(bgpApplication) {
+BGPConnection::BGPConnection(Router*           owner,
+                             BGPApplication*   bgpApplication,
+                             pcpp::IPv4Address srcAddress,
+                             pcpp::IPv4Address dstAddress,
+                             uint16_t          dstPort)
+    : owner(owner),
+      bgpApplication(bgpApplication),
+      srcAddr(srcAddress),
+      srcPort(0),
+      dstAddr(dstAddress),
+      dstPort(dstPort) {
     running      = true;
     stateMachine = new BGPStateMachine(this);
     // start() cannot be called in the constructor because we need a fully
@@ -32,28 +42,13 @@ BGPConnection::BGPConnection(Router* owner, BGPApplication* bgpApplication)
 
 BGPConnection::~BGPConnection() {
     if (running) {
-        L_ERROR(
-            owner->ID,
-            "BGPConnection has not been shutdown before deletion.\nCall "
-            "shutdown() before deleting the BGPConnection.\nCurrent state is " +
-                stateMachine->getCurrentState()->name);
+        L_ERROR_CONN(owner->ID, toString(),
+                "BGPConnection has not been closed, dropped, or shutdown "
+                "before deletion.\nDo that before deleting the "
+                "BGPConnection.\nCurrent state is " +
+                    stateMachine->getCurrentState()->name);
         shutdown();
     }
-
-    //    if (connectedSocket != nullptr || connectThread != nullptr) {
-    //        L_ERROR(
-    //            owner->ID,
-    //            "BGPConnection has not dropped connections before
-    //            deletion.\nCall " "dropConnection() before deleting the
-    //            BGPConnection.\nCurrent state is " +
-    //            stateMachine->getCurrentState()->name);
-    //        dropConnection();
-    //    }
-
-    if (listeningThread) {
-        listeningThread->join();
-    }
-    delete listeningThread;
 
     if (receivingThread) {
         receivingThread->join();
@@ -70,7 +65,7 @@ void BGPConnection::enqueueEvent(BGPEvent event) {
 
 void BGPConnection::processMessage(
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
-    L_DEBUG(owner->ID, "Processing BGP Message");
+    L_DEBUG_CONN(owner->ID, toString(), "Processing BGP Message");
     while (!layers->empty()) {
         std::unique_ptr<pcpp::Layer> layer = std::move(layers->top());
         layers->pop();
@@ -97,31 +92,31 @@ void BGPConnection::processMessage(
             // Something similar (but different) is the SegmentArrives event of
             // TCP
 
-            L_DEBUG(owner->ID,
+            L_DEBUG_CONN(owner->ID, toString(),
                     "BGP Connection : Handling the packet arrived to the BGP");
 
-            uint8_t subcode = 0;
+            uint8_t              subcode = 0;
+            std::vector<uint8_t> data_be8;
 
             if (BGPLayer::checkMessageHeader(bgpHeader, &subcode)) {
                 switch (bgpHeader->type) {
                     case BGPLayer::BGPMessageType::OPEN:
-                        L_DEBUG(owner->ID, "OPEN message arrived");
+                        L_DEBUG_CONN(owner->ID, toString(), "OPEN message arrived");
                         dynamic_pointer_move(bgpOpenLayer, bgpLayer);
 
-                        if (bgpOpenLayer->checkMessageErr(subcode)) {
+                        if (bgpOpenLayer->checkMessageErr(&subcode,
+                                                          &data_be8)) {
                             BGPEvent event = {BGPEventType::BGPOpen,
                                               std::move(bgpOpenLayer)};
                             enqueueEvent(std::move(event));
-                            L_DEBUG(
-                                owner->ID,
+                            L_DEBUG_CONN(
+                                owner->ID, toString(),
                                 "Arrived Open message inserted into events");
                         } else {
                             uint16_t two_octet_version = BGPOpenLayer::version;
 
                             switch (subcode) {
                                 case 1:
-                                    // Only the version 4 of the protocol is
-                                    // supported
                                     bgpNotificationLayer =
                                         make_unique<BGPNotificationLayer>(
                                             BGPNotificationLayer::OPEN_MSG_ERR,
@@ -141,7 +136,7 @@ void BGPConnection::processMessage(
                                              ErrorSubcode_uint8_t)subcode);
                                     break;
                                 default:
-                                    L_FATAL(owner->ID,
+                                    L_FATAL_CONN(owner->ID, toString(),
                                             "This State in Open message error "
                                             "checking "
                                             "should never be reached!");
@@ -155,24 +150,47 @@ void BGPConnection::processMessage(
                             BGPEvent event = {BGPEventType::BGPOpenMsgErr,
                                               std::move(bgpNotificationLayer)};
                             enqueueEvent(std::move(event));
-                            L_DEBUG(owner->ID,
+                            L_DEBUG_CONN(owner->ID, toString(),
                                     "OPEN message Error event added + "
                                     "notification message");
                         }
                         break;
                     case BGPLayer::BGPMessageType::UPDATE:
-                        L_DEBUG(owner->ID, "UPDATE message arrived");
+                        L_DEBUG_CONN(owner->ID, toString(), "UPDATE message arrived");
                         dynamic_pointer_move(bgpUpdateLayer, bgpLayer);
 
-                        // FIXME The UPDATE message error checking needs to be
-                        // completely implemented
-                        if (bgpUpdateLayer->checkMessageErr(subcode)) {
-                            BGPEvent event = {BGPEventType::UpdateMsg,
+                        // NOTE: Uncomment to debug UPDATE message
+                        {
+                            std::string updateMessage =
+                                bgpUpdateLayer->toString();
+                            L_VERBOSE_CONN(stateMachine->connection->owner->ID, toString(),
+                                      "UPDATE message:\n" + updateMessage);
+
+                            /*
+                            TODO: remove should not be here, needs only for
+                            debug BGPEvent event = {BGPEventType::UpdateMsg,
                                               std::move(bgpUpdateLayer)};
                             enqueueEvent(std::move(event));
-                            L_DEBUG(
-                                owner->ID,
-                                "Arrived UPDATE message inserted into events");
+                            L_DEBUG_CONN(owner->ID, toString(),
+                                    "Arrived UPDATE message inserted into "
+                                    "events");*/
+                        }
+
+                        if (bgpUpdateLayer->checkMessageErr(&subcode,
+                                                            &data_be8)) {
+                            if (bgpUpdateLayer->checkNextHop(srcAddr)) {
+                                BGPEvent event = {BGPEventType::UpdateMsg,
+                                                  std::move(bgpUpdateLayer)};
+                                enqueueEvent(std::move(event));
+                                L_DEBUG_CONN(owner->ID, toString(),
+                                        "Arrived UPDATE message inserted into "
+                                        "events");
+                            } else {
+                                L_ERROR_CONN(
+                                    owner->ID, toString(),
+                                    "NEXT_HOP attribute invalid -> Route (and "
+                                    "UPDATE message) is going to be ignored");
+                            }
                         } else {
                             switch (subcode) {
                                 case 1:
@@ -184,9 +202,94 @@ void BGPConnection::processMessage(
                                         BGPNotificationLayer::
                                             ERR_3_MALFORMED_ATTR_LIST);
                                     break;
+
+                                case 2:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_UNRECOGNIZED_WELLKNOWN_ATTR);
+                                    data_be8.data();
+                                    data_be8.size();
+                                    break;
+                                case 3:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_MISSING_WELLKNOWN_ATTR);
+                                    data_be8.data();
+                                    data_be8.size();
+                                    break;
+                                case 4:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_ATTRIBUTE_FLAGS_ERR);
+                                    data_be8.data();
+                                    data_be8.size();
+                                    break;
+
+                                case 5:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_ATTRIBUTE_LENGTH_ERR);
+                                    data_be8.data();
+                                    data_be8.size();
+                                    break;
+
+                                case 6:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_INVALID_ORIGIN_ATTRIBUTE);
+                                    data_be8.data();
+                                    data_be8.size();
+                                    break;
+
+
+                                case 8:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_INVALID_NEXTHOP_ATTRIBUTE);
+                                    data_be8.data();
+                                    data_be8.size();
+                                    break;
+
+                                case 9:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_OPTIONAL_ATTR_ERR);
+                                    break;
+
+                                case 10:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_INVALID_NETWORK_FIELD);
+                                    break;
+
+                                case 11:
+                                    bgpNotificationLayer = make_unique<
+                                        BGPNotificationLayer>(
+                                        BGPNotificationLayer::UPDATE_MSG_ERR,
+                                        BGPNotificationLayer::
+                                            ERR_3_MALFORMED_AS_PATH);
+                                    break;
+
+
                                 default:
-                                    L_FATAL(
-                                        owner->ID,
+                                    L_FATAL_CONN(
+                                        owner->ID, toString(),
                                         "This State in Update Message error "
                                         "checking should not be reached");
                                     break;
@@ -199,26 +302,27 @@ void BGPConnection::processMessage(
                             BGPEvent event = {BGPEventType::UpdateMsgErr,
                                               std::move(bgpNotificationLayer)};
                             enqueueEvent(std::move(event));
-                            L_DEBUG(owner->ID,
+                            L_DEBUG_CONN(owner->ID, toString(),
                                     "UPDATE message Error event added + "
                                     "notification message");
                         }
 
                         break;
                     case BGPLayer::BGPMessageType::NOTIFICATION:
-                        L_DEBUG(owner->ID, "NOTIFICATION message arrived");
+                        L_DEBUG_CONN(owner->ID, toString(), "NOTIFICATION message arrived");
                         dynamic_pointer_move(bgpNotificationLayer, bgpLayer);
 
-                        if (bgpNotificationLayer->checkMessageErr(subcode)) {
+                        if (bgpNotificationLayer->checkMessageErr(&subcode,
+                                                                  &data_be8)) {
                             BGPEvent event = {BGPEventType::NotifMsg,
                                               std::move(bgpNotificationLayer)};
                             enqueueEvent(std::move(event));
-                            L_DEBUG(owner->ID,
+                            L_DEBUG_CONN(owner->ID, toString(),
                                     "Arrived NOTIFICATION message inserted "
                                     "into events");
                         } else {
                             // TODO the error should be logged,
-                            L_INFO(owner->ID,
+                            L_INFO_CONN(owner->ID, toString(),
                                    "Error detected in a NOTIFICATION message, "
                                    "report to administrator");
                             // FIXME Probably unecessary to forward the erroneus
@@ -226,27 +330,27 @@ void BGPConnection::processMessage(
                             BGPEvent event = {BGPEventType::UpdateMsgErr,
                                               std::move(bgpNotificationLayer)};
                             enqueueEvent(std::move(event));
-                            L_DEBUG(
-                                owner->ID,
+                            L_DEBUG_CONN(
+                                owner->ID, toString(),
                                 "NOTIFICATION message Error event added + "
                                 "erroneous notification message (Behaviour "
                                 "different from the other error messages!)");
                         }
                         break;
                     case BGPLayer::BGPMessageType::KEEPALIVE:
-                        L_DEBUG(owner->ID, "KEEPALIVE message arrived");
+                        L_DEBUG_CONN(owner->ID, toString(), "KEEPALIVE message arrived");
                         {
                             BGPEvent event = {BGPEventType::KeepAliveMsg,
                                               nullptr};
                             enqueueEvent(std::move(event));
                         }
-                        L_DEBUG(
-                            owner->ID,
+                        L_DEBUG_CONN(
+                            owner->ID, toString(),
                             "Arrived KEEPALIVE message inserted into events");
 
                         break;
                     default:
-                        L_FATAL(owner->ID,
+                        L_FATAL_CONN(owner->ID, toString(),
                                 "This state in the messages processing should "
                                 "never be reached!");
                         break;
@@ -276,7 +380,7 @@ void BGPConnection::processMessage(
                                 (size_t)sizeof(bgpHeader->type));
                         break;
                     default:
-                        L_FATAL(owner->ID,
+                        L_FATAL_CONN(owner->ID, toString(),
                                 "This State in Common header handling "
                                 "should never be reached!");
                         break;
@@ -289,8 +393,8 @@ void BGPConnection::processMessage(
                 layers_to_send->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers_to_send));
-                L_WARNING(owner->ID + " " + stateMachine->name,
-                          "Sending Notification message");
+                L_WARNING_CONN(owner->ID + " " + stateMachine->name,  toString(),
+                          "Sending NOTIFICATION message");
             }
         }
     }
@@ -298,28 +402,22 @@ void BGPConnection::processMessage(
 
 void BGPConnection::startReceivingThread() {
     if (receivingThread != nullptr) {
-        L_WARNING(owner->ID + " " + stateMachine->name,
+        L_WARNING_CONN(owner->ID + " " + stateMachine->name,  toString(),
                   "receivingThread already set");
     } else {
         receivingThread = new std::thread([&]() {
-            while (running) {
+            int recvStatus = 0;
+            while (running && recvStatus == 0) {
                 std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                    layers = getConnectedSocket()->recv();
+                    layers;
+                recvStatus = connectedSocket->recv(layers);
 
                 if (running) {
-                    if (layers != nullptr) {
+                    if (recvStatus == 0) {
+                        assert(layers != nullptr);
                         processMessage(std::move(layers));
                     } else {
-                        // if layers == nullptr it means that the TCP state
-                        // machine is not running anymore so we should shutdown
-                        // this connection. Ideally this should not happen
-                        // because the TCP connection should notify the Socket
-                        // about the shutdown and the Socket should notify the
-                        // BGP connection.
-                        // TODO this notify mechanism is not yet implemented at
-                        // 2021-06-15.
-
-                        shutdown();
+                        signalTCPConnectionFails();
                     }
                 }
             }
@@ -327,7 +425,7 @@ void BGPConnection::startReceivingThread() {
     }
 }
 
-void BGPConnection::closeConnection() {
+void BGPConnection::signalTCPConnectionFails() {
     BGPEvent event = {
         BGPEventType::TcpConnectionFails,
         nullptr,
@@ -337,74 +435,29 @@ void BGPConnection::closeConnection() {
 
 void BGPConnection::sendData(
     std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>> layers) {
-    getConnectedSocket()->send(std::move(layers));
-}
-
-void BGPConnection::listenForRemotelyInitiatedConnections() {
-    /**
-     * @internal Fully managed by the BgpApplication. Do not close nor
-     * deallocate.
-     */
-    Socket* socketListen_weak =
-        bgpApplication->getCorrespondingListeningSocket(srcAddr, srcPort);
-
-    // socketListen_weak can't be null except for bugs
-    assert(socketListen_weak);
-
-    assert(listeningThread == nullptr);
-    listeningThread = new thread([&, socketListen_weak]() {
-        socketListen_weak->listen();
-
-        while (running) {
-            // wait for the socket to have TCP bgpConnection pending
-            Socket* newArrivedSocket = socketListen_weak->accept();
-
-            if (newArrivedSocket) {
-                if (running) {
-                    // Bind connected Socket to this (or a new) BGP Connection
-                    BGPConnection* bgpConnection_weak =
-                        setConnectedSocketToAvailableBGPConn(newArrivedSocket);
-
-                    if (bgpConnection_weak != this) {
-                        // If it is a new BGPConnection set it up
-                        BGPEvent event = {
-                            BGPEventType::
-                                ManualStart_with_PassiveTcpEstablishment,
-                            nullptr,
-                        };
-                        bgpConnection_weak->enqueueEvent(std::move(event));
-                    }
-                    BGPEvent event = {
-                        BGPEventType::TcpConnectionConfirmed,
-                        nullptr,
-                    };
-                    bgpConnection_weak->enqueueEvent(std::move(event));
-                    bgpConnection_weak->startReceivingThread();
-                } else {
-                    L_DEBUG(
-                        owner->ID,
-                        "connection is dropped, discarding wrongly accepted "
-                        "socket");
-                    newArrivedSocket->close();
-                    delete newArrivedSocket;
-                }
-            }
-        }
-    });
+    std::unique_lock<mutex> connectedSocket_uniqueLock(connectedSocket_mutex);
+    if (connectedSocket) {
+        connectedSocket->send(std::move(layers));
+    } else {
+        L_WARNING_CONN("BGPConn",  toString(),"TEMPORARY FIX! This would have crashed");
+    }
 }
 
 void BGPConnection::asyncConnectToPeer() {
     // TODO this is probably an async task
 
     BGPConnection* bgpConnection_weak =
-        setConnectedSocketToAvailableBGPConn(new Socket(owner));
+        bgpApplication->setConnectedSocketToAvailableBGPConn(
+            new Socket(owner), this->srcAddr, this->dstAddr);
 
-    assert(bgpConnection_weak->getConnectedSocket() != nullptr);
+    std::unique_lock<mutex> connectedSocket_uniqueLock(connectedSocket_mutex);
+
+    assert(bgpConnection_weak->connectedSocket != nullptr);
     assert(bgpConnection_weak->connectThread == nullptr);
 
     bgpConnection_weak->connectThread = new thread([&, bgpConnection_weak] {
-        if (bgpConnection_weak->getConnectedSocket()->connect(
-                bgpConnection_weak->dstAddr, BGPApplication::BGPDefaultPort) ==
+        if (bgpConnection_weak->connectedSocket->connect(
+                bgpConnection_weak->dstAddr, bgpConnection_weak->dstPort) ==
             0) {
             bgpConnection_weak->startReceivingThread();
             BGPEvent event = {
@@ -419,21 +472,21 @@ void BGPConnection::asyncConnectToPeer() {
 void BGPConnection::dropConnection(bool gentle) {
     running = false;
 
-    if (getConnectedSocket()) {
+    std::unique_lock<mutex> connectedSocket_uniqueLock(connectedSocket_mutex);
+    if (connectedSocket) {
         if (gentle) {
             // Close with FIN
-            getConnectedSocket()->close();
+            connectedSocket->close();
         } else {
             // Close with RST
             // TODO implement a forced CLOSE with RST
-            getConnectedSocket()->close();
+            connectedSocket->close();
         }
     }
-    delete getConnectedSocket();
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    delete connectedSocket;
     connectedSocket = nullptr;
-#pragma clang diagnostic pop
+
+    connectedSocket_uniqueLock.unlock();
 
     if (connectThread) {
         connectThread->join();
@@ -450,50 +503,33 @@ void BGPConnection::shutdown() {
     };
     enqueueEvent(std::move(event));
     // TODO wait for the shutdown call to be completed
-    L_DEBUG(stateMachine->connection->owner->ID,
+    L_DEBUG_CONN(stateMachine->connection->owner->ID,  toString(),
             "TODO wait for the shutdown call to be completed");
-    std::this_thread::sleep_for(1000ms);  // TODO remove
+    std::this_thread::sleep_for(10000ms);  // TODO remove
 }
 
-BGPConnection* BGPConnection::setConnectedSocketToAvailableBGPConn(
-    Socket* newConnectedSocket) {
-    BGPConnection*          filledBGPConnection;
+bool BGPConnection::setConnectedSocketIfFree(Socket* socket) {
     std::unique_lock<mutex> connectedSocket_uniqueLock(connectedSocket_mutex);
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (this->connectedSocket == nullptr) {
-        // This BGP Connection is empty, bind connected Socket to this
-        this->connectedSocket = newConnectedSocket;
+    if (connectedSocket == nullptr) {
+        connectedSocket = socket;
         connectedSocket_uniqueLock.unlock();
-        filledBGPConnection = this;
+        return true;
     } else {
-        // This BGP Connection is full, bind connected Socket to
-        // a new BgpConnection
-        auto* newBGPConnection_weak = bgpApplication->createNewBgpConnection();
-        newBGPConnection_weak->connectedSocket = newConnectedSocket;
         connectedSocket_uniqueLock.unlock();
-
-        newBGPConnection_weak->srcAddr =
-            newConnectedSocket->tcpConnection->srcAddr;
-        newBGPConnection_weak->dstAddr =
-            newConnectedSocket->tcpConnection->dstAddr;
-
-        filledBGPConnection = newBGPConnection_weak;
+        return false;
     }
-#pragma clang diagnostic pop
-
-    return filledBGPConnection;
 }
 
-Socket* BGPConnection::getConnectedSocket() {
-    Socket* result;
-    connectedSocket_mutex.lock();
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    result = this->connectedSocket;
-#pragma clang diagnostic pop
-    connectedSocket_mutex.unlock();
+std::string BGPConnection::getCurrentStateName() {
+    return stateMachine->getCurrentState()->name;
+}
 
-    return result;
+std::string BGPConnection::toString() {
+    std::ostringstream str;
+    str << std::setw(21) << srcAddr.toString() + ":" + std::to_string(srcPort) <<
+                           " <--> " << dstAddr.toString() + ":" +
+                           std::to_string(dstPort);
+
+    return str.str();
 }

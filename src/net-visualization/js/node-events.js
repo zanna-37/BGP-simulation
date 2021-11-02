@@ -11,8 +11,8 @@ var new_link = undefined;
 
 var chart = new NetChart({
     container: document.getElementById("netchart"),
-    area: {height: 400},
-    data: {url: "/getNetZoomCharts"},
+    area: { height: 400 },
+    data: { url: "/getNetZoomCharts" },
     info: {
         enabled: true,
         nodeContentsFunction: function (itemData, item) {
@@ -41,7 +41,11 @@ var chart = new NetChart({
         }
     },
     events: {
-        onClick: modifyNodeNumbers,
+        onDoubleClick: modifyNodeNumbers,
+        onClick: function (args) {
+            var node_selected = args.clickNode;
+            showNodeInfo(node_selected);
+        },
         onPointerUp: function (e, args) {
             if (args.clickNode) {
                 var node = args.clickNode;
@@ -92,43 +96,109 @@ function modifyNodeNumbers(event) {
         eventAddNode = event;
     }
     if (event.clickNode) {
-        $.ajax({
-            url: "/removeNode",
-            dataType: 'json',
-            method: "POST",
-            contentType: 'application/json',
-            crossDomain: true,
-            async: true,
-            headers: {
-                "accept": "application/json",
-                "Access-Control-Allow-Origin": "*",
-            },
-            data: JSON.stringify({
-                "id": event.clickNode.id,
-            })
-        });
-        event.chart.removeData({ nodes: [{ id: event.clickNode.id }] });
+        if (event.clickNode.data.extra.status == undefined) {
+            event.clickNode.data.extra.status = "activeted";
+        }
+
+        if (event.clickNode.data.extra.status == "activeted") {
+            event.clickNode.data.extra.status = "deactivated"
+            $("#nav-node-info").empty();
+            $("#nav-node-BGPpeers").empty();
+            $("#nav-node-routingTable").empty();
+            $.ajax({
+                url: "/deactivateNode",
+                dataType: 'json',
+                method: "POST",
+                contentType: 'application/json',
+                crossDomain: true,
+                async: true,
+                headers: {
+                    "accept": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: JSON.stringify({
+                    "id": event.clickNode.id,
+                })
+            });
+            var links = chart.links();
+            for (var i = 0; i < links.length; i++) {
+                if (links[i].data.from == event.clickNode.id || links[i].data.to == event.clickNode.id) {
+                    links[i].data.style = { "fillColor": "red" };
+                }
+            }
+        } else if (event.clickNode.data.extra.status == "deactivated") {
+            event.clickNode.data.extra.status = "activated"
+            $("#nav-node-info").empty();
+            $("#nav-node-BGPpeers").empty();
+            $("#nav-node-routingTable").empty();
+            $.ajax({
+                url: "/activateNode",
+                dataType: 'json',
+                method: "POST",
+                contentType: 'application/json',
+                crossDomain: true,
+                async: true,
+                headers: {
+                    "accept": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: JSON.stringify({
+                    "id": event.clickNode.id,
+                })
+            });
+            var links = chart.links();
+            for (var i = 0; i < links.length; i++) {
+                if (links[i].data.from == event.clickNode.id || links[i].data.to == event.clickNode.id) {
+                    links[i].data.style = { "fillColor": "#333" };
+                }
+            }
+        }
     } else if (event.clickLink) {
         var link = event.clickLink;
-        $.ajax({
-            url: "/breakLink",
-            dataType: 'json',
-            method: "POST",
-            contentType: 'application/json',
-            crossDomain: true,
-            async: true,
-            headers: {
-                "accept": "application/json",
-                "Access-Control-Allow-Origin": "*",
-            },
-            data: JSON.stringify({
-                "from": link.data.from,
-                "to": link.data.to,
-                "from_interface": link.data.extra.from_interface,
-                "to_interface": link.data.extra.to_interface
-            })
-        });
-        event.chart.removeData({ links: [{ id: event.clickLink.id }] });
+        if (link.data.style == undefined) {
+            link.data.style = { "fillColor": "#333" };
+        }
+        if (link.data.style.fillColor == "red") {
+            $.ajax({
+                url: "/addLink",
+                dataType: 'json',
+                method: "POST",
+                contentType: 'application/json',
+                crossDomain: true,
+                async: true,
+                headers: {
+                    "accept": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: JSON.stringify({
+                    "from": link.data.from,
+                    "to": link.data.to,
+                    "from_interface": link.data.extra.from_interface,
+                    "to_interface": link.data.extra.to_interface
+                })
+            });
+            link.data.style = { "fillColor": "#333" };
+        } else {
+            $.ajax({
+                url: "/breakLink",
+                dataType: 'json',
+                method: "POST",
+                contentType: 'application/json',
+                crossDomain: true,
+                async: true,
+                headers: {
+                    "accept": "application/json",
+                    "Access-Control-Allow-Origin": "*",
+                },
+                data: JSON.stringify({
+                    "from": link.data.from,
+                    "to": link.data.to,
+                    "from_interface": link.data.extra.from_interface,
+                    "to_interface": link.data.extra.to_interface
+                })
+            });
+            link.data.style = { "fillColor": "red" };
+        }
     }
 
     event.preventDefault();
@@ -244,7 +314,7 @@ function connectNodes(node, onodes) {
     for (var i = 0; i < onodes.length; i++) {
         var onode = onodes[i];
 
-        var link = { "id": "link_" + node.id + "-" + onode.id, "from": node.id, "to": onode.id, style: { "toDecoration": "arrow" }, extra: { "from_interface": " ", "to_interface": " " } }
+        var link = { "id": "link_" + node.id + "-" + onode.id, "from": node.id, "to": onode.id, extra: { "from_interface": " ", "to_interface": " " } }
         chart.addData({ nodes: [], links: [link] });
 
         activateLink(node, onode, link);
@@ -335,6 +405,64 @@ mdendpoint.addEventListener('click', function () {
     mode_val = "E";
 });
 
+$("#send-packet").click(function () {
+    $("#sendPacketModal").show();
+
+    var nodes = chart.nodes();
+    var nodes_options = "";
+
+    var from_node;
+
+    console.log(nodes);
+
+    for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].data.extra.AS_number == undefined) {
+            nodes_options += "<option>" + nodes[i].id + "</option>";
+        }
+    }
+
+    $("#send_from").append(nodes_options);
+    $("#send_to").append(nodes_options);
+});
+
+$("#saveSendPacketChanges").click(function () {
+    var from = $("#send_from").val();
+    var to = $("#send_to").val();
+
+    console.log(from);
+    console.log(to);
+
+    $.ajax({
+        url: "/sendPacket",
+        dataType: 'json',
+        method: "POST",
+        contentType: 'application/json',
+        crossDomain: true,
+        async: true,
+        headers: {
+            "accept": "application/json",
+            "Access-Control-Allow-Origin": "*",
+        },
+        data: JSON.stringify({
+            "send_from": from,
+            "send_to": to,
+        })
+    });
+
+    $("#sendPacketModal").hide();
+
+    $('#send_from').children().remove().end().append('<option selected>Select Device</option>');
+    $('#send_to').children().remove().end().append('<option selected>Select Device</option>');
+});
+
+$("#closeSendPacketModalCross").click(function () {
+    $("#sendPacketModal").hide();
+})
+
+$("#closeSendPacketModalBtn").click(function () {
+    $("#sendPacketModal").hide();
+})
+
 $("#add-interface-btn").click(function () {
     num_interface += 1;
     $("#interfaces-label").append("<input type='text' class='form-control' style='margin-bottom: 10px;' id='interface-label-" + num_interface + "'>");
@@ -357,4 +485,123 @@ $("#closeAddLinkModalCross").click(function () {
 $("#closeAddLinkModalBtn").click(function () {
     $("#addLinkModal").hide();
 })
+
+function showNodeInfo(node) {
+    $("#nav-node-info").empty();
+    $("#nav-node-BGPpeers").empty();
+    $("#nav-node-routingTable").empty();
+
+    var node_id = "Node ID: " + node.id + "<br>";
+
+    var node_ip = "IP Address: ";
+    for (var i = 0; i < node.data.extra.networkCard.length; i++) {
+        var netCard = node.data.extra.networkCard[i];
+        node_ip += netCard.IP + "(" + netCard.interface + ")     ";
+    }
+    node_ip += "<br>";
+
+    var node_type = "Node Type: ";
+    node_type += node.id[0] == "R" ? "Router" : "Endpoint";
+
+    var node_content_info = node_id + node_ip + node_type;
+
+    $("#nav-node-info").append(node_content_info);
+
+    if (node.data.extra.AS_number) {
+        //var peer_ip_address = [];
+        var bgp_body = "<tbody>";
+        var bgp_body_rows = "";
+        var num_bgp_peers;
+        $.ajax({
+            url: "/getBGPpeersInfo",
+            dataType: 'json',
+            method: "POST",
+            contentType: 'application/json',
+            crossDomain: false,
+            async: false,
+            headers: {
+                "accept": "application/json",
+                "Access-Control-Allow-Origin": "*",
+            },
+            data: JSON.stringify({
+                "id": node.id
+            }),
+        }).done(function (response) {
+            num_bgp_peers = response.BGPpeers.length;
+            for (var i = 0; i < response.BGPpeers.length; i++) {
+                bgp_body_rows += "<tr>" +
+                    "<td>" + response.BGPpeers[i].ip_address + "</td>" +
+                    "<td>" + response.BGPpeers[i].identifier + "</td>" +
+                    "<td>" + response.BGPpeers[i].status + "</td>" +
+                    "</tr>";
+                console.log(bgp_body_rows)
+            }
+        });
+
+        bgp_body += bgp_body_rows + "</tbody>";
+        console.log(bgp_body);
+
+        var bgp_head = "<thead>" + "<tr>" +
+            "<th>" + "IP Address" + "</th>" +
+            "<th>" + "Identifier" + "</th>" +
+            "<th>" + "Status" + "</th>" +
+            "</tr>" + "</thead>";
+
+
+        var BGP_table = "<table class='table table-striped'>" + bgp_head + bgp_body + "</table>";
+
+        var routing_body = "<tbody>";
+        var routing_body_rows = "";
+        $.ajax({
+            url: "/getRoutingTable",
+            dataType: 'json',
+            method: "POST",
+            contentType: 'application/json',
+            crossDomain: false,
+            async: false,
+            headers: {
+                "accept": "application/json",
+                "Access-Control-Allow-Origin": "*",
+            },
+            data: JSON.stringify({
+                "id": node.id
+            }),
+        }).done(function (response) {
+            for (var i = 0; i < response.routingTable.length; i++) {
+
+                var asPath = response.routingTable[i].asPath;
+                if (asPath == undefined) {
+                    asPath = "";
+                }
+
+                routing_body_rows += "<tr>" +
+                    "<td>" + response.routingTable[i].destination + "</td>" +
+                    "<td>" + response.routingTable[i].nexthop + "</td>" +
+                    "<td>" + response.routingTable[i].interface + "</td>" +
+                    "<td>" + asPath + "</td>" +
+                    "</tr>";
+            }
+        });
+
+        routing_body += routing_body_rows + "</tbody>";
+
+        var routing_head = "<thead>" + "<tr>" +
+            "<th>" + "Destination" + "</th>" +
+            "<th>" + "Next Hop" + "</th>" +
+            "<th>" + "Interface" + "</th>" +
+            "<th>" + "AS Path" + "</th>" +
+            "</tr>" + "</thead>"
+
+        var routing_table = "<table class='table table-striped'>" + routing_head + routing_body + "</table>"
+
+        console.log(routing_table);
+
+        if (num_bgp_peers > 0) {
+            $("#nav-node-BGPpeers").append(BGP_table);
+            $("#nav-node-routingTable").append(routing_table);
+        }
+    }
+}
+
+
 

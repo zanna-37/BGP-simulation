@@ -41,7 +41,9 @@ class StateMachine {
                 while (eventQueue.empty() && running) {
                     eventQueue_ready.wait(stateMachineEventQueue_uniqueLock);
                     if (eventQueue.empty() && running) {
-                        L_DEBUG(connection->owner->ID, "Spurious wakeup");
+                        L_DEBUG_CONN(connection->owner->ID,
+                                     connection->toString(),
+                                     "Spurious wakeup");
                     }
                 }
                 if (running) {
@@ -50,10 +52,11 @@ class StateMachine {
                     stateMachineEventQueue_uniqueLock.unlock();
 
                     std::string eventName = getEventName(event);
-                    L_DEBUG(connection->owner->ID + " " + name,
-                            "Passing event " + eventName +
-                                " to the current state (" + currentState->name +
-                                ") " + toString());
+                    L_DEBUG_CONN(connection->owner->ID + " " + name,
+                                 connection->toString(),
+                                 "Passing event " + eventName +
+                                     " to the current state (" +
+                                     currentState->name + ") " + toString());
 
                     State* hanglingState_forlogs =
                         currentState;  // only used in the logs
@@ -69,14 +72,17 @@ class StateMachine {
                             hanglingState_forlogs->name + " " + toString();
 
                         if (result) {
-                            // L_DEBUG(owner_str, message_str);
+                            // L_DEBUG_CONN(owner_str,connection->toString(),
+                            // message_str);
                         } else {
-                            L_WARNING(owner_str, message_str);
+                            L_WARNING_CONN(
+                                owner_str, connection->toString(), message_str);
                         }
                     }
                 } else {
-                    L_VERBOSE(connection->owner->ID + " " + name,
-                              "Shutting down state machine");
+                    L_VERBOSE_CONN(connection->owner->ID + " " + name,
+                                   connection->toString(),
+                                   "Shutting down state machine");
                     stateMachineEventQueue_uniqueLock.unlock();
                 }
             }
@@ -94,12 +100,15 @@ class StateMachine {
         delete previousState;
         previousState = currentState;
         if (currentState == nullptr) {
-            L_VERBOSE(connection->owner->ID + " " + name,
-                      "Initial state: " + newState->name + " " + toString());
+            L_VERBOSE_CONN(
+                connection->owner->ID + " " + name,
+                connection->toString(),
+                "Initial state: " + newState->name + " " + toString());
         } else {
-            L_VERBOSE(connection->owner->ID + " " + name,
-                      "State change: " + currentState->name + " -> " +
-                          newState->name + " " + toString());
+            L_VERBOSE_CONN(connection->owner->ID + " " + name,
+                           connection->toString(),
+                           "State change: " + currentState->name + " -> " +
+                               newState->name + " " + toString());
         }
 
 

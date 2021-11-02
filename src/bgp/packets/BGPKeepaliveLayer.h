@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "BGPLayer.h"
 #include "Layer.h"
@@ -37,7 +38,8 @@ class BGPKeepaliveLayer : public BGPLayer {
      */
     BGPKeepaliveLayer();
 
-    bool checkMessageErr(uint8_t subcode) const override;
+    bool checkMessageErr(uint8_t*              subcode,
+                         std::vector<uint8_t>* data_be8) const override;
 
    private:
     std::string toStringInternal() const override;

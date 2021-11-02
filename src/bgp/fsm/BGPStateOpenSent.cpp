@@ -2,6 +2,7 @@
 
 #include "../../entities/Router.h"
 #include "../../utils/SmartPointerUtils.h"
+#include "../BGPApplication.h"
 #include "../BGPConnection.h"
 #include "../BGPEvent.h"
 #include "../BGPTimer.h"
@@ -27,16 +28,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEventType::
             AutomaticStart_with_DampPeerOscillations_and_PassiveTcpEstablishment:
             // (Events 1, 3-7) are ignored in the Active state.
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> ManualStart, AutomaticStart, "
-                    "ManualStart_with_PassiveTcpEstablishment, "
-                    "AutomaticStart_with_PassiveTcpEstablishment, "
-                    "AutomaticStart_with_DampPeerOscillations, "
-                    "AutomaticStart_with_DampPeerOscillations_and_"
-                    "PassiveTcpEstablishment");
             break;
         case BGPEventType::ManualStop:
-            L_DEBUG(stateMachine->connection->owner->ID, "Event -> ManualStop");
             // sends the NOTIFICATION with a Cease,
 
             {
@@ -61,15 +54,18 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -82,8 +78,6 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::AutomaticStop:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> AutomaticStop");
             // sends the NOTIFICATION with a Cease,
 
             {
@@ -99,15 +93,18 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all the BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -128,8 +125,6 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::HoldTimer_Expires:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> HoldTimer_Expires");
             // sends a NOTIFICATION message with the error code Hold Timer
             // Expired
 
@@ -146,15 +141,18 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -177,9 +175,6 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEventType::TcpConnection_Valid:
         case BGPEventType::Tcp_CR_Acked:
         case BGPEventType::TcpConnectionConfirmed:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> TcpConnection_Valid, Tcp_CR_Acked, "
-                    "TcpConnectionConfirmed");
             // MANDATORY -- How?
             // TODO a second TCP connection may be in progress. This second TCP
             // connection is tracked per Connection Collision processing
@@ -189,20 +184,13 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::Tcp_CR_Invalid:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> Tcp_CR_Invalid");
             // A TCP Connection Request for an Invalid port (Tcp_CR_Invalid
             // (Event 15)) is ignored.
             break;
 
         case BGPEventType::TcpConnectionFails:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> TcpConnectionFails");
             // closes the BGP connection,
-
-            // FIXME Check if it is ok, because by dropping the connection also
-            // the state machine will be deallocated :)
-            stateMachine->connection->closeConnection();
+            stateMachine->connection->dropConnection(false);
 
             // restarts the ConnectRetryTimer,
             stateMachine->resetConnectRetryTimer();
@@ -213,52 +201,19 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
 
             // changes its state to Active.
             stateMachine->changeState(new BGPStateActive(stateMachine));
-
             break;
 
         case BGPEventType::BGPOpen:
-            L_DEBUG(stateMachine->connection->owner->ID, "Event -> BGPOpen");
-
             // When an OPEN message is received, all fields are checked for
             // correctness.  If there are no errors in the OPEN message (Event
             // 19), the local system:
 
-            // TODO Collision detection mechanisms (Section 6.8) need to be
+            // DONE Collision detection mechanisms (Section 6.8) need to be
             // applied
             // when a valid BGP OPEN message is received (Event 19 or Event 20).
 
-            // FIXME check how to call collision detection
-            // stateMachine->connection->bgpApplication->collisionDetection(stateMachine->connection);
+            // DONE check how to call collision detection
 
-
-            // resets the DelayOpenTimer to zero,
-            stateMachine->resetDelayOpenTimer();
-
-            // sets the BGP ConnectRetryTimer to zero,
-            stateMachine->resetConnectRetryTimer();
-
-            // sends a KEEPALIVE message, and
-            // TODO test KEEPALIVE message
-            {
-                std::unique_ptr<BGPLayer> bgpKeepaliveLayer =
-                    std::make_unique<BGPKeepaliveLayer>();
-                bgpKeepaliveLayer->computeCalculateFields();
-
-                std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
-                    layers =
-                        make_unique<std::stack<std::unique_ptr<pcpp::Layer>>>();
-                layers->push(std::move(bgpKeepaliveLayer));
-
-                stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending KEEPALIVE message");
-            }
-
-            // sets a KeepaliveTimer (via the text below)
-
-            // sets the HoldTimer according to the negotiated value (see
-            // Section 4.2),
             {
                 std::unique_ptr<BGPOpenLayer> openLayer;
                 dynamic_pointer_move(openLayer, event.layers);
@@ -266,12 +221,52 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 BGPOpenLayer::BGPOpenHeader *openHeader =
                     openLayer->getOpenHeaderOrNull();
 
+                pcpp::IPv4Address bgpIdentifier =
+                    pcpp::IPv4Address(be32toh(openHeader->BGPIdentifier_be));
+
+                stateMachine->connection->bgpApplication->collisionDetection(
+                    stateMachine->connection, bgpIdentifier);
+
+
+                // resets the DelayOpenTimer to zero,
+                stateMachine->resetDelayOpenTimer();
+
+                // sets the BGP ConnectRetryTimer to zero,
+                stateMachine->resetConnectRetryTimer();
+
+                // sends a KEEPALIVE message, and
+                // TODO test KEEPALIVE message
+                {
+                    std::unique_ptr<BGPLayer> bgpKeepaliveLayer =
+                        std::make_unique<BGPKeepaliveLayer>();
+                    bgpKeepaliveLayer->computeCalculateFields();
+
+                    std::unique_ptr<std::stack<std::unique_ptr<pcpp::Layer>>>
+                        layers = make_unique<
+                            std::stack<std::unique_ptr<pcpp::Layer>>>();
+                    layers->push(std::move(bgpKeepaliveLayer));
+
+                    stateMachine->connection->sendData(std::move(layers));
+                    L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                    stateMachine->name,
+                                stateMachine->connection->toString(),
+                                "Sending KEEPALIVE message");
+                }
+
+                // sets a KeepaliveTimer (via the text below)
+
+                // sets the HoldTimer according to the negotiated value (see
+                // Section 4.2),
+
+
                 if (be16toh(openHeader->holdTime_be) <
                     stateMachine->getNegotiatedHoldTime().count()) {
                     stateMachine->setNegotiatedKeepaliveTime(
                         std::chrono::seconds(be16toh(openHeader->holdTime_be) /
                                              3));
                     stateMachine->setNegotiatedHoldTime(
+                        std::chrono::seconds(be16toh(openHeader->holdTime_be)));
+                    stateMachine->setNegotiatedMinASOriginationIntervalTime(
                         std::chrono::seconds(be16toh(openHeader->holdTime_be)));
                 }
             }
@@ -282,8 +277,10 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             if (stateMachine->getNegotiatedHoldTime() != 0s) {
                 stateMachine->resetHoldTimer();
                 stateMachine->resetKeepAliveTimer();
+                stateMachine->resetMinASOriginationIntervalTimer();
                 stateMachine->holdTimer->start();
                 stateMachine->keepAliveTimer->start();
+                stateMachine->minASOriginationIntervalTimer->start();
             }
 
             // changes its state to OpenConfirm.
@@ -293,13 +290,10 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             // System field is the same as the local Autonomous System number,
             // then the connection is an "internal" connection; otherwise, it is
             // an "external" connection.
-
             break;
 
         case BGPEventType::BGPHeaderErr:
         case BGPEventType::BGPOpenMsgErr:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> BGPHeaderErr, BGPOpenMsgErr");
             //  sends a NOTIFICATION message with the appropriate error
             //  code
 
@@ -313,15 +307,18 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources,
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -342,10 +339,7 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::OpenCollisionDump:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> OpenCollisionDump");
             // OPTIONAL
-            // TODO remove if not needed
             // sends a NOTIFICATION with a Cease,
 
             {
@@ -361,15 +355,18 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -390,12 +387,12 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             break;
 
         case BGPEventType::NotifMsgVerErr:
-            L_DEBUG(stateMachine->connection->owner->ID,
-                    "Event -> NotifMsgVerErr");
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources, done
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -413,12 +410,6 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
         case BGPEventType::KeepAliveMsg:
         case BGPEventType::UpdateMsg:
         case BGPEventType::UpdateMsgErr:
-            L_DEBUG(
-                stateMachine->connection->owner->ID,
-                "Event -> ManualConnectRetryTimer_Expires, "
-                "KeepaliveTimer_Expires, DelayOpenTimer_Expires, "
-                "IdleHoldTimer_Expires, BGPOpen_with_DelayOpenTimer_running, "
-                "NotifMsg, KeepAliveMsg, UpdateMsg, UpdateMsgErrStop");
             // sends the NOTIFICATION with the Error Code Finite State
             // Machine Error
 
@@ -435,15 +426,18 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                 layers->push(std::move(bgpNotificationLayer));
 
                 stateMachine->connection->sendData(std::move(layers));
-                L_INFO(stateMachine->connection->owner->ID + " " +
-                           stateMachine->name,
-                       "Sending NOTIFICATION message");
+                L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                stateMachine->name,
+                            stateMachine->connection->toString(),
+                            "Sending NOTIFICATION message");
             }
 
             // sets the ConnectRetryTimer to zero,
             stateMachine->resetConnectRetryTimer();
 
             // XXX releases all BGP resources,
+            stateMachine->connection->bgpApplication->stopListeningOnSocket(
+                stateMachine->connection->srcAddr);
 
             // drops the TCP connection,
             stateMachine->connection->dropConnection(false);
@@ -461,6 +455,15 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
 
             // changes its state to Idle.
             stateMachine->changeState(new BGPStateIdle(stateMachine));
+            break;
+
+        case BGPEventType::SendUpdateMsg:
+            // Event for checking that the fsm is in a good state before sending
+            // the message
+            L_ERROR_CONN(
+                stateMachine->connection->owner->ID + " " + stateMachine->name,
+                stateMachine->connection->toString(),
+                "UPDATE message cannot be sent in OpenSent state");
             break;
 
         default:

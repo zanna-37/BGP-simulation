@@ -1,0 +1,133 @@
+---
+# Topology
+# E1 <--> R1 <------> R2 <--> E2
+#          ^          ^
+#          '--> R3 <--'
+#               ^
+#               '--> R4 <--> E4
+
+# Logic behind the IPs assignment:
+#
+# aa.bb.0.0 is the network between the two routers Ra and Rb where a<b
+# the IPs are assigned with this schema aa.bb.0.x
+#   where:
+#     - a match the lowest router ID number
+#     - b match the highest router ID number
+#     - x match the router ID number
+#   e.g.
+#     - 11.33.0.1 R1 (toward R3)
+#     - 22.33.0.2 R2 (toward R3)
+#     - 11.33.0.3 R3 (toward R1)
+#     - 22.33.0.3 R3 (toward R2)
+#
+# 30.x.0.0 is the network between the endpoints and the routers
+# the IPs for the routers are assigned with this schema 30.x.0.x
+# the IPs for the endpoints are assigned with this schema 30.x.0.10y
+#   where:
+#     - x match the router ID number
+#     - y match the endpoint ID number
+#   e.g.
+#     - 30.1.0.1   R1 (toward E1)
+#     - 30.2.0.2   R2 (toward E2)
+#     - 30.1.0.101 E1 (toward R1)
+#     - 30.2.0.102 E2 (toward R2)
+
+routers:
+  - id: R1
+    AS_number: 1
+    networkCard:
+      - interface: lan1
+        IP: 30.1.0.1
+        netmask: 255.255.0.0
+      - interface: eth2
+        IP: 11.22.0.1
+        netmask: 255.255.0.0
+      - interface: eth3
+        IP: 11.33.0.1
+        netmask: 255.255.0.0
+    peers: [ 11.22.0.2, 11.33.0.3 ]
+
+  - id: R2
+    AS_number: 2
+    default_gateway: 22.33.0.3
+    networkCard:
+      - interface: lan2
+        IP: 30.2.0.2
+        netmask: 255.255.0.0
+      - interface: eth1
+        IP: 11.22.0.2
+        netmask: 255.255.0.0
+      - interface: eth3
+        IP: 22.33.0.2
+        netmask: 255.255.0.0
+    peers: [ 11.22.0.1, 22.33.0.3 ]
+
+  - id: R3
+    AS_number: 3
+    default_gateway: 11.33.0.1
+    networkCard:
+      - interface: eth1
+        IP: 11.33.0.3
+        netmask: 255.255.0.0
+      - interface: eth2
+        IP: 22.33.0.3
+        netmask: 255.255.0.0
+      - interface: eth4
+        IP: 33.44.0.3
+        netmask: 255.255.0.0
+    peers: [ 11.33.0.1, 22.33.0.2, 33.44.0.4 ]
+
+  - id: R4
+    AS_number: 4
+    networkCard:
+      - interface: lan4
+        IP: 30.4.0.4
+        netmask: 255.255.0.0
+      - interface: eth3
+        IP: 33.44.0.4
+        netmask: 255.255.0.0
+    peers: [ 33.44.0.3 ]
+
+clients:
+  - id: E1
+    default_gateway: 30.1.0.1
+    networkCard:
+      - interface: wifi1
+        IP: 30.1.0.101
+        netmask: 255.255.0.0
+  - id: E2
+    default_gateway: 30.2.0.2
+    networkCard:
+      - interface: wifi2
+        IP: 30.2.0.102
+        netmask: 255.255.0.0
+  - id: E4
+    default_gateway: 30.4.0.4
+    networkCard:
+      - interface: wifi4
+        IP: 30.4.0.104
+        netmask: 255.255.0.0
+
+links:
+  - device_ids: [ R1, E1 ]
+    device_source_interfaces: [ lan1, wifi1 ]
+    connection_status: active
+  - device_ids: [ R2, E2 ]
+    device_source_interfaces: [ lan2, wifi2 ]
+    connection_status: active
+  - device_ids: [ R4, E4 ]
+    device_source_interfaces: [ lan4, wifi4 ]
+    connection_status: active
+  - device_ids: [ R1, R2 ]
+    device_source_interfaces: [ eth2, eth1 ]
+    connection_status: active
+  - device_ids: [ R1, R3 ]
+    device_source_interfaces: [ eth3, eth1 ]
+    connection_status: active
+  - device_ids: [ R2, R3 ]
+    device_source_interfaces: [ eth3, eth2 ]
+    connection_status: active
+  - device_ids: [ R3, R4 ]
+    device_source_interfaces: [ eth4, eth3 ]
+    connection_status: active
+...
