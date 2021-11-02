@@ -1,0 +1,11 @@
+﻿---
+BasedOnStyle: Google
+AlignConsecutiveMacros: AcrossComments
+AlignConsecutiveAssignments: AcrossComments
+AlignConsecutiveDeclarations: AcrossComments
+BinPackArguments: false
+BinPackParameters: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+IndentWidth: 4
+MaxEmptyLinesToKeep: 2
+...

@@ -1,45 +1,60 @@
-.PHONY = build run clean
+.PHONY = build clean
 
-TARGET_EXEC := output
-BUILD_DIR := ./build
-SRC_DIR := ./src
+# Make all recipes begin with the > character rather than a tab.
+.RECIPEPREFIX := >
 
-# Find all the C and C++ files we want to compile
-SRCS := $(shell find $(SRC_DIR) -name *.cpp)
+TARGET_EXEC := BGP_simulation
+BUILD_DIR   := cmake-release
+DEBUG_DIR   := cmake-debug
 
-# String substitution for every C/C++ file.
-# As an example, hello.cpp turns into ./build/hello.cpp.o
-OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
+# You can set these variables from the command line, and also from the environment.
+DEBUG ?= # Put 1 to enable
+IWYU  ?= # Put 1 to enable
 
-# Every folder in ./src will need to be passed to GCC so that it can find header files
-INC_DIRS := $(shell find $(SRC_DIR) -type d)
-# Add a prefix to INC_DIRS. So moduleA would become -ImoduleA. GCC understands this -I flag
-INC_FLAGS := $(addprefix -I,$(INC_DIRS))
+# Use Clang
+export CC                 := clang
+export CXX                := clang++
+export CMAKE_C_COMPILER   := clang
+export CMAKE_CXX_COMPILER := clang++
 
-CPPFLAGS := -g -ansi -pedantic -W -Wall -Werror
+
+# Generate the build files
+$(BUILD_DIR)/Makefile: CMakeLists.txt
+>   @echo;
+>   @echo "[.] Generating build files...";
+>   cmake -DTARGET_EXEC:STRING=$(TARGET_EXEC) -S . -B $(BUILD_DIR)
+
+$(DEBUG_DIR)/Makefile: CMakeLists.txt
+>   @echo;
+>   @echo "[.] Generating debug build files...";
+>   cmake -DTARGET_EXEC:STRING=$(TARGET_EXEC) -S . -B $(DEBUG_DIR)
 
 
-# The final build step.
-build: $(BUILD_DIR)/$(TARGET_EXEC)
+# Compile
+ifeq ($(DEBUG), 1)
+	CHOOSEN_DIR := $(DEBUG_DIR)
+else
+	CHOOSEN_DIR := $(BUILD_DIR)
+endif
+build: $(CHOOSEN_DIR)/Makefile
+>   @echo;
+>   @echo "[.] Building program";
+    ifeq ($(IWYU), 1)
+>       @echo "[.]   Using Include What You Use (IWYU)...";
+>       @cmake -DCMAKE_CXX_INCLUDE_WHAT_YOU_USE="iwyu;-Xiwyu;--no_fwd_decls" $(CHOOSEN_DIR)
+    endif
 
-$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	@echo;
-	@echo "[.] Building executable...";
-	$(CXX) $(CXXFLAGS) $(INC_FLAGS) $(CPPFLAGS) $(OBJS) -o $(BUILD_DIR)/$(TARGET_EXEC)
+    ifeq ($(DEBUG), 1)
+>       @echo "[.]   Enabling DEBUG mode...";
+>       @cmake -DUSE_DEBUG=ON $(CHOOSEN_DIR)
+>       @cmake -DCMAKE_BUILD_TYPE=Debug $(CHOOSEN_DIR)
+    endif
+>       @cmake --build $(CHOOSEN_DIR)
 
-# Build step for C++ source
-$(OBJS): $(SRCS)
-	@echo;
-	@echo "[.] Building objects...";
-	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) $(INC_FLAGS) $(CPPFLAGS) -c $< -o $@
 
-run: build
-	@echo;
-	@echo "[.] Running program...";
-	@$(BUILD_DIR)/$(TARGET_EXEC)
-
+# Cleanup
 clean:
-	@echo
-	@echo "[.] Cleaning up...";
-	rm -rf $(BUILD_DIR);
+>   @echo
+>   @echo "[.] Cleaning up...";
+>   rm -rf $(BUILD_DIR);
+>   rm -rf $(DEBUG_DIR);

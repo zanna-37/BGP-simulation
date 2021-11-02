@@ -1,0 +1,13 @@
+[submodule "lib/PcapPlusPlus"]
+	path = lib/PcapPlusPlus
+	url = https://github.com/zanna-37/PcapPlusPlus.git
+
+[submodule "lib/yaml-cpp"]
+	path = lib/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "lib/pistache"]
+	path = lib/pistache
+	url = https://github.com/pistacheio/pistache.git
+[submodule "lib/rapidjson"]
+	path = lib/rapidjson
+	url = https://github.com/Tencent/rapidjson.git

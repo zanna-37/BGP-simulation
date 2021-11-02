@@ -4,9 +4,9 @@
    contain the root `toctree` directive.
 
 BGP-simulation's documentation
-==========================================
+==============================
 
 .. toctree::
    :maxdepth: 2
 
-   compilation.md
+   getting-started

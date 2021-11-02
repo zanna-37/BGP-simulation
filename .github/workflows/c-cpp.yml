@@ -1,0 +1,25 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: dependencies
+        run: git submodule update --init --recursive
+
+      - name: build docker image
+        run: docker-compose build compiler
+
+      - name: make build
+        run: docker-compose run --rm compiler make build

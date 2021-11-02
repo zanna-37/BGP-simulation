@@ -1,0 +1,42 @@
+name: Valgrind checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: dependencies
+        run: git submodule update --init --recursive
+
+      - name: build docker image
+        run: docker-compose build compiler
+
+      - name: make DEBUG=1 build
+        run: docker-compose run --rm compiler make DEBUG=1 build
+
+      - name: valgrind check
+        run: |
+          docker-compose run --rm compiler \
+            bash -c " \
+              set -m; \
+              valgrind \
+                --error-exitcode=1 \
+                --leak-check=full \
+                --show-leak-kinds=all \
+                --track-origins=yes \
+                --track-fds=yes \
+                ./cmake-debug/BGP_simulation ./examples/config.yaml & \
+              valgrind_pid=\$!; \
+              ( sleep 60; echo 'Sending SIGINT (Ctrl+C) to pid:'\${valgrind_pid}'...'; kill -SIGINT \${valgrind_pid} ); \
+              wait \$valgrind_pid; \
+              exit \$?; "

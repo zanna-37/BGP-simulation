@@ -1,0 +1,37 @@
+.btn-check:active+.btn-outline-secondary, 
+.btn-check:checked+.btn-outline-secondary, 
+.btn-outline-secondary.active, 
+.btn-outline-secondary.dropdown-toggle.show, 
+.btn-outline-secondary:active,
+.btn-outline-secondary.hover,
+.btn-outline-secondary:hover,
+.btn-outline-secondary:visited,
+.btn-outline-secondary:focus {
+    color: #fff;
+    background-color:rgb(75, 113, 114);
+    border-color:rgb(75, 113, 114);
+}
+
+.btn-outline-secondary {
+    color:rgb(75, 113, 114);
+    border-color:rgb(75, 113, 114);
+}
+
+.container-feature{
+    margin-top: 10px;
+    margin-left: inherit;
+    margin-right: inherit;
+}
+
+#send-packet{
+    float: right;
+    margin-right: 10px;
+}
+
+ul {
+	overflow-x:hidden;
+	white-space:nowrap;
+    padding-top: 0;
+    margin-top: 0;
+    vertical-align: top;
+}

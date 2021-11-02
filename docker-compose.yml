@@ -1,0 +1,31 @@
+---
+version: "2.4"
+services:
+
+  compiler:
+    build:
+      context: ./docker/compiler/
+    volumes:
+      - .:/project
+    ports:
+      - "8080:8080"
+    profiles: [ "NULL" ] # This is meant to be called only directly. More info in the docs.
+
+  compiler_clion:
+    build:
+      context: ./docker/compiler_clion/
+    cap_add:
+      - sys_ptrace
+    ports:
+      - "8080:8080"
+      - "3022:22"
+    profiles: [ "NULL" ] # This is meant to be called only directly. More info in the docs.
+
+  docs:
+    build:
+      context: ./docker/docs/
+    volumes:
+      - ./docs:/docs
+    ports:
+      - "8080:8080"
+    profiles: [ "NULL" ] # This is meant to be called only directly. More info in the docs.
