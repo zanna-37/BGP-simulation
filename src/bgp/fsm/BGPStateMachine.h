@@ -25,6 +25,8 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
         24s;
     constexpr static const std::chrono::seconds kKeepaliveTime_defaultVal =
         kHoldTime_defaultVal / 3;
+    constexpr static const std::chrono::seconds
+        kMinASOriginationIntervalTime_defaultVal = 15s;
 #else
     constexpr static const std::chrono::seconds kConnectRetryTime_defaultVal =
         120s;
@@ -33,6 +35,8 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
         240s;
     constexpr static const std::chrono::seconds kKeepaliveTime_defaultVal =
         kHoldTime_defaultVal / 3;
+    constexpr static const std::chrono::seconds
+        kMinASOriginationIntervalTime_defaultVal = 150s;
 #endif
 
     BGPStateMachine(BGPConnection* connection);
@@ -40,9 +44,10 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     ~BGPStateMachine();
 
     // Mandatory session attributes
-    BGPTimer* connectRetryTimer = nullptr;
-    BGPTimer* holdTimer         = nullptr;
-    BGPTimer* keepAliveTimer    = nullptr;
+    BGPTimer* connectRetryTimer             = nullptr;
+    BGPTimer* holdTimer                     = nullptr;
+    BGPTimer* keepAliveTimer                = nullptr;
+    BGPTimer* minASOriginationIntervalTimer = nullptr;
 
     // Optional session attributes
     BGPTimer* delayOpenTimer = nullptr;
@@ -65,6 +70,10 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
      */
     void resetKeepAliveTimer();
     /**
+     * Stop the minASOriginationIntervalTimer and resets it to the initial value
+     */
+    void resetMinASOriginationIntervalTimer();
+    /**
      * Stop the delayOpenTimer and resets it to the initial value
      */
     void resetDelayOpenTimer();
@@ -84,7 +93,7 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
      * Get the connectRetrycounter
      * @return the connectRetryCounter value
      */
-    int getConnectRetryCounter() const { return connectRetryCounter; }
+    int  getConnectRetryCounter() const { return connectRetryCounter; }
     /**
      * Set the connectRetryCounter
      * @param value the value of connectRetryCounter
@@ -179,6 +188,23 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     }
 
     /**
+     * Get the minASOriginationIntervalTime default value. Used by
+     * minASOriginationIntervalTimer
+     * @return the minASOriginationIntervalTime value
+     */
+    std::chrono::seconds getNegotiatedMinASOriginationIntervalTime() const {
+        return negotiatedMinASOriginationIntervalTime;
+    }
+    /**
+     * Set the minASOriginationIntervalTime default value
+     * @param value the value of minASOriginationIntervalTime
+     */
+    void setNegotiatedMinASOriginationIntervalTime(
+        const std::chrono::seconds& value) {
+        negotiatedMinASOriginationIntervalTime = value;
+    }
+
+    /**
      * Get the delayOpenTime default value. Used by delayOpenTimer
      * @return the delayOpenTime value
      */
@@ -187,7 +213,7 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
      * Set the delayOpenTime default value
      * @param value the value of delayOpenTime
      */
-    void setDelayOpenTime(const std::chrono::seconds& value) {
+    void                 setDelayOpenTime(const std::chrono::seconds& value) {
         delayOpenTime = value;
     }
 
@@ -254,9 +280,10 @@ class BGPStateMachine : public StateMachine<BGPConnection, BGPState, BGPEvent> {
     // TODO from the RFC, the following "ConnectRetryTime" "HoldTime"
     // "KeepaliveTime" should be the default values, but they are already set
     // above, Do we need to follow word by word the RFC?
-    std::chrono::seconds connectRetryTime        = 0s;
-    std::chrono::seconds negotiatedHoldTime      = 0s;
-    std::chrono::seconds negotiatedKeepaliveTime = 0s;
+    std::chrono::seconds connectRetryTime                       = 0s;
+    std::chrono::seconds negotiatedHoldTime                     = 0s;
+    std::chrono::seconds negotiatedKeepaliveTime                = 0s;
+    std::chrono::seconds negotiatedMinASOriginationIntervalTime = 0s;
 
     // Mandatory session attributes
     int connectRetryCounter = 0;

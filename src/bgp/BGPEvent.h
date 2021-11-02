@@ -41,7 +41,8 @@ enum BGPEventType {
     KeepAliveMsg                        = 26,  // Mandatory
     UpdateMsg                           = 27,  // Mandatory
     UpdateMsgErr                        = 28,  // Mandatory
-    SendUpdateMsg = 29  // Send the Update message just in a good state
+    SendUpdateMsg = 29,  // Send the Update message just in a good state
+    MinASOriginationIntervalTimer_Expires = 30
 };
 
 struct BGPEvent {

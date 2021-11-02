@@ -621,6 +621,207 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
             break;
 
+        case BGPEventType::MinASOriginationIntervalTimer_Expires:
+            // sends Update message
+
+            {
+                bool        sameASPath = true;
+                BGPTableRow previousBGPTableRow =
+                    stateMachine->connection->owner->bgpTable[0];
+
+                std::vector<LengthAndIpPrefix> new_nlri;
+                uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
+                    previousBGPTableRow.networkMask);
+                LengthAndIpPrefix nlri(
+                    prefLen, previousBGPTableRow.networkIP.toString());
+                new_nlri.push_back(nlri);
+
+                for (int i = 1;
+                     i < stateMachine->connection->owner->bgpTable.size();
+                     i++) {
+                    if (previousBGPTableRow.asPath.size() ==
+                        stateMachine->connection->owner->bgpTable[i]
+                            .asPath.size()) {
+                        for (int j = 0; j < previousBGPTableRow.asPath.size();
+                             j++) {
+                            if (previousBGPTableRow.asPath[j] !=
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .asPath[j]) {
+                                sameASPath = false;
+                                break;
+                            }
+                        }
+                        if (sameASPath ||
+                            (!sameASPath && i == stateMachine->connection->owner
+                                                         ->bgpTable.size() -
+                                                     1)) {
+                            uint8_t prefLen =
+                                LengthAndIpPrefix::computeLengthIpPrefix(
+                                    stateMachine->connection->owner->bgpTable[i]
+                                        .networkMask);
+                            LengthAndIpPrefix nlri(
+                                prefLen,
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .networkIP.toString());
+                            new_nlri.push_back(nlri);
+                        }
+                    } else if (previousBGPTableRow.asPath.size() !=
+                                   stateMachine->connection->owner->bgpTable[i]
+                                       .asPath.size() &&
+                               i == stateMachine->connection->owner->bgpTable
+                                            .size() -
+                                        1) {
+                        sameASPath = false;
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .networkMask);
+                        LengthAndIpPrefix nlri(
+                            prefLen,
+                            stateMachine->connection->owner->bgpTable[i]
+                                .networkIP.toString());
+                        new_nlri.push_back(nlri);
+
+
+                    } else {
+                        sameASPath = false;
+                    }
+
+                    if (!sameASPath ||
+                        i == stateMachine->connection->owner->bgpTable.size() -
+                                 1) {
+                        // Create BGPUpdateMessage
+                        std::vector<PathAttribute> newPathAttributes;
+
+                        // NextHop PathAttribute
+                        uint32_t routerIp_int =
+                            stateMachine->connection->srcAddr.toInt();
+                        const size_t nextHopDataLength              = 4;
+                        uint8_t      nextHopData[nextHopDataLength] = {
+                            (uint8_t)routerIp_int,
+                            (uint8_t)(routerIp_int >> 8),
+                            (uint8_t)(routerIp_int >> 16),
+                            (uint8_t)(routerIp_int >> 24)};
+                        PathAttribute nextHopAttribute;
+                        nextHopAttribute.setAttributeLengthAndValue(
+                            nextHopData, nextHopDataLength);
+                        nextHopAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::NEXT_HOP;
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        nextHopAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(nextHopAttribute);
+
+                        // AS_Path PathAttribute
+                        std::vector<uint8_t> asPath_be8;
+
+                        uint16_t new_as_num =
+                            (uint16_t)
+                                stateMachine->connection->owner->AS_number;
+
+                        std::vector<uint16_t> asPath;
+
+                        if (!sameASPath) {
+                            asPath = previousBGPTableRow.asPath;
+                        } else {
+                            asPath =
+                                stateMachine->connection->owner->bgpTable[i]
+                                    .asPath;
+                        }
+
+                        asPath.push_back(new_as_num);
+
+                        uint8_t asPathType = 2;
+                        uint8_t asPathLen  = asPath.size();
+
+                        PathAttribute::asPathToAttributeDataArray_be(
+                            asPathType, asPathLen, asPath, asPath_be8);
+
+                        size_t        asPathDataLength = asPath_be8.size();
+                        uint8_t*      asPathData       = asPath_be8.data();
+                        PathAttribute asPathAttribute;
+                        asPathAttribute.setAttributeLengthAndValue(
+                            asPathData, asPathDataLength);
+                        asPathAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::AS_PATH;
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        asPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(asPathAttribute);
+
+                        // Origin PathAttribute
+                        const size_t  originDataLength             = 1;
+                        uint8_t       originData[originDataLength] = {2};
+                        PathAttribute originPathAttribute;
+                        originPathAttribute.setAttributeLengthAndValue(
+                            originData, originDataLength);
+                        originPathAttribute.attributeTypeCode =
+                            PathAttribute::AttributeTypeCode_uint8_t::ORIGIN;
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::OPTIONAL,
+                            0);
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::
+                                TRANSITIVE,
+                            1);
+                        originPathAttribute.setFlags(
+                            PathAttribute::AttributeTypeFlags_uint8_t::PARTIAL,
+                            0);
+                        newPathAttributes.push_back(originPathAttribute);
+
+                        std::vector<LengthAndIpPrefix> withdrawnRoutes;
+
+                        std::unique_ptr<BGPUpdateLayer> updateLayer =
+                            std::make_unique<BGPUpdateLayer>(
+                                withdrawnRoutes, newPathAttributes, new_nlri);
+                        updateLayer->computeCalculateFields();
+
+                        BGPEvent event = {BGPEventType::SendUpdateMsg,
+                                          std::move(updateLayer)};
+                        stateMachine->connection->enqueueEvent(
+                            std::move(event));
+
+                        L_INFO_CONN(stateMachine->connection->owner->ID + " " +
+                                        stateMachine->name,
+                                    stateMachine->connection->toString(),
+                                    "Enqueuing UPDATE message in the events");
+
+                        sameASPath = true;
+                        previousBGPTableRow =
+                            stateMachine->connection->owner->bgpTable[i];
+                        new_nlri.clear();
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                previousBGPTableRow.networkMask);
+                        LengthAndIpPrefix nlri(
+                            prefLen, previousBGPTableRow.networkIP.toString());
+                        new_nlri.push_back(nlri);
+                    }
+                }
+            }
+
+            // FIXME restarts its KeepaliveTimer, unless the negotiated
+            // HoldTime value is zero. --> Should be correct now
+            if (stateMachine->getNegotiatedHoldTime() != 0ms) {
+                stateMachine->resetMinASOriginationIntervalTimer();
+                stateMachine->minASOriginationIntervalTimer->start();
+            }
+            break;
+
         default:
             handled = false;
             break;

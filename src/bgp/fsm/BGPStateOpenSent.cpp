@@ -266,6 +266,8 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
                                              3));
                     stateMachine->setNegotiatedHoldTime(
                         std::chrono::seconds(be16toh(openHeader->holdTime_be)));
+                    stateMachine->setNegotiatedMinASOriginationIntervalTime(
+                        std::chrono::seconds(be16toh(openHeader->holdTime_be)));
                 }
             }
 
@@ -275,8 +277,10 @@ bool BGPStateOpenSent ::onEvent(BGPEvent event) {
             if (stateMachine->getNegotiatedHoldTime() != 0s) {
                 stateMachine->resetHoldTimer();
                 stateMachine->resetKeepAliveTimer();
+                stateMachine->resetMinASOriginationIntervalTimer();
                 stateMachine->holdTimer->start();
                 stateMachine->keepAliveTimer->start();
+                stateMachine->minASOriginationIntervalTimer->start();
             }
 
             // changes its state to OpenConfirm.

@@ -103,6 +103,9 @@ std::string getEventName(BGPEvent &event) {
         case BGPEventType::SendUpdateMsg:
             return "[" + std::to_string(event.eventType) +
                    "-Send Update Message]";
+        case BGPEventType::MinASOriginationIntervalTimer_Expires:
+            return "[" + std::to_string(event.eventType) +
+                   "-MinASOriginationIntervalTimer expires]";
         default:
             L_ERROR("BGPEventType",
                     "THIS SHOULD NEVER HAPPEN: unknown BGP Event");
