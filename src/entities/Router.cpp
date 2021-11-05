@@ -55,6 +55,7 @@ void Router::buildBgpTable() {
                         0,
                         32768);
 
+        row.preferred = true;
         bgpTable.push_back(row);
     }
 }
@@ -78,6 +79,7 @@ std::string Router::getBgpTableAsString() {
     output += getBgpTableCellAsString("LocPref");
     output += getBgpTableCellAsString("Weight");
     output += getBgpTableCellAsString("Path");
+    output += getBgpTableCellAsString("Preferred");
 
     for (const BGPTableRow &row : bgpTable) {
         output += "\n";
@@ -92,6 +94,7 @@ std::string Router::getBgpTableAsString() {
             asPAth += std::to_string(i) + " ";
         }
         output += getBgpTableCellAsString(asPAth);
+        output += getBgpTableCellAsString(row.preferred ? "yes" : "no");
     }
 
     return output;

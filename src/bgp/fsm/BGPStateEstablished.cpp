@@ -79,6 +79,22 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
                 withdrawnRoutes.push_back(withdrawnRoute);
 
+                // If peerAddress is nexthop for other routes we have to
+                // remove them
+                for (auto& row :
+                     stateMachine->connection->owner->routingTable) {
+                    if (row.defaultGateway == IPAddressPeer) {
+                        // Push the withdrownRoute for the subsequent BGP Update
+                        // sent to others
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                row.netmask);
+                        LengthAndIpPrefix newWithDrawnRoute(
+                            prefLen, row.networkIP.toString());
+                        withdrawnRoutes.push_back(newWithDrawnRoute);
+                    }
+                }
+
                 std::vector<PathAttribute>     pathAttributes;
                 std::vector<LengthAndIpPrefix> nlris;
                 std::vector<uint16_t>          asPath;
@@ -222,6 +238,22 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                                                  networkIPpeer.toString());
 
                 withdrawnRoutes.push_back(withdrawnRoute);
+
+                // If peerAddress is nexthop for other routes we have to
+                // remove them
+                for (auto& row :
+                     stateMachine->connection->owner->routingTable) {
+                    if (row.defaultGateway == IPAddressPeer) {
+                        // Push the withdrownRoute for the subsequent BGP Update
+                        // sent to others
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                row.netmask);
+                        LengthAndIpPrefix newWithDrawnRoute(
+                            prefLen, row.networkIP.toString());
+                        withdrawnRoutes.push_back(newWithDrawnRoute);
+                    }
+                }
 
                 std::vector<PathAttribute>     pathAttributes;
                 std::vector<LengthAndIpPrefix> nlris;
@@ -419,6 +451,22 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
 
                 withdrawnRoutes.push_back(withdrawnRoute);
 
+                // If peerAddress is nexthop for other routes we have to
+                // remove them
+                for (auto& row :
+                     stateMachine->connection->owner->routingTable) {
+                    if (row.defaultGateway == IPAddressPeer) {
+                        // Push the withdrownRoute for the subsequent BGP Update
+                        // sent to others
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                row.netmask);
+                        LengthAndIpPrefix newWithDrawnRoute(
+                            prefLen, row.networkIP.toString());
+                        withdrawnRoutes.push_back(newWithDrawnRoute);
+                    }
+                }
+
                 std::vector<PathAttribute>     pathAttributes;
                 std::vector<LengthAndIpPrefix> nlris;
                 std::vector<uint16_t>          asPath;
@@ -593,6 +641,22 @@ bool BGPStateEstablished ::onEvent(BGPEvent event) {
                                                  networkIPpeer.toString());
 
                 withdrawnRoutes.push_back(withdrawnRoute);
+
+                // If peerAddress is nexthop for other routes we have to
+                // remove them
+                for (auto& row :
+                     stateMachine->connection->owner->routingTable) {
+                    if (row.defaultGateway == IPAddressPeer) {
+                        // Push the withdrownRoute for the subsequent BGP Update
+                        // sent to others
+                        uint8_t prefLen =
+                            LengthAndIpPrefix::computeLengthIpPrefix(
+                                row.netmask);
+                        LengthAndIpPrefix newWithDrawnRoute(
+                            prefLen, row.networkIP.toString());
+                        withdrawnRoutes.push_back(newWithDrawnRoute);
+                    }
+                }
 
                 std::vector<PathAttribute>     pathAttributes;
                 std::vector<LengthAndIpPrefix> nlris;

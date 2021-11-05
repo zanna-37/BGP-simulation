@@ -271,8 +271,8 @@ bool BGPStateOpenConfirm ::onEvent(BGPEvent event) {
                 std::unique_ptr<BGPOpenLayer> openLayer;
                 dynamic_pointer_move(openLayer, event.layers);
 
-                pcpp::IPv4Address bgpIdentifier = pcpp::IPv4Address(be32toh(
-                    openLayer->getOpenHeaderOrNull()->BGPIdentifier_be));
+                pcpp::IPv4Address bgpIdentifier = pcpp::IPv4Address(
+                    openLayer->getOpenHeaderOrNull()->BGPIdentifier_be);
 
                 stateMachine->connection->bgpApplication->collisionDetection(
                     stateMachine->connection, bgpIdentifier);
