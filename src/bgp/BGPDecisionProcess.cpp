@@ -3,6 +3,7 @@
 #include <endian.h>
 
 #include <algorithm>
+#include <cassert>
 
 #include "../entities/Link.h"
 #include "../entities/NetworkCard.h"
@@ -14,63 +15,70 @@
 
 void runDecisionProcess(Router *                         router,
                         std::unique_ptr<BGPUpdateLayer> &BGPUpdateMessage,
-                        pcpp::IPv4Address &              routerIP,
+                        pcpp::IPv4Address &              localRouterIP,
                         BGPConnection *                  bgpConnectionToAvoid) {
+    L_DEBUG_CONN(
+        "Decision Process", bgpConnectionToAvoid->toString(), "Running");
     // L_DEBUG("Decision Process", BGPUpdateMessage->toString());
-    // check whether there are withdrawn routes
     std::vector<LengthAndIpPrefix> newWithDrawnRoutes;
     std::vector<LengthAndIpPrefix> new_nlris;
 
+    // Check whether there are withdrawn routes
     if (BGPUpdateMessage->getWithdrawnRoutesBytesLength() != 0) {
         std::vector<LengthAndIpPrefix> withDrawnRoutes;
         BGPUpdateMessage->getWithdrawnRoutes(withDrawnRoutes);
 
+        // For every WithdrawnRoutes received
         for (LengthAndIpPrefix withDrawnRoute : withDrawnRoutes) {
             pcpp::IPv4Address withdrawnedNetworkIP(
                 withDrawnRoute.ipPrefix.toString());
             pcpp::IPv4Address withdrawnedNetworkMask(htobe32(
                 NetUtils::prefixToNetmask(withDrawnRoute.prefixLength)));
+
             for (auto itTableRow = router->bgpTable.begin();
                  itTableRow != router->bgpTable.end();) {
                 if (withdrawnedNetworkIP == itTableRow->networkIP &&
-                    itTableRow->nextHop != pcpp::IPv4Address::Zero) {
-                    // remove withdrawned route
+                    itTableRow->nextHop != pcpp::IPv4Address::Zero &&
+                    itTableRow->nextHop == bgpConnectionToAvoid->dstAddr) {
+                    // Push the withdrownRoute for the subsequent BGP Update
+                    // sent to others
                     uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
                         itTableRow->networkMask);
                     LengthAndIpPrefix newWithDrawnRoute(
                         prefLen, itTableRow->networkIP.toString());
                     newWithDrawnRoutes.push_back(newWithDrawnRoute);
-                    updateIPTable(router, *itTableRow, true, routerIP);
+
+                    // Remove withdrawned route
+                    updateIPTable(router, *itTableRow, true);
+                    if (itTableRow->preferred) {
+                        // We are deleting a preferred route so we should search
+                        // a substitute
+                        BGPTableRow *candidateSubstituteSoFar = nullptr;
+                        for (auto &rowToCheck : router->bgpTable) {
+                            if (/*skip self*/ &(*itTableRow) != &rowToCheck &&
+                                itTableRow->networkIP == rowToCheck.networkIP &&
+                                itTableRow->networkMask ==
+                                    rowToCheck.networkMask &&
+                                itTableRow->nextHop !=
+                                    pcpp::IPv4Address::Zero) {
+                                if (candidateSubstituteSoFar == nullptr ||
+                                    rowToCheck.asPath <
+                                        candidateSubstituteSoFar->asPath) {
+                                    candidateSubstituteSoFar = &rowToCheck;
+                                }
+                            }
+                        }
+                        if (candidateSubstituteSoFar) {
+                            // If we found a substitute, use it
+                            candidateSubstituteSoFar->preferred = true;
+                            updateIPTable(
+                                router, *candidateSubstituteSoFar, false);
+                        }
+                    }
                     itTableRow = router->bgpTable.erase(itTableRow);
+                    // END: Remove withdrawned route
                 } else {
                     itTableRow++;
-                }
-            }
-        }
-
-        // If withdrawnroute is nexthop for other routes we have to remove them
-        pcpp::IPv4Address peerIP = bgpConnectionToAvoid->dstAddr;
-        pcpp::IPv4Address peerNetMask;
-        for (NetworkCard *netCard : *router->networkCards) {
-            if (netCard->IP == routerIP) {
-                peerNetMask = netCard->netmask;
-            }
-        }
-        pcpp::IPv4Address peerNetworkIP(peerIP.toInt() & peerNetMask.toInt());
-
-        for (LengthAndIpPrefix withDrawnRoute : withDrawnRoutes) {
-            pcpp::IPv4Address withdrawnedNetworkIP(
-                withDrawnRoute.ipPrefix.toString());
-            if (withdrawnedNetworkIP == peerNetworkIP) {
-                for (auto itTableRow = router->bgpTable.begin();
-                     itTableRow != router->bgpTable.end();) {
-                    if (itTableRow->nextHop == peerIP) {
-                        // remove withdrawned route
-                        updateIPTable(router, *itTableRow, true, routerIP);
-                        itTableRow = router->bgpTable.erase(itTableRow);
-                    } else {
-                        itTableRow++;
-                    }
                 }
             }
         }
@@ -179,6 +187,7 @@ void runDecisionProcess(Router *                         router,
                 pcpp::IPv4Address networkIPNRLI(nlri.ipPrefix.toString());
                 pcpp::IPv4Address netmaskNRLI(
                     htobe32(NetUtils::prefixToNetmask(nlri.prefixLength)));
+
                 BGPTableRow newRoute(networkIPNRLI,
                                      netmaskNRLI,
                                      nextHop,
@@ -188,42 +197,43 @@ void runDecisionProcess(Router *                         router,
                                      localPreferences,
                                      0);
                 newRoute.preferred = true;
-                for (auto itBGPTableRow = router->bgpTable.begin();
-                     itBGPTableRow != router->bgpTable.end();) {
-                    if (networkIPNRLI == itBGPTableRow->networkIP &&
-                        itBGPTableRow->nextHop != pcpp::IPv4Address::Zero &&
-                        nextHop == itBGPTableRow->nextHop) {
-                        uint8_t prefLen =
-                            LengthAndIpPrefix::computeLengthIpPrefix(
-                                itBGPTableRow->networkMask);
-                        LengthAndIpPrefix newWithDrawnRoute(
-                            prefLen, itBGPTableRow->networkIP.toString());
-                        newWithDrawnRoutes.push_back(newWithDrawnRoute);
-                        /*if (!itBGPTableRow->preferred) {
-                            newRoute.preferred = false;
-                        }*/
-                        updateIPTable(router, *itBGPTableRow, true, routerIP);
-                        itBGPTableRow = router->bgpTable.erase(itBGPTableRow);
-                    } else {
+
+                // Check if the route is a duplicate
+                bool newRouteIsDuplicate = false;
+                for (const auto &bgpTableRow : router->bgpTable) {
+                    if (newRoute.networkIP == bgpTableRow.networkIP &&
+                        newRoute.networkMask == bgpTableRow.networkMask &&
+                        newRoute.nextHop == bgpTableRow.nextHop &&
+                        newRoute.asPath == bgpTableRow.asPath) {
+                        newRouteIsDuplicate = true;
+                    }
+                }
+
+                if (!newRouteIsDuplicate) {
+                    for (auto itBGPTableRow = router->bgpTable.begin();
+                         itBGPTableRow != router->bgpTable.end();) {
                         if (networkIPNRLI == itBGPTableRow->networkIP &&
                             itBGPTableRow->nextHop != pcpp::IPv4Address::Zero &&
-                            nextHop != itBGPTableRow->nextHop &&
                             itBGPTableRow->preferred) {
-                            calculatePreferredRoute(newRoute, *itBGPTableRow);
-                            if (itBGPTableRow->preferred) {
-                                newRoute.preferred = false;
-                            } else {
-                                updateIPTable(
-                                    router, *itBGPTableRow, true, routerIP);
+                            dispreferWorstRoute(newRoute, *itBGPTableRow);
+                            if (newRoute.preferred) {
+                                // Remove old (now dispreferred) route
+                                updateIPTable(router, *itBGPTableRow, true);
                             }
                         }
                         ++itBGPTableRow;
                     }
+
+                    router->bgpTable.push_back(newRoute);
+
+                    if (newRoute.preferred) {
+                        // Add new route if found to be preferred
+                        updateIPTable(router, newRoute, false);
+                    }
                 }
-                router->bgpTable.push_back(newRoute);
-                if (newRoute.preferred) {
-                    updateIPTable(router, newRoute, false, routerIP);
-                }
+
+                // Push the newRoute for the subsequent BGP Update sent to
+                // others
                 uint8_t prefLen = LengthAndIpPrefix::computeLengthIpPrefix(
                     newRoute.networkMask);
 
@@ -248,10 +258,7 @@ void runDecisionProcess(Router *                         router,
     }
 }
 
-void updateIPTable(Router *           router,
-                   BGPTableRow &      route,
-                   bool               isWithDrawnRoute,
-                   pcpp::IPv4Address &routerIP) {
+void updateIPTable(Router *router, BGPTableRow &route, bool isWithDrawnRoute) {
     if (isWithDrawnRoute) {
         for (auto itRoutingTable = router->routingTable.begin();
              itRoutingTable != router->routingTable.end();) {
@@ -264,22 +271,28 @@ void updateIPTable(Router *           router,
             }
         }
     } else {
-        for (NetworkCard *networkCard : *router->networkCards) {
-            if (routerIP == networkCard->IP) {
-                TableRow row(route.networkIP,
-                             route.networkMask,
-                             route.nextHop,
-                             networkCard->netInterface,
-                             networkCard);
-                router->routingTable.emplace_back(row);
-            }
+        // Workaround
+        if (route.nextHop != pcpp::IPv4Address::Zero) {
+            NetworkCard *exitingNetworkCard =
+                router->getNextHopNetworkCardOrNull(route.nextHop);
+            TableRow row(route.networkIP,
+                         route.networkMask,
+                         route.nextHop,
+                         exitingNetworkCard->netInterface,
+                         exitingNetworkCard);
+            router->routingTable.emplace_back(row);
         }
     }
 }
 
-void calculatePreferredRoute(BGPTableRow &newRoute,
-                             BGPTableRow &currentPreferredRoute) {
+void dispreferWorstRoute(BGPTableRow &newRoute,
+                         BGPTableRow &currentPreferredRoute) {
+    assert(newRoute.preferred);
+    assert(currentPreferredRoute.preferred);
+
     if (newRoute.asPath.size() < currentPreferredRoute.asPath.size()) {
         currentPreferredRoute.preferred = false;
+    } else {
+        newRoute.preferred = false;
     }
 }

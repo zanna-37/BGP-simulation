@@ -24,12 +24,7 @@ enum Connection_status {
  * devices.
  */
 class Link {
-   public:
-    Connection_status connection_status;
-
-    Link(Connection_status connection_status)
-        : connection_status(connection_status) {}
-
+   protected:
     /**
      * Get the networkCard of the opposite endpoint in the link.
      *
@@ -38,7 +33,14 @@ class Link {
      * nullptr if there is not such endpoint connected or if the specified
      * networkCard is not connected to the link.
      */
-    NetworkCard *getPeerNetworkCardOrNull(const NetworkCard *networkCard) const;
+    NetworkCard *getPeerNetworkCardOrNull(const NetworkCard *networkCard)
+        const;  // TODO put protected (try private first)
+
+   public:
+    Connection_status connection_status;
+
+    Link(Connection_status connection_status)
+        : connection_status(connection_status) {}
 
     /**
      * Send a packet through the physical link.
@@ -100,6 +102,7 @@ class Link {
     std::string getLogLinkName(NetworkCard *destination) const;
 
     friend class NetworkCard;
+    friend class ApiEndpoint;
 };
 
 #endif  // BGPSIMULATION_ENTITIES_LINK_H

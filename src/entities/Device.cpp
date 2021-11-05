@@ -93,6 +93,8 @@ void Device::bootUp() {
 
                     std::string logMessage = "Received packet from " +
                                              networkCard->netInterface + ": ";
+                    // TODO IMPORTANT FIXME check all the interfaces, not just
+                    // the one that is receiving the packet!
                     if (dstAddress == networkCard->IP) {
                         L_DEBUG(ID,
                                 logMessage + "input chain, processing message");
@@ -185,10 +187,10 @@ void Device::processMessage(
         pcpp::icmphdr *icmpHeader_weak = icmpLayer_weak->getIcmpHeader();
         // sending Echo reply request
         if (icmpHeader_weak->type == pcpp::ICMP_ECHO_REQUEST) {
-            L_DEBUG(ID,
-                    "Received ICMP Echo request from " +
-                        ipLayer_weak->getSrcIPv4Address().toString() +
-                        ", sending reply...");
+            L_INFO(ID,
+                   "Received ICMP Echo request from " +
+                       ipLayer_weak->getSrcIPv4Address().toString() +
+                       ", sending reply...");
             auto icmpLayerToSend = std::make_unique<pcpp::IcmpLayer>();
             icmpLayerToSend->setEchoReplyData(0, 0, 0, nullptr, 0);
 

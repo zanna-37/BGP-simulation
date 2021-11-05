@@ -101,7 +101,7 @@ void BGPStateMachine::resetMinASOriginationIntervalTimer() {
         new BGPTimer("MinASOriginationIntervalTimer",
                      this,
                      std::move(event),
-                     getNegotiatedMinASOriginationIntervalTime());
+                     getMinASOriginationIntervalTime());
 }
 
 void BGPStateMachine::initializeTimers() {
@@ -119,8 +119,7 @@ void BGPStateMachine::initializeTimes() {
     setConnectRetryTime(kConnectRetryTime_defaultVal);
     setNegotiatedHoldTime(kHoldTime_defaultVal);
     setNegotiatedKeepaliveTime(kKeepaliveTime_defaultVal);
-    setNegotiatedMinASOriginationIntervalTime(
-        kMinASOriginationIntervalTime_defaultVal);
+    setMinASOriginationIntervalTime(kMinASOriginationIntervalTime_defaultVal);
 }
 
 std::string BGPStateMachine::toString() {
